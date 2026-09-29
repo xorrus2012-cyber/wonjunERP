@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WONJUN B2B | 기업 주문 시스템</title>
+<style>
+:root{
+  --navy:#111827;
+  --navy2:#1e293b;
+  --blue:#2563eb;
+  --blue2:#eff6ff;
+  --green:#059669;
+  --green2:#ecfdf5;
+  --orange:#d97706;
+  --orange2:#fffbeb;
+  --red:#dc2626;
+  --red2:#fef2f2;
+  --bg:#f4f6f8;
+  --line:#e5e7eb;
+  --text:#1f2937;
+  --muted:#64748b;
+  --white:#fff;
+  --shadow:0 8px 30px rgba(15,23,42,.07);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans KR",sans-serif;font-size:14px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#0f172a,#1e293b 55%,#334155)}
+.login-card{width:min(440px,100%);background:#fff;border-radius:18px;padding:34px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+.brand-mark{width:42px;height:42px;background:var(--blue);border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800}
+.brand h1{font-size:19px;margin:0;letter-spacing:.04em}
+.brand small{display:block;color:#94a3b8;margin-top:3px}
+.login-card h2{font-size:24px;margin:0 0 7px}
+.login-card .sub{color:var(--muted);margin:0 0 24px}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;color:#475569}
+.field input{width:100%;padding:13px 14px;border:1px solid #dbe1e8;border-radius:9px;outline:0}
+.field input:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue2)}
+.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.primary:hover{background:#1d4ed8}
+.btn.light{background:#f1f5f9;color:#334155}
+.btn.green{background:var(--green);color:#fff}
+.btn.red{background:var(--red);color:#fff}
+.login-btn{width:100%;padding:13px;margin-top:5px}
+.demo-box{margin-top:20px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px;color:#64748b;font-size:12px;line-height:1.7}
+.demo-box b{color:#334155}
+
+/* APP */
+.app{min-height:100vh;display:flex}
+.sidebar{width:238px;background:#0f172a;color:#cbd5e1;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;z-index:20}
+.side-brand{height:72px;padding:0 21px;display:flex;align-items:center;border-bottom:1px solid #1e293b;color:#fff}
+.side-brand .brand-mark{width:34px;height:34px;border-radius:9px;margin-right:10px}
+.side-brand strong{font-size:16px;letter-spacing:.06em}
+.side-brand span{display:block;font-size:9px;color:#60a5fa;letter-spacing:.13em;margin-top:2px}
+.side-nav{padding:18px 12px;flex:1}
+.nav-title{font-size:10px;color:#64748b;font-weight:800;letter-spacing:.12em;padding:8px 10px}
+.nav{width:100%;background:none;border:0;color:#94a3b8;text-align:left;padding:11px 12px;border-radius:8px;margin-bottom:3px;font-weight:600}
+.nav:hover{background:#1e293b;color:#fff}
+.nav.active{background:#2563eb;color:#fff}
+.side-user{padding:15px;border-top:1px solid #1e293b;font-size:12px}
+.side-user b{display:block;color:#fff;margin-bottom:3px}
+.side-user span{color:#64748b}
+.main{margin-left:238px;min-width:0;flex:1}
+.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:19px;margin:0}
+.topbar .right{display:flex;align-items:center;gap:9px}
+.client-chip{padding:7px 10px;background:#f8fafc;border:1px solid var(--line);border-radius:7px;font-size:12px}
+.content{padding:25px 28px;max-width:1500px;margin:auto}
+.page{display:none}.page.active{display:block}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+.page-head h2{margin:0;font-size:21px}.page-head p{margin:6px 0 0;color:var(--muted);font-size:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.pad{padding:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.kpi{padding:18px;background:#fff;border:1px solid var(--line);border-radius:12px}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .num{font-size:25px;font-weight:800;margin-top:8px}.kpi .note{font-size:11px;color:#94a3b8;margin-top:5px}
+.grid2{display:grid;grid-template-columns:1.15fr 1.35fr;gap:16px}
+.home-dashboard-grid{grid-template-columns:1fr 1.25fr}
+.notice-thumb{width:86px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;display:block;margin:10px 0}.notice-popup-v9{position:fixed;inset:0;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px}.notice-popup-v9.hidden{display:none}.notice-popup-card-v9{width:min(560px,94vw);max-height:82vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:24px;position:relative}.notice-popup-card-v9 img{width:100%;max-height:320px;object-fit:contain;border-radius:12px;margin:14px 0}.notice-popup-close-v9{position:absolute;right:14px;top:12px;border:0;background:#f1f5f9;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:18px}.memo-client-v9{width:100%;min-height:120px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
+.section-title{font-weight:800;font-size:14px;margin:0}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th{background:#f8fafc;color:#64748b;font-size:11px;text-align:left;padding:12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid #eef2f7;vertical-align:middle;font-size:12px}
+tr:last-child td{border-bottom:0}
+.status{display:inline-flex;padding:5px 8px;border-radius:99px;font-size:10px;font-weight:800}
+.s-blue{background:#eff6ff;color:#2563eb}.s-green{background:#ecfdf5;color:#047857}.s-orange{background:#fffbeb;color:#b45309}.s-gray{background:#f1f5f9;color:#64748b}.s-red{background:#fef2f2;color:#b91c1c}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select,.modal input,.modal select{padding:10px;border:1px solid #dbe1e8;border-radius:8px;background:#fff;outline:0}
+.toolbar input{min-width:220px}
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.product{padding:17px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.product .cat{font-size:10px;color:#2563eb;font-weight:800;margin-bottom:8px}
+.product h3{font-size:14px;margin:0 0 5px}.spec{font-size:11px;color:#64748b;margin-bottom:15px}
+.price-row{display:flex;align-items:end;justify-content:space-between}.price{font-size:18px;font-weight:800}.unit{font-size:10px;color:#94a3b8}
+.qty{width:76px;padding:8px;border:1px solid #dbe1e8;border-radius:7px}
+.cart-bar{position:fixed;bottom:20px;right:28px;background:#0f172a;color:#fff;padding:13px 16px;border-radius:11px;box-shadow:0 15px 35px rgba(15,23,42,.25);display:flex;align-items:center;gap:16px;z-index:30}
+.cart-bar strong{font-size:15px}
+.notice{padding:14px;border-bottom:1px solid #eef2f7;display:flex;justify-content:space-between}.notice:last-child{border:0}.notice b{font-size:12px}.notice span{font-size:11px;color:#94a3b8}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.form-grid .full{grid-column:1/-1}
+.info-list{display:grid;grid-template-columns:130px 1fr;border-top:1px solid var(--line)}
+.info-list div{padding:12px;border-bottom:1px solid var(--line)}.info-list .key{background:#f8fafc;color:#64748b;font-size:11px;font-weight:700}
+.admin-price{font-weight:800;color:#2563eb}
+.action-row{display:flex;gap:6px;flex-wrap:wrap}
+.small-btn{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:11px;font-weight:700}
+.small-btn:hover{background:#f8fafc}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{width:min(650px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:14px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}.modal-head h3{margin:0;font-size:16px}.close{border:0;background:none;font-size:20px;color:#64748b}
+.modal-body{padding:20px}.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+
+/* CAPTURE DETERRENCE */
+.security-overlay{position:fixed;inset:0;background:#000;z-index:9999;color:#fff;display:none;align-items:center;justify-content:center;text-align:center}
+.security-overlay.show{display:flex}.security-overlay h2{font-size:25px;letter-spacing:.15em}.security-overlay p{color:#888}
+
+@media(max-width:1000px){
+ .sidebar{width:205px}.main{margin-left:205px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.product-grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+ .sidebar{display:none}.main{margin-left:0}.content{padding:18px}.topbar{padding:0 18px}.kpi-grid,.product-grid{grid-template-columns:1fr}.topbar .client-chip{display:none}
+}
+
+.password-row{display:flex;gap:8px;align-items:center}
+.password-row input{flex:1}
+.help-text{font-size:11px;color:#94a3b8;line-height:1.6;margin-top:7px}
+.account-warning{margin-top:22px;padding:14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
+.account-warning b{font-size:12px;color:#334155}
+.account-warning p{margin:6px 0 0;font-size:11px;color:#64748b;line-height:1.6}
+.section-title{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:18px}
+</style>
+<style id="v4-enhancements">
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff}.search-input{min-width:260px}.category-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9dee8;border-radius:999px;background:#fff;margin:4px}.inventory-qty{width:110px;padding:8px;border:1px solid #d9dee8;border-radius:7px}.status-select{padding:8px 10px;border:1px solid #d9dee8;border-radius:7px;background:#fff}.v4-empty{text-align:center;padding:28px;color:#8a93a3}
+</style>
+<style id="ecount-v6-css">
+.smartbox{position:relative;min-width:250px}.smartinput{width:100%;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:9px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:5px}.smartbox.open .smartdrop{display:block}.smartopt{display:flex;gap:8px;align-items:center;padding:9px;border-radius:6px;cursor:pointer}.smartopt:hover{background:#f8fafc}.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}.date-range-v6{display:flex;gap:7px;align-items:center}.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.result-v6{margin-left:auto;color:#64748b;font-size:12px}.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}.detail-link{cursor:pointer;color:#2563eb;font-weight:700}.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
+<style id="v8-fix-css">
+/* V8 ECOUNT-style usability */
+html,body{overflow-x:hidden}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
+.table-wrap table{min-width:900px}
+#adminClients .table-wrap table{min-width:820px}
+#adminOrders .table-wrap table{min-width:1050px}
+#adminPrices .table-wrap table{min-width:1050px}
+.smartbox{min-width:260px;max-width:360px}
+.smartinput{height:40px}
+.smartdrop{max-height:300px;padding:4px}
+.smartopt{min-height:38px;padding:8px 10px;border-bottom:1px solid #f1f5f9;outline:none}
+.smartopt.active{background:#eff6ff;color:#1d4ed8;font-weight:700}
+.smartopt.selected{background:#f8fafc;color:#334155}
+.smartopt .smart-check{margin-left:auto;font-size:11px;color:#2563eb;font-weight:800}
+.smart-hint{padding:8px 10px;color:#94a3b8;font-size:11px;border-bottom:1px solid #eef2f7}
+#adminOrders .toolbar,#adminClients .toolbar,#adminPrices .toolbar{align-items:flex-start}
+#adminOrders .toolbar{overflow:visible}
+#adminOrders .toolbar>*,#adminClients .toolbar>*,#adminPrices .toolbar>*{flex:0 0 auto}
+.order-check-cell{width:42px;text-align:center}
+.order-check-v6{width:16px;height:16px}
+.order-head-check{width:42px;text-align:center}
+.doc-btn{min-width:54px}
+.notice-content-v8{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.9}
+@media(max-width:900px){.smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}}
+</style></head>
+<body>
+
+<!-- LOGIN -->
+<section id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-mark">WJ</div>
+      <div><h1>WONJUN B2B</h1><small>BUSINESS ORDER SYSTEM</small></div>
+    </div>
+    <h2>로그인</h2>
+    <p class="sub">거래처 전용 주문·발주 시스템입니다.</p>
+    <div class="field"><label>아이디</label><input id="loginId" placeholder="거래처 아이디"></div>
+    <div class="field"><label>비밀번호</label><input id="loginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn primary login-btn" onclick="login()">로그인</button>
+    <div class="demo-box">
+      <b>프로토타입 테스트 계정</b><br>
+      거래처 A : client-a / 1234<br>
+      거래처 B : client-b / 1234<br>
+      관리자 : admin / 1234
+    </div>
+  </div>
+</section>
+
+<!-- APP -->
+<section id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="side-brand">
+      <div class="brand-mark">WJ</div>
+      <div><strong>WONJUN</strong><span>B2B BUSINESS SYSTEM</span></div>
+    </div>
+    <nav id="navClient" class="side-nav">
+      <div class="nav-title">CLIENT</div>
+      <button class="nav active" data-page="home" onclick="go('home',this)">▣ &nbsp; 대시보드</button>
+      <button class="nav" data-page="products" onclick="go('products',this)">▤ &nbsp; 제품 주문</button>
+      <button class="nav" data-page="cartPage" onclick="go('cartPage',this)">🛒 &nbsp; 장바구니 <span id="navCartCount"></span></button>
+      <button class="nav" data-page="orders" onclick="go('orders',this)">☷ &nbsp; 발주/주문 현황</button>
+      <button class="nav" data-page="inventory" onclick="go('inventory',this)">▥ &nbsp; 재고 현황</button>
+      <button class="nav" data-page="documents" onclick="go('documents',this)">▧ &nbsp; 거래 문서</button>
+      <button class="nav" data-page="notices" onclick="go('notices',this)">● &nbsp; 공지사항</button>
+      <button class="nav" data-page="account" onclick="go('account',this)">◎ &nbsp; 거래처 정보</button>
+    </nav>
+    <nav id="navAdmin" class="side-nav hidden">
+      <div class="nav-title">ADMIN</div>
+      <button class="nav active" data-page="adminDash" onclick="go('adminDash',this)">▣ &nbsp; 통합 대시보드</button>
+      <button class="nav" data-page="adminOrders" onclick="go('adminOrders',this)">☷ &nbsp; 주문/수주 관리</button>
+      <button class="nav" data-page="adminClients" onclick="go('adminClients',this)">▤ &nbsp; 거래처 관리</button>
+      <button class="nav" data-page="adminProducts" onclick="go('adminProducts',this)">▥ &nbsp; 제품 관리</button>
+      <button class="nav" data-page="adminPrices" onclick="go('adminPrices',this)">₩ &nbsp; 단가 관리</button>
+      <button class="nav" data-page="adminInventory" onclick="go('adminInventory',this)">▦ &nbsp; 재고/창고 관리</button>
+      <button class="nav" data-page="adminStats" onclick="go('adminStats',this)">◔ &nbsp; 매출/통계</button>
+      <button class="nav" data-page="adminNotices" onclick="go('adminNotices',this)">● &nbsp; 공지사항 관리</button>
+    </nav>
+    <div class="side-user"><b id="sideUser">거래처</b><span id="sideRole">CLIENT</span></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">대시보드</h1>
+      <div class="right">
+        <span class="client-chip" id="clientChip">거래처 A</span>
+        <button class="btn light" onclick="logout()">로그아웃</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- CLIENT HOME -->
+      <section id="home" class="page active">
+        <div class="page-head"><div><h2>안녕하세요, <span id="welcomeName">거래처 A</span>님</h2><p>현재 발주 및 제품 정보를 한 곳에서 확인할 수 있습니다.</p></div><button class="btn primary" onclick="go('products')">제품 주문하기</button></div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">진행 중 발주</div><div class="num" id="homeKpiProgress">0건</div><div class="note">생산/출고 진행 중</div></div>
+          <div class="kpi"><div class="label">이번 달 발주</div><div class="num" id="homeKpiMonth">0건</div><div class="note">현재 로그인 거래처 기준</div></div>
+          <div class="kpi"><div class="label">출고 예정</div><div class="num" id="homeKpiShip">0건</div><div class="note">출고 대기/출고 중</div></div>
+          <div class="kpi"><div class="label">장바구니</div><div class="num" id="homeKpiCart">0롤</div><div class="note" id="homeKpiCartAmount">₩ 0</div></div>
+        </div>
+        <div class="grid2 home-dashboard-grid">
+          <div class="card pad"><div class="page-head"><h3 class="section-title">최근 발주</h3><button class="small-btn" onclick="go('orders')">전체보기</button></div><div class="table-wrap"><table><thead><tr><th>발주번호</th><th>품목</th><th>금액</th><th>상태</th></tr></thead><tbody id="homeOrders"></tbody></table></div></div>
+          <div class="card"><div class="pad"><h3 class="section-title">공지사항</h3></div><div id="homeNotices"></div></div>
+        </div>
+      </section>
+
+      <!-- CLIENT PRODUCTS -->
+      <section id="products" class="page">
+        <div class="page-head"><div><h2>제품 주문</h2><p>로그인한 거래처에 적용된 개별 단가가 표시됩니다.</p></div></div>
+        <div class="toolbar"><input id="productSearch" placeholder="제품명 / 규격 검색" oninput="renderProducts()"><select id="productCat" onchange="renderProducts()"><option>전체</option><option>OPP 테이프</option><option>컬러 테이프</option><option>포장자재</option></select></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <!-- CLIENT CART -->
+      <section id="cartPage" class="page">
+        <div class="page-head">
+          <div><h2>장바구니</h2><p>발주 전 품목·규격·단가·수량을 확인하고 수정할 수 있습니다.</p></div>
+          <button class="btn light" onclick="go('products')">제품 더 담기</button>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>제품</th><th>규격</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
+            <tbody id="cartRows"></tbody>
+          </table>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div style="display:flex;justify-content:flex-end;align-items:center;gap:18px">
+            <span style="color:#64748b;font-size:12px">총 발주금액</span>
+            <strong id="cartPageTotal" style="font-size:22px">₩ 0</strong>
+            <button class="btn primary" onclick="checkout()">이 내용으로 발주하기</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENT ORDERS -->
+      <section id="orders" class="page">
+        <div class="page-head"><div><h2>발주/주문 현황</h2><p>발주 접수부터 출고까지 진행 상태를 확인합니다.</p></div></div>
+        <div class="card table-wrap"><table><thead><tr><th>발주번호</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>진행상태</th><th></th></tr></thead><tbody id="clientOrderRows"></tbody></table></div>
+      </section>
+
+      <!-- CLIENT INVENTORY -->
+      <section id="inventory" class="page">
+        <div class="page-head"><div><h2>재고 현황</h2><p>실시간 연동 전 단계의 샘플 화면입니다. 실제 구축 시 ERP 재고와 연결합니다.</p></div></div>
+        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재고</th><th>재고상태</th><th>출고 가능</th></tr></thead><tbody id="clientInventoryRows"></tbody></table></div>
+      </section>
+
+      <!-- CLIENT DOCUMENTS -->
+      <section id="documents" class="page">
+        <div class="page-head"><div><h2>거래 문서</h2><p>견적서·거래명세서·출고 관련 문서를 관리하는 공간입니다.</p></div></div>
+        <div class="card table-wrap"><table><thead><tr><th>문서번호</th><th>종류</th><th>관련 발주</th><th>발행일</th><th>다운로드</th></tr></thead><tbody>
+          <tr><td>QT-260901-021</td><td>견적서</td><td>-</td><td>2026-09-01</td><td><button class="small-btn doc-btn" onclick="downloadDocumentPDF('QT-260901-021','견적서','-','2026-09-01')">PDF</button></td></tr>
+          <tr><td>TS-260921-003</td><td>거래명세서</td><td>WJ-260921-003</td><td>2026-09-21</td><td><button class="small-btn doc-btn" onclick="downloadDocumentPDF('TS-260921-003','거래명세서','WJ-260921-003','2026-09-21')">PDF</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <!-- CLIENT NOTICES -->
+      <section id="notices" class="page">
+        <div class="page-head"><div><h2>공지사항</h2><p>원준테이프에서 전달하는 거래 관련 안내입니다.</p></div></div>
+        <div class="card" id="noticeList"></div>
+      </section>
+
+      <!-- CLIENT ACCOUNT -->
+      <section id="account" class="page">
+        <div class="page-head"><div><h2>거래처 정보</h2><p>등록된 거래처 및 담당자 정보를 확인합니다.</p></div></div>
+        <div class="card pad"><div class="info-list">
+          <div class="key">회사명</div><div id="accountCompany">거래처 A</div>
+          <div class="key">거래처 코드</div><div>WJ-C001</div>
+          <div class="key">담당자</div><div>홍길동</div>
+          <div class="key">전화번호</div><div>010-0000-0000</div>
+          <div class="key">이메일</div><div>contact@example.com</div>
+        </div></div>
+      </section>
+
+      <!-- ADMIN DASH -->
+      <section id="adminDash" class="page">
+        <div class="page-head"><div><h2>통합 대시보드</h2><p>주문·재고·생산을 한 화면에서 확인합니다.</p></div></div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">신규 발주</div><div class="num" id="adminKpiNew">0건</div><div class="note">접수 완료</div></div>
+          <div class="kpi"><div class="label">오늘 출고 예정</div><div class="num" id="adminKpiShip">0건</div><div class="note" id="adminKpiShipQty">총 0롤</div></div>
+          <div class="kpi"><div class="label">재고 주의 품목</div><div class="num" id="adminKpiStock">0개</div><div class="note">안전재고 이하</div></div>
+          <div class="kpi"><div class="label">전체 발주</div><div class="num" id="adminKpiOrders">0건</div><div class="note">저장 데이터 기준</div></div>
+        </div>
+        <div class="grid2">
+          <div class="card pad"><div class="page-head"><h3 class="section-title">최근 수주</h3><button class="small-btn" onclick="go('adminOrders')">전체보기</button></div><div class="table-wrap"><table><thead><tr><th>선택</th><th>발주번호</th><th>거래처</th><th>품목</th><th>수량</th><th>상태</th></tr></thead><tbody id="adminDashOrders"></tbody></table></div></div>
+          <div class="card"><div class="pad"><h3 class="section-title">재고 주의 품목</h3></div><div id="stockWarnings"></div></div>
+        </div>
+      </section>
+
+      <!-- ADMIN ORDERS -->
+      <section id="adminOrders" class="page">
+        <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div></div>
+        <div class="toolbar" style="align-items:flex-start">
+<div class="smartbox" id="orderClientFilter"></div>
+<div class="smartbox" id="orderProductFilter"></div>
+<div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" onchange="renderAdminOrders()"><span>~</span><input type="date" id="adminOrderDateTo" onchange="renderAdminOrders()"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
+<select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
+<div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
+        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+      </section>
+
+      <!-- ADMIN CLIENTS -->
+      <section id="adminClients" class="page">
+        <div class="page-head"><div><h2>거래처 관리</h2><p>거래처 기본정보, 로그인 계정, 담당자 정보를 관리합니다. 단가는 이 메뉴에서 관리하지 않습니다.</p></div><button class="btn primary" onclick="openClientCreateModal()">+ 거래처 등록</button></div>
+        <div class="toolbar"><div class="smartbox" id="clientSmartFilter"></div><select id="clientStatusFilter" onchange="renderClients()"><option>전체</option><option>정상</option><option>거래중지</option></select></div>
+        <div class="card table-wrap"><table><thead><tr><th>거래처 코드</th><th>회사명</th><th>아이디</th><th>담당자</th><th>전화번호</th><th>상태</th><th>관리</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+      </section>
+
+
+      <!-- ADMIN CLIENT DETAIL -->
+      <section id="adminClientDetail" class="page">
+        <div class="page-head">
+          <div>
+            <h2>거래처 상세</h2>
+            <p id="clientDetailSubtitle">거래처 기본정보와 접속 정보를 관리합니다.</p>
+          </div>
+          <button class="btn light" onclick="go('adminClients')">← 거래처 목록</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="card pad">
+            <div class="section-title">거래처 기본 정보</div>
+            <div class="field"><label>거래처 코드</label><input id="detailClientCode"></div>
+            <div class="field"><label>거래처명</label><input id="detailClientName"></div>
+            <div class="field"><label>사업자번호</label><input id="detailClientBizNo"></div>
+            <div class="field"><label>담당자</label><input id="detailClientManager"></div>
+            <div class="field"><label>연락처</label><input id="detailClientPhone"></div>
+            <div class="field"><label>이메일</label><input id="detailClientEmail"></div>
+            <div class="field"><label>주소</label><input id="detailClientAddress"></div>
+            <div class="field"><label>거래 상태</label>
+              <select id="detailClientStatus">
+                <option value="정상">정상</option>
+                <option value="중지">중지</option>
+              </select>
+            </div>
+            <button class="btn primary" onclick="saveClientDetail()">기본정보 저장</button>
+          </div>
+
+          <div class="card pad">
+            <div class="section-title">접속 정보</div>
+            <div class="field"><label>로그인 ID</label><input id="detailClientLoginId"></div>
+            <div class="field">
+              <label>비밀번호</label>
+              <div class="password-row">
+                <input id="detailClientPassword" type="password">
+                <button class="small-btn" type="button" onclick="toggleClientPassword()">보기</button>
+              </div>
+              <div class="help-text">관리자 화면에서 확인하거나 변경할 수 있는 업체용 접속 비밀번호입니다.</div>
+            </div>
+            <div class="action-row">
+              <button class="btn primary" onclick="saveClientCredentials()">접속정보 저장</button>
+              <button class="btn light" onclick="generateClientPassword()">새 비밀번호 만들기</button>
+            </div>
+            <div class="account-warning">
+              <b>관리자 전용</b>
+              <p>거래처의 로그인 정보는 관리자 화면에서만 관리합니다. 거래처는 다른 업체의 계정 정보를 볼 수 없습니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ADMIN PRODUCTS -->
+      <section id="adminProducts" class="page">
+        <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><button class="btn primary" onclick="openProductModal()">+ 제품 등록</button></div>
+        <div class="toolbar"><div class="smartbox" id="productAdminSmart"></div><select id="productAdminCat" onchange="renderAdminProducts()"><option>전체</option></select></div>
+        <div class="card pad" style="margin-bottom:14px"><div class="page-head"><strong>제품 분류</strong><button class="btn light" onclick="openCategoryModal()">+ 분류 추가</button></div><div id="productCategories"></div></div>
+        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
+      </section>
+
+      <!-- ADMIN PRICES -->
+      <section id="adminPrices" class="page">
+        <div class="page-head"><div><h2>단가 관리</h2><p>거래처를 먼저 선택한 뒤 제품을 검색·선택하여 해당 거래처의 적용 단가를 관리합니다.</p></div></div>
+        <div class="card pad">
+          <div class="form-grid">
+            <div class="field"><label>① 거래처 선택 · 여러 개 가능</label><div class="smartbox" id="priceClientSmart"></div></div>
+            <div class="field"><label>② 제품 검색 · 여러 개 가능</label><div class="smartbox" id="priceProductSmart"></div></div>
+          </div>
+        </div>
+        <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>현재 적용 단가</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div>
+      </section>
+
+      <!-- ADMIN INVENTORY -->
+      <section id="adminInventory" class="page">
+        <div class="page-head"><div><h2>재고/창고 관리</h2><p>재고 수량과 거래처 공개 여부를 관리합니다.</p></div></div>
+        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>재고수량</th><th>안전재고</th><th>창고</th><th>거래처 공개</th><th>공개 설정</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div>
+      </section>
+
+      <!-- ADMIN PRODUCTION -->
+
+      <!-- ADMIN NOTICES -->
+      <section id="adminNotices" class="page">
+        <div class="page-head">
+          <div><h2>공지사항 관리</h2><p>거래처에게 보여줄 공지사항을 등록하고 수정합니다.</p></div>
+          <button class="btn primary" onclick="openNoticeModal()">+ 공지사항 등록</button>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead><tr><th>제목</th><th>작성일</th><th>상태</th><th>관리</th></tr></thead>
+            <tbody id="adminNoticeRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ADMIN STATS -->
+      <section id="adminStats" class="page">
+        <div class="page-head"><div><h2>매출/통계</h2><p>실제 구축 시 DB 주문 데이터를 기준으로 자동 집계합니다.</p></div></div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="label">9월 누적 수주</div><div class="num">₩48.2M</div><div class="note">샘플 데이터</div></div>
+          <div class="kpi"><div class="label">누적 발주</div><div class="num">86건</div><div class="note">거래처 24곳</div></div>
+          <div class="kpi"><div class="label">평균 발주금액</div><div class="num">₩560K</div><div class="note">샘플 데이터</div></div>
+          <div class="kpi"><div class="label">출고 완료율</div><div class="num">93%</div><div class="note">샘플 데이터</div></div>
+        </div>
+        <div class="card pad">
+          <h3 class="section-title">월별 수주 추이</h3>
+          <div style="height:230px;display:flex;align-items:end;gap:18px;padding:25px 20px 10px">
+            <div style="height:42%;flex:1;background:#dbeafe;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">4월</span></div>
+            <div style="height:55%;flex:1;background:#bfdbfe;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">5월</span></div>
+            <div style="height:48%;flex:1;background:#93c5fd;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">6월</span></div>
+            <div style="height:67%;flex:1;background:#60a5fa;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">7월</span></div>
+            <div style="height:75%;flex:1;background:#3b82f6;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">8월</span></div>
+            <div style="height:91%;flex:1;background:#2563eb;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">9월</span></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</section>
+
+<!-- CART -->
+<div id="cartBar" class="cart-bar hidden"><button class="btn light" onclick="go('cartPage')" style="padding:7px 10px">장바구니 <strong id="cartCount">0</strong>개</button><span id="cartTotal">₩ 0</span><button class="btn primary" onclick="checkout()">발주 확인</button></div>
+
+<!-- MODAL -->
+<div id="modalBg" class="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">등록</h3><button class="close" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot"><button class="btn light" onclick="closeModal()">취소</button><button class="btn primary" id="modalSave">저장</button></div>
+  </div>
+</div>
+
+<div id="securityOverlay" class="security-overlay"><div><h2>SYSTEM PROTECTED</h2><p>화면 보호 모드가 활성화되었습니다.</p></div></div>
+
+<script>
+const productCategories=['OPP 테이프','컬러 테이프','포장자재'];
+const products=[
+ {id:1,code:'WJ-OPP-4840',cat:'OPP 테이프',name:'WJ 투명 OPP 테이프',spec:'48mm × 40m × 50μ',base:900,stock:12500,safety:5000,warehouse:'A-01',prices:{'client-a':820,'client-b':850},inventoryPublic:true},
+ {id:2,code:'WJ-OPP-4850',cat:'OPP 테이프',name:'WJ 투명 OPP 테이프',spec:'48mm × 50m × 53μ',base:1040,stock:8400,safety:4000,warehouse:'A-02',prices:{'client-a':970,'client-b':990},inventoryPublic:true},
+ {id:3,code:'WJ-YEL-4840',cat:'컬러 테이프',name:'WJ 황색 OPP 테이프',spec:'48mm × 40m',base:980,stock:3200,safety:3500,warehouse:'B-01',prices:{'client-a':910,'client-b':940},inventoryPublic:true},
+ {id:4,code:'WJ-BLU-4840',cat:'컬러 테이프',name:'WJ 청색 OPP 테이프',spec:'48mm × 40m',base:1000,stock:1800,safety:2500,warehouse:'B-02',prices:{'client-a':930,'client-b':960},inventoryPublic:true},
+ {id:5,code:'WJ-STF-500',cat:'포장자재',name:'스트레치 필름',spec:'500mm × 400m',base:7200,stock:640,safety:800,warehouse:'C-01',prices:{'client-a':6800,'client-b':7000},inventoryPublic:true}
+];
+const clients=[
+ {id:'C001',code:'WJ-C001',name:'거래처 A',loginId:'client-a',password:'1234',manager:'김담당',phone:'010-1111-1111',bizNo:'123-45-67890',email:'a@example.com',address:'서울시',status:'정상'},
+ {id:'C002',code:'WJ-C002',name:'거래처 B',loginId:'client-b',password:'1234',manager:'이담당',phone:'010-2222-2222',bizNo:'234-56-78901',email:'b@example.com',address:'경기도',status:'정상'}
+];
+let orders=[
+ {no:'WJ-260921-003',client:'거래처 A',id:'client-a',date:'2026-09-21',item:'투명 OPP 48×40 외 1종',qty:4200,amount:3337920,status:'출고 중'},
+ {no:'WJ-260918-002',client:'거래처 A',id:'client-a',date:'2026-09-18',item:'투명 OPP 48×50',qty:1720,amount:1668960,status:'출고 완료'},
+ {no:'WJ-260917-001',client:'거래처 B',id:'client-b',date:'2026-09-17',item:'황색 OPP 48×40',qty:1840,amount:1668960,status:'출고 대기'},
+ {no:'WJ-260916-007',client:'거래처 B',id:'client-b',date:'2026-09-16',item:'스트레치 필름',qty:120,amount:816000,status:'생산 중'}
+];
+const notices=[
+ {title:'추석 연휴 출고 일정 안내',date:'2026-09-24',content:'추석 연휴 기간 출고 일정을 안내드립니다.\\n\\n9월 30일~10월 2일은 출고 일정이 일부 조정될 수 있습니다. 긴급 발주 건은 담당자에게 별도로 문의해 주세요.'},
+ {title:'9월 정기 생산 일정 안내',date:'2026-09-18',content:'9월 정기 생산 일정 안내입니다.\\n\\n생산 라인별 일정에 따라 일부 제품의 출고일이 변동될 수 있습니다. 발주 현황에서 현재 진행 상태를 확인해 주세요.'},
+ {title:'신규 제품 규격 등록 안내',date:'2026-09-10',content:'신규 제품 규격이 등록되었습니다.\\n\\n제품 주문 메뉴에서 새롭게 등록된 제품과 거래처 적용 단가를 확인하실 수 있습니다.'}
+];
+let currentUser=localStorage.getItem('wonjun_v7_session')||null,cart={};
+
+// 프로토타입 영속 저장: 새로고침해도 거래처/제품/주문/공지/단가 데이터와 로그인 상태를 유지합니다.
+function escapeHtmlV8(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;')}
+function cartKeyV8(){return 'wonjun_v8_cart_'+(currentUser||'guest')}
+function saveCartV8(){try{localStorage.setItem(cartKeyV8(),JSON.stringify(cart))}catch(e){}}
+function loadCartV8(){try{const v=JSON.parse(localStorage.getItem(cartKeyV8())||'{}');if(v&&typeof v==='object')cart=v}catch(e){cart={}}}
+
+function loadV7Data(){
+  try{
+    const savedClients=localStorage.getItem('wonjun_v7_clients');
+    const savedProducts=localStorage.getItem('wonjun_v7_products');
+    const savedOrders=localStorage.getItem('wonjun_v7_orders');
+    const savedNotices=localStorage.getItem('wonjun_v7_notices');
+    const savedCategories=localStorage.getItem('wonjun_v7_categories');
+    if(savedClients){const a=JSON.parse(savedClients);if(Array.isArray(a))clients.splice(0,clients.length,...a)}
+    if(savedProducts){const a=JSON.parse(savedProducts);if(Array.isArray(a))products.splice(0,products.length,...a)}
+    if(savedOrders){const a=JSON.parse(savedOrders);if(Array.isArray(a))orders.splice(0,orders.length,...a)}
+    if(savedNotices){const a=JSON.parse(savedNotices);if(Array.isArray(a))notices.splice(0,notices.length,...a)}
+    if(savedCategories){const a=JSON.parse(savedCategories);if(Array.isArray(a)&&a.length)productCategories.splice(0,productCategories.length,...a)}
+  }catch(e){console.warn('저장 데이터 불러오기 실패',e)}
+}
+function saveV7Data(){
+  try{
+    localStorage.setItem('wonjun_v7_clients',JSON.stringify(clients));
+    localStorage.setItem('wonjun_v7_products',JSON.stringify(products));
+    localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders));
+    localStorage.setItem('wonjun_v7_notices',JSON.stringify(notices));
+    localStorage.setItem('wonjun_v7_categories',JSON.stringify(productCategories));
+  }catch(e){console.warn('저장 데이터 저장 실패',e)}
+}
+loadV7Data();
+
+const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
+function login(){
+ const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
+ const adminOK=id==='admin' && pw==='1234';
+ const client=clients.find(x=>(x.loginId||'').toLowerCase()===id.toLowerCase() && x.password===pw && x.status!=='거래중지');
+ if(!adminOK && !client){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
+ currentUser=adminOK?'admin':client.loginId;
+ localStorage.setItem('wonjun_v7_session',currentUser);
+ applyLoggedInUI();
+}
+function applyLoggedInUI(){
+ const id=currentUser;
+ if(!id){showLogin();return}
+ const admin=id==='admin';
+ const client=admin?null:clients.find(x=>(x.loginId||'')===id);
+ if(!admin && !client){localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();return}
+ document.getElementById('loginScreen').classList.add('hidden');
+ document.getElementById('app').classList.remove('hidden');
+ document.getElementById('navClient').classList.toggle('hidden',admin);
+ document.getElementById('navAdmin').classList.toggle('hidden',!admin);
+ document.getElementById('sideUser').textContent=admin?'원준테이프 관리자':client.name;
+ document.getElementById('sideRole').textContent=admin?'ADMIN':'CLIENT';
+ document.getElementById('clientChip').textContent=admin?'관리자':client.name;
+ loadCartV8();
+ if(admin) go('adminDash');
+ else {
+   document.getElementById('welcomeName').textContent=client.name;
+   document.getElementById('accountCompany').textContent=client.name;
+   go('home');
+ }
+ renderAll();
+ setTimeout(initV6Smart,20);
+}
+function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
+
+function logout(){localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();document.getElementById('loginId').value='';document.getElementById('loginPw').value='';}
+function go(page,btn){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById(page)?.classList.add('active');
+ document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',inventory:'재고 현황',documents:'거래 문서',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminInventory:'재고/창고 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
+ document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
+ if(page==='products')renderProducts(); if(page==='cartPage')renderCartPage();
+ if(page==='orders')renderClientOrders();
+ if(page==='adminOrders')renderAdminOrders();
+ if(page==='adminClients')renderClients(); if(page==='adminNotices')renderAdminNotices();
+ if(page==='adminProducts')renderAdminProducts();
+ if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
+}
+function price(p){return currentUser==='admin'?p.base:(p.prices[currentUser]??p.base)}
+function renderProducts(){
+ const q=(document.getElementById('productSearch').value||'').toLowerCase(),c=document.getElementById('productCat').value;
+ document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
+ <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
+ <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1롤 기준 · 거래처 적용 단가</div></div>
+ <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${p.id})">담기</button></div></div></div>`).join('');
+}
+function addCart(id){const q=Number(document.getElementById('qty-'+id).value);if(q<1)return;cart[id]=(cart[id]||0)+q;saveCartV8();updateCart();renderCartPage()}
+function renderCartPage(){
+ const rows=document.getElementById('cartRows'); if(!rows)return;
+ const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
+ let total=0;
+ if(!entries.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
+ rows.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return '';const unit=price(p),amount=unit*Number(q);total+=amount;return `<tr><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty(${p.id},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart(${p.id})">삭제</button></td></tr>`}).join('');
+ document.getElementById('cartPageTotal').textContent=won(total);
+}
+function updateCart(){
+ let count=0,total=0;
+ Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);count+=q;total+=q*price(p)});
+ document.getElementById('cartCount').textContent=count.toLocaleString();
+ document.getElementById('cartTotal').textContent=won(total);
+ document.getElementById('cartBar').classList.toggle('hidden',count===0);
+ const pageTotal=document.getElementById('cartPageTotal'); if(pageTotal)pageTotal.textContent=won(total);
+ if(document.getElementById('cartRows'))renderCartPage();
+ const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
+}
+function checkout(){
+ if(!Object.keys(cart).length)return;
+ let count=0,total=0,names=[];Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);count+=q;total+=q*price(p);names.push(p.name)});
+ if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\\n발주를 접수하시겠습니까?`))return;
+ const cl=clients.find(x=>x.loginId===currentUser);
+ orders.unshift({no:'WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(orders.length+1).padStart(3,'0'),client:cl?.name||currentUser,id:currentUser,date:new Date().toISOString().slice(0,10),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),qty:count,amount:total,status:'접수 완료',clientMemo:''});
+ cart={};saveCartV8();updateCart();alert('발주가 접수되었습니다.');go('orders');renderAll();
+}
+function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
+function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
+function renderInventoryRows(){document.getElementById('clientInventoryRows').innerHTML=products.filter(p=>p.inventoryPublic!==false).map(p=>{const ok=p.stock>p.safety;return `<tr><td>${p.code}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${p.stock.toLocaleString()}롤</td><td>${badge(ok?'정상':'재고 주의')}</td><td>${ok?'가능':'확인 필요'}</td></tr>`}).join('')}
+function renderNotices(){
+ const html=notices.map((n,i)=>`<div class="notice" style="cursor:pointer" onclick="openNoticeDetail(${i})"><div style="min-width:0"><b>${escapeHtmlV8(n.title)}</b>${n.image?`<img class="notice-thumb" src="${n.image}" alt="">`:''}</div><span>${n.date}</span></div>`).join('');
+ document.getElementById('homeNotices').innerHTML=html||'<div class="pad" style="color:#64748b;font-size:12px">등록된 공지사항이 없습니다.</div>';
+ document.getElementById('noticeList').innerHTML=html||'<div class="pad" style="color:#64748b;font-size:12px">등록된 공지사항이 없습니다.</div>';
+ renderAdminNotices();showScheduledNoticePopup();
+}
+function openNoticeDetail(i){const n=notices[i];if(!n)return;document.getElementById('modalTitle').textContent=n.title;document.getElementById('modalBody').innerHTML=`<div style="font-size:11px;color:#94a3b8;margin-bottom:18px">${n.date}</div>${n.image?`<img src="${n.image}" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;margin-bottom:16px" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(n.content||'공지사항 내용입니다.')}</div>`;document.getElementById('modalSave').style.display='none';document.getElementById('modalBg').classList.add('show')}
+function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))return;const d=document.createElement('div');d.id='noticePopupV9';d.className='notice-popup-v9 hidden';d.innerHTML='<div class="notice-popup-card-v9"><button class="notice-popup-close-v9" onclick="closeNoticePopupV9()">×</button><div id="noticePopupBodyV9"></div></div>';document.body.appendChild(d)}
+function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
+function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
+function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'롤';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
+function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'롤';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
+function renderAdminOrders(){
+ const rows=document.getElementById('adminOrderRows');if(!rows)return;
+ const clientsSel=smartGet('orderClientFilter'), productsSel=smartGet('orderProductFilter');
+ const from=document.getElementById('adminOrderDateFrom')?.value||'',to=document.getElementById('adminOrderDateTo')?.value||'',st=document.getElementById('adminStatus')?.value||'전체';
+ const list=orders.filter(o=>{const c=clients.find(x=>x.loginId===o.id);const clientOK=!clientsSel.length||clientsSel.includes(String(c?.id));const prodNames=productsSel.map(x=>products.find(p=>String(p.id)===x)?.name||'');const productOK=!productsSel.length||prodNames.some(n=>n&&String(o.item||'').includes(n.replace('WJ ','')))||productsSel.some(x=>String(o.item||'').includes(String(x)));const d=String(o.date||'').slice(0,10);return clientOK&&productOK&&(!from||d>=from)&&(!to||d<=to)&&(st==='전체'||o.status===st)});
+ const rc=document.getElementById('orderResultV6');if(rc)rc.textContent=`조회 결과 ${list.length}건`;
+ rows.innerHTML=list.map(o=>`<tr><td><input class="order-check-v6" type="checkbox" value="${o.no}"></td><td><b class="detail-link" onclick="showOrderDetail('${o.no}')">${o.no}</b></td><td>${o.client}</td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td><select class="status-select" onchange="setOrderStatusV6('${o.no}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>'
+}
+
+function openClientDetail(id){
+ const c=clients.find(x=>String(x.id)===String(id));
+ if(!c)return;
+ window.currentClientId=c.id;
+ document.getElementById('detailClientCode').value=c.code||'';
+ document.getElementById('detailClientName').value=c.name||'';
+ document.getElementById('detailClientBizNo').value=c.bizNo||'';
+ document.getElementById('detailClientManager').value=c.manager||'';
+ document.getElementById('detailClientPhone').value=c.phone||'';
+ document.getElementById('detailClientEmail').value=c.email||'';
+ document.getElementById('detailClientAddress').value=c.address||'';
+ document.getElementById('detailClientStatus').value=c.status||'정상';
+ document.getElementById('detailClientLoginId').value=c.loginId||'';
+ document.getElementById('detailClientPassword').value=c.password||'';
+ document.getElementById('detailClientPassword').type='password';
+ document.querySelector('#adminClientDetail .password-row .small-btn').textContent='보기';
+ document.getElementById('clientDetailSubtitle').textContent=`${c.name||''} · ${c.code||''} 거래처의 기본정보와 접속 정보를 관리합니다.`;
+ go('adminClientDetail');
+}
+
+function saveClientDetail(){
+ const c=clients.find(x=>String(x.id)===String(window.currentClientId));
+ if(!c)return;
+ c.code=document.getElementById('detailClientCode').value.trim();
+ c.name=document.getElementById('detailClientName').value.trim();
+ c.bizNo=document.getElementById('detailClientBizNo').value.trim();
+ c.manager=document.getElementById('detailClientManager').value.trim();
+ c.phone=document.getElementById('detailClientPhone').value.trim();
+ c.email=document.getElementById('detailClientEmail').value.trim();
+ c.address=document.getElementById('detailClientAddress').value.trim();
+ c.status=document.getElementById('detailClientStatus').value;
+ saveV7Data();renderClients();
+ alert('거래처 기본정보가 저장되었습니다.');
+}
+
+function saveClientCredentials(){
+ const c=clients.find(x=>String(x.id)===String(window.currentClientId));
+ if(!c)return;
+ const loginId=document.getElementById('detailClientLoginId').value.trim();
+ const password=document.getElementById('detailClientPassword').value;
+ if(!loginId){alert('로그인 ID를 입력해 주세요.');return}
+ if(!password){alert('비밀번호를 입력해 주세요.');return}
+ const duplicate=clients.find(x=>String(x.id)!==String(c.id)&&(x.loginId||'').toLowerCase()===loginId.toLowerCase());
+ if(duplicate){alert('이미 사용 중인 로그인 ID입니다. 다른 ID를 입력해 주세요.');return}
+ c.loginId=loginId;
+ c.password=password;
+ saveV7Data();renderClients();initV6Smart();
+ alert('거래처 접속정보가 저장되었습니다.');
+}
+
+function toggleClientPassword(){
+ const input=document.getElementById('detailClientPassword');
+ const btn=document.querySelector('#adminClientDetail .password-row .small-btn');
+ if(input.type==='password'){input.type='text';btn.textContent='숨기기'}
+ else{input.type='password';btn.textContent='보기'}
+}
+
+function generateClientPassword(){
+ const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+ let pw='WJ-';
+ for(let i=0;i<8;i++)pw+=chars[Math.floor(Math.random()*chars.length)];
+ const input=document.getElementById('detailClientPassword');
+ input.value=pw;
+ input.type='text';
+ document.querySelector('#adminClientDetail .password-row .small-btn').textContent='숨기기';
+}
+
+function openClientCreateModal(){
+ document.getElementById('modalTitle').textContent='거래처 등록';
+ document.getElementById('modalBody').innerHTML=`
+   <div class="field"><label>거래처 코드</label><input id="newClientCode" placeholder="예: WJ-C004"></div>
+   <div class="field"><label>거래처명</label><input id="newClientName" placeholder="회사명"></div>
+   <div class="field"><label>로그인 ID</label><input id="newClientLoginId" placeholder="거래처 전용 로그인 ID"></div>
+   <div class="field"><label>비밀번호</label><input id="newClientPassword" type="text" placeholder="거래처 전용 비밀번호"></div>
+   <div class="field"><label>담당자</label><input id="newClientManager" placeholder="담당자명"></div>
+   <div class="field"><label>연락처</label><input id="newClientPhone" placeholder="010-0000-0000"></div>
+   <div class="field"><label>사업자번호</label><input id="newClientBizNo" placeholder="000-00-00000"></div>
+   <div class="field"><label>이메일</label><input id="newClientEmail" placeholder="example@company.com"></div>`;
+ const save=document.getElementById('modalSave');
+ save.style.display='';
+ save.onclick=()=>{
+   const code=document.getElementById('newClientCode').value.trim();
+   const name=document.getElementById('newClientName').value.trim();
+   const loginId=document.getElementById('newClientLoginId').value.trim();
+   const password=document.getElementById('newClientPassword').value;
+   if(!code||!name||!loginId||!password){alert('거래처 코드, 거래처명, 로그인 ID, 비밀번호는 필수입니다.');return}
+   if(clients.some(c=>c.code===code)){alert('이미 사용 중인 거래처 코드입니다.');return}
+   if(clients.some(c=>(c.loginId||'').toLowerCase()===loginId.toLowerCase())){alert('이미 사용 중인 로그인 ID입니다.');return}
+   clients.push({
+     id:'C'+Date.now(),code,name,loginId,password,
+     manager:document.getElementById('newClientManager').value.trim(),
+     phone:document.getElementById('newClientPhone').value.trim(),
+     bizNo:document.getElementById('newClientBizNo').value.trim(),
+     email:document.getElementById('newClientEmail').value.trim(),
+     address:'',status:'정상'
+   });
+   saveV7Data();
+   closeModal();
+   renderClients();renderAdminDashboard();
+   initV6Smart();
+   alert('거래처가 등록되었습니다.');
+ };
+ document.getElementById('modalBg').classList.add('show');
+}
+
+function renderClients(){
+ const rows=document.getElementById('clientRows');if(!rows)return;
+ const selected=smartGet('clientSmartFilter');
+ const status=document.getElementById('clientStatusFilter')?.value||'전체';
+ const list=clients.filter(c=>(!selected.length||selected.includes(String(c.id)))&&(status==='전체'||c.status===status));
+ rows.innerHTML=list.map(c=>`<tr>
+   <td><b>${c.code||'-'}</b></td>
+   <td><b>${c.name||'-'}</b></td>
+   <td>${c.loginId||'-'}</td>
+   <td>${c.manager||'-'}</td>
+   <td>${c.phone||'-'}</td>
+   <td>${badge(c.status||'정상')}</td>
+   <td><div class="action-row"><button class="small-btn" onclick="openClientDetail('${c.id}')">상세/계정</button></div></td>
+ </tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
+}
+
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>'}
+function renderPriceClients(){
+ const sel=document.getElementById('priceClientSelect');
+ if(!sel)return;
+ const prev=sel.value;
+ sel.innerHTML=clients.map(c=>`<option value="${c.id}">${c.company} · ${c.code}</option>`).join('');
+ if(clients.some(c=>c.id===prev))sel.value=prev;
+}
+function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));if(!cs.length){box.innerHTML=list.map(p=>`<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`).join('')||'<tr><td colspan="8" class="v4-empty">제품이 없습니다.</td></tr>';return}const selectedClients=clients.filter(c=>cs.includes(String(c.id)));box.innerHTML=selectedClients.flatMap(c=>list.map(p=>{const key=c.loginId;const val=p.prices[key]??p.base;const custom=p.prices[key]!==undefined;return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" onclick="openSinglePriceModal('${c.id}',${p.id})">단가 수정</button></td></tr>`})).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>'}
+function openSinglePriceModal(clientId,productId){
+ const c=clients.find(x=>x.id===clientId),p=products.find(x=>x.id===productId);
+ document.getElementById('modalTitle').textContent='거래처 단가 수정';
+ document.getElementById('modalBody').innerHTML=`
+  <div class="field"><label>거래처</label><input value="${c.company} · ${c.code}" disabled></div>
+  <div class="field"><label>제품</label><input value="${p.name} / ${p.spec}" disabled></div>
+  <div class="field"><label>기본 단가</label><input value="${won(p.base)}" disabled></div>
+  <div class="field"><label>적용 단가</label><input id="singlePriceValue" type="number" value="${p.prices[c.loginId]??p.base}"></div>`;
+ document.getElementById('modalSave').onclick=()=>{
+   p.prices[c.loginId]=Number(document.getElementById('singlePriceValue').value);
+   saveV7Data();closeModal();renderPriceManagement();alert(`${c.company} · ${p.name} 단가가 저장되었습니다.`);
+ };
+ document.getElementById('modalBg').classList.add('show');
+}
+function openClientEdit(i){
+ const c=clients[i];
+ document.getElementById('modalTitle').textContent='거래처 정보 수정';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+  <div class="field"><label>회사명</label><input id="editCompany" value="${c.company}"></div>
+  <div class="field"><label>거래처 코드</label><input id="editCode" value="${c.code}"></div>
+  <div class="field"><label>로그인 아이디</label><input id="editId" value="${c.loginId||''}"></div>
+  <div class="field"><label>담당자</label><input id="editManager" value="${c.manager}"></div>
+  <div class="field"><label>전화번호</label><input id="editPhone" value="${c.phone}"></div>
+  <div class="field"><label>상태</label><select id="editStatus"><option ${c.status==='정상'?'selected':''}>정상</option><option ${c.status==='거래중지'?'selected':''}>거래중지</option></select></div>
+ </div>`;
+ document.getElementById('modalSave').onclick=()=>{c.company=editCompany.value;c.code=editCode.value;c.loginId=editId.value.trim();c.manager=editManager.value;c.phone=editPhone.value;c.status=editStatus.value;saveV7Data();closeModal();renderClients();renderPriceManagement();alert('거래처 정보가 저장되었습니다.')};
+ document.getElementById('modalBg').classList.add('show');
+}
+function openProductEdit(i){
+ const p=products[i];
+ document.getElementById('modalTitle').textContent='제품 정보 수정';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+  <div class="field"><label>제품명</label><input id="editPName" value="${p.name}"></div>
+  <div class="field"><label>제품 코드</label><input id="editPCode" value="${p.code}"></div>
+  <div class="field"><label>분류</label><select id="editPCat">${productCategories.map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
+  <div class="field"><label>기본 단가</label><input id="editPBase" type="number" value="${p.base}"></div>
+  <div class="field full"><label>규격</label><input id="editPSpec" value="${p.spec}"></div>
+ </div>`;
+ document.getElementById('modalSave').onclick=()=>{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.spec=editPSpec.value;saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('제품 정보가 저장되었습니다.')};
+ document.getElementById('modalBg').classList.add('show');
+}
+function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" type="number" min="0" value="${p.stock}" onchange="saveInventoryQtyV6(${p.id},this.value)"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" onchange="saveInventoryVisibilityV6(${p.id},this.value)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
+function editCartQty(id,value){
+ const q=Math.floor(Number(value));
+ if(q<1){removeCart(id);return}
+ cart[id]=q;saveCartV8();updateCart();renderCartPage();
+}
+function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage();}
+function renderAdminNotices(){const rows=document.getElementById('adminNoticeRows');if(!rows)return;rows.innerHTML=notices.map((n,i)=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${n.date}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${n.popupStart} ~ ${n.popupEnd}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')}
+function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">프로토타입에서는 이미지가 브라우저 저장공간에 저장됩니다. 2MB 이하 권장.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 사이트 내부 팝업 사용</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
+function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices();renderAdminNotices()}
+function openPriceModal(clientId,productId){document.getElementById('modalTitle').textContent='거래처별 단가 관리';let c=clientId==='all'?null:clients.find(x=>x.id===clientId);let p=productId?products.find(x=>x.id===productId):null;
+ document.getElementById('modalBody').innerHTML=c?`<div class="field"><label>거래처</label><input value="${c.company}" disabled></div><div class="field"><label>제품</label><select id="priceProduct">${products.map(x=>`<option value="${x.id}">${x.name} / ${x.spec}</option>`).join('')}</select></div><div class="field"><label>적용 단가</label><input id="priceValue" type="number" value="${products[0].prices[c.id]||products[0].base}"></div>`:`<div class="field"><label>제품</label><input value="${p?.name||''}" disabled></div><div class="form-grid">${clients.map(x=>`<div class="field"><label>${x.company} 단가</label><input id="price-${x.id}" type="number" value="${p?.prices[x.id]||p?.base||0}"></div>`).join('')}</div>`;
+ document.getElementById('modalSave').onclick=()=>{if(c){const pp=products.find(x=>x.id==document.getElementById('priceProduct').value);pp.prices[c.loginId]=Number(document.getElementById('priceValue').value)}else{clients.forEach(x=>p.prices[x.loginId]=Number(document.getElementById('price-'+x.id).value))}saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('단가가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+function openClientModal(){
+ document.getElementById('modalTitle').textContent='거래처 등록';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+  <div class="field"><label>회사명 *</label><input id="newCompany" placeholder="예: ㈜OO상사"></div>
+  <div class="field"><label>거래처 코드 *</label><input id="newCode" placeholder="WJ-C003"></div>
+  <div class="field"><label>로그인 아이디 *</label><input id="newId" placeholder="client-c"></div>
+  <div class="field"><label>초기 비밀번호 *</label><input id="newPw" value="1234"></div>
+  <div class="field"><label>담당자</label><input id="newManager"></div>
+  <div class="field"><label>전화번호</label><input id="newPhone"></div>
+ </div>
+ <div style="margin-top:10px;font-size:11px;color:#64748b;background:#f8fafc;padding:10px;border-radius:8px">※ 실제 운영 버전에서는 비밀번호를 관리자 화면에 저장하지 않고 인증 시스템에서 안전하게 관리합니다.</div>`;
+ document.getElementById('modalSave').onclick=()=>{
+   if(!newCompany.value||!newCode.value||!newId.value){alert('회사명, 거래처 코드, 로그인 아이디는 필수입니다.');return}
+   if(clients.some(c=>c.id===newId.value||c.code===newCode.value)){alert('이미 사용 중인 거래처 코드 또는 아이디입니다.');return}
+   clients.push({id:'C'+Date.now(),code:newCode.value,company:newCompany.value,loginId:newId.value,password:newPw.value,manager:newManager.value,phone:newPhone.value,bizNo:'',email:'',address:'',status:'정상'});
+   saveV7Data();closeModal();renderClients();renderPriceManagement();initV6Smart();alert('거래처가 등록되었습니다.');
+ };
+ document.getElementById('modalBg').classList.add('show');
+}
+function openProductModal(){
+ document.getElementById('modalTitle').textContent='제품 등록';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+  <div class="field"><label>제품명 *</label><input id="newPName" placeholder="WJ 제품명"></div>
+  <div class="field"><label>제품 코드 *</label><input id="newPCode" placeholder="WJ-XXXX"></div>
+  <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
+  <div class="field"><label>기본 단가 *</label><input id="newPBase" type="number" placeholder="0"></div>
+  <div class="field full"><label>규격 *</label><input id="newPSpec" placeholder="폭 × 길이 × 두께"></div>
+  <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
+  <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
+ </div>`;
+ document.getElementById('modalSave').onclick=()=>{
+   if(!newPName.value||!newPCode.value||!newPSpec.value){alert('제품명, 제품 코드, 규격은 필수입니다.');return}
+   if(products.some(p=>p.code===newPCode.value)){alert('이미 존재하는 제품 코드입니다.');return}
+   products.push({id:Date.now(),code:newPCode.value,cat:newPCat.value,name:newPName.value,spec:newPSpec.value,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{}});saveV7Data();
+   closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();alert('제품이 등록되었습니다. 이제 단가 관리에서 거래처별 단가를 지정할 수 있습니다.');
+ };
+ document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('modalSave').style.display='';}
+function renderCategories(){const box=document.getElementById('productCategories');if(box)box.innerHTML=productCategories.map((c,i)=>`<span class="category-chip">${c} <button class="small-btn" onclick="deleteCategory(${i})">×</button></span>`).join('');const sel=document.getElementById('productAdminCat');if(sel){const v=sel.value;sel.innerHTML='<option>전체</option>'+productCategories.map(c=>`<option>${c}</option>`).join('');if(productCategories.includes(v))sel.value=v;}}
+function openCategoryModal(){const name=prompt('추가할 제품 분류명을 입력하세요.');if(!name)return;const v=name.trim();if(!v)return;if(productCategories.includes(v)){alert('이미 존재하는 분류입니다.');return}productCategories.push(v);saveV7Data();renderCategories();renderAdminProducts()}
+function deleteCategory(i){if(productCategories.length<=1){alert('최소 1개의 분류는 남겨두어야 합니다.');return}if(!confirm('"'+productCategories[i]+'" 분류를 삭제할까요?'))return;productCategories.splice(i,1);saveV7Data();renderCategories();renderAdminProducts()}
+
+function smartGet(id){const e=document.getElementById(id);return e&&e._smartGet?e._smartGet():[]}
+function smartBuild(id,items,placeholder,cb){
+ const root=document.getElementById(id);if(!root)return;
+ root.className='smartbox';
+ root.innerHTML=`<input class="smartinput" placeholder="${placeholder}" autocomplete="off"><div class="smartdrop"></div><div class="smarttags"></div>`;
+ const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags'),sel=[];
+ let focusIndex=-1;
+ root._smartGet=()=>sel.slice();
+ root._smartSet=a=>{sel.splice(0,sel.length,...(a||[]).map(String));focusIndex=-1;draw()};
+ function draw(){
+   const q=input.value.trim().toLowerCase();
+   const list=items.filter(x=>String(x.label).toLowerCase().includes(q));
+   if(root.classList.contains('open')){
+     drop.innerHTML=(list.length?'<div class="smart-hint">↑ ↓ 이동 · Enter 선택 · Esc 닫기</div>':'<div style="padding:12px;color:#94a3b8">검색 결과가 없습니다.</div>')+list.map((x,i)=>`<div class="smartopt ${i===focusIndex?'active ':''}${sel.includes(String(x.value))?'selected':''}" tabindex="-1" data-value="${x.value}">${x.label}${sel.includes(String(x.value))?'<span class="smart-check">선택됨</span>':''}</div>`).join('');
+   }
+   tags.innerHTML=sel.map(v=>{const x=items.find(i=>String(i.value)===v);return `<span class="smarttag">${x?.label||v}<button type="button" data-remove="${v}">×</button></span>`}).join('');
+ }
+ function choose(v){const s=String(v);if(sel.includes(s))sel.splice(sel.indexOf(s),1);else sel.push(s);input.value='';focusIndex=-1;draw();cb&&cb()}
+ input.onfocus=()=>{root.classList.add('open');focusIndex=-1;draw()};
+ input.oninput=()=>{root.classList.add('open');focusIndex=-1;draw()};
+ input.onkeydown=e=>{
+   const list=items.filter(x=>String(x.label).toLowerCase().includes(input.value.trim().toLowerCase()));
+   if(e.key==='ArrowDown'){e.preventDefault();if(!list.length)return;root.classList.add('open');focusIndex=(focusIndex+1)%list.length;draw()}
+   else if(e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;root.classList.add('open');focusIndex=(focusIndex-1+list.length)%list.length;draw()}
+   else if(e.key==='Enter'){e.preventDefault();if(root.classList.contains('open')&&list[focusIndex])choose(list[focusIndex].value);else if(list.length===1)choose(list[0].value)}
+   else if(e.key==='Escape'){root.classList.remove('open');focusIndex=-1;draw()}
+   else if(e.key==='Backspace'&&!input.value&&sel.length){sel.pop();draw();cb&&cb()}
+ };
+ drop.onclick=e=>{const row=e.target.closest('.smartopt');if(row)choose(row.dataset.value)};
+ tags.onclick=e=>{const b=e.target.closest('[data-remove]');if(!b)return;sel.splice(sel.indexOf(b.dataset.remove),1);draw();cb&&cb()};
+ if(!root._smartOutsideBound){root._smartOutsideBound=true;document.addEventListener('click',e=>{if(!root.contains(e.target)){root.classList.remove('open');focusIndex=-1;draw()}})}
+ draw();
+}
+function initV6Smart(){smartBuild('orderClientFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderAdminOrders);smartBuild('orderProductFilter',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminOrders);smartBuild('clientSmartFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code} · ${c.loginId}`})),'거래처 검색 · 여러 개 선택',renderClients);smartBuild('priceClientSmart',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderPriceManagement);smartBuild('priceProductSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderPriceManagement);smartBuild('productAdminSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.code} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminProducts)}
+function quickOrderDate(k){const d=new Date(),f=x=>x.toISOString().slice(0,10);let s,e;if(k==='today')s=e=f(d);if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}document.getElementById('adminOrderDateFrom').value=s;document.getElementById('adminOrderDateTo').value=e;renderAdminOrders()}
+function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});renderAdminOrders()}
+function setOrderStatusV6(no,status){const o=orders.find(x=>x.no===no);if(!o)return;o.status=status;saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
+function toggleAllOrders(btn){const a=[...document.querySelectorAll('.order-check-v6')],on=!a.every(x=>x.checked);a.forEach(x=>x.checked=on);btn.textContent=on?'선택 해제':'전체 선택'}
+function bulkOrderStatus(){const ns=[...document.querySelectorAll('.order-check-v6:checked')].map(x=>x.value);if(!ns.length)return alert('주문을 선택하세요.');const s=prompt('상태 입력: 접수 완료 / 생산 중 / 출고 대기 / 출고 중 / 출고 완료');if(!['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(s||''))return alert('유효하지 않은 상태입니다.');ns.forEach(n=>{const o=orders.find(x=>x.no===n);if(o)o.status=s});saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
+function downloadOrderCSV(){const rows=[...document.querySelectorAll('#adminOrderRows tr')];if(!rows.length)return;const csv='\ufeff'+['발주번호,거래처,접수일,품목,수량,금액,상태'].concat(rows.map(r=>[...r.children].slice(1,8).map(x=>`"${x.innerText.replace(/"/g,'""')}"`).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='원준_주문조회.csv';a.click()}
+function saveInventoryQtyV6(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(v)||0);saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows()}}
+function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=v==='public';saveV7Data();renderAdminInventory()}}
+function downloadDocumentPDF(no,type,orderNo,date){
+ const c=clients.find(x=>x.loginId===currentUser);
+ const company=c?.name||'원준테이프';
+ const lines=[`WONJUN TAPE`,`${type}`,`문서번호: ${no}`,`발행일: ${date}`,`거래처: ${company}`,`관련 발주: ${orderNo}`,``, `본 문서는 프로토타입 거래 문서입니다.`, `실제 운영 버전에서는 서버에서 공식 PDF를 생성합니다.`];
+ // 브라우저 단독 프로토타입에서는 인쇄→PDF 저장 방식으로 확실하게 동작시킵니다.
+ const w=window.open('','_blank','width=900,height=1000');
+ if(!w){alert('팝업 차단을 해제해 주세요.');return}
+ w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
+}
+
+function showClientOrderDetail(no){const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;const c=clients.find(x=>x.loginId===o.id);document.getElementById('modalTitle').textContent='주문 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${c?.name||o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};function refreshFromV9(){loadV7Data();if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
+function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
+ensureNoticePopupV9();
+renderAll();
+if(currentUser) setTimeout(applyLoggedInUI,30); else showLogin();
+
+/* 기본적인 캡처/인쇄 억제: 브라우저 보안 경계가 아니며 실제 보안은 서버 권한/RLS로 구현해야 함 */
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+ if((e.ctrlKey||e.metaKey)&&['p','s','u'].includes(e.key.toLowerCase())){e.preventDefault();return}
+ if(e.key==='PrintScreen'){document.getElementById('securityOverlay').classList.add('show');setTimeout(()=>document.getElementById('securityOverlay').classList.remove('show'),1800)}
+});
+</script>
+</body>
+</html>
