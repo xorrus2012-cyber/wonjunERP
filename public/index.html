@@ -49,8 +49,6 @@ button{cursor:pointer}
 .btn.green{background:var(--green);color:#fff}
 .btn.red{background:var(--red);color:#fff}
 .login-btn{width:100%;padding:13px;margin-top:5px}
-.demo-box{margin-top:20px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px;color:#64748b;font-size:12px;line-height:1.7}
-.demo-box b{color:#334155}
 
 /* APP */
 .app{min-height:100vh;display:flex}
@@ -183,12 +181,6 @@ html,body{overflow-x:hidden}
     <div class="field"><label>아이디</label><input id="loginId" placeholder="거래처 아이디"></div>
     <div class="field"><label>비밀번호</label><input id="loginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')login()"></div>
     <button class="btn primary login-btn" onclick="login()">로그인</button>
-    <div class="demo-box">
-      <b>프로토타입 테스트 계정</b><br>
-      거래처 A : client-a / 1234<br>
-      거래처 B : client-b / 1234<br>
-      관리자 : admin / 1234
-    </div>
   </div>
 </section>
 
@@ -286,7 +278,7 @@ html,body{overflow-x:hidden}
 
       <!-- CLIENT INVENTORY -->
       <section id="inventory" class="page">
-        <div class="page-head"><div><h2>재고 현황</h2><p>실시간 연동 전 단계의 샘플 화면입니다. 실제 구축 시 ERP 재고와 연결합니다.</p></div></div>
+        <div class="page-head"><div><h2>재고 현황</h2><p>현재 등록된 재고 현황과 출고 가능 여부를 확인합니다.</p></div></div>
         <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재고</th><th>재고상태</th><th>출고 가능</th></tr></thead><tbody id="clientInventoryRows"></tbody></table></div>
       </section>
 
@@ -448,12 +440,12 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN STATS -->
       <section id="adminStats" class="page">
-        <div class="page-head"><div><h2>매출/통계</h2><p>실제 구축 시 DB 주문 데이터를 기준으로 자동 집계합니다.</p></div></div>
+        <div class="page-head"><div><h2>매출/통계</h2><p>수주 및 발주 현황을 기준으로 주요 지표를 확인합니다.</p></div></div>
         <div class="kpi-grid">
-          <div class="kpi"><div class="label">9월 누적 수주</div><div class="num">₩48.2M</div><div class="note">샘플 데이터</div></div>
+          <div class="kpi"><div class="label">9월 누적 수주</div><div class="num">₩48.2M</div></div>
           <div class="kpi"><div class="label">누적 발주</div><div class="num">86건</div><div class="note">거래처 24곳</div></div>
-          <div class="kpi"><div class="label">평균 발주금액</div><div class="num">₩560K</div><div class="note">샘플 데이터</div></div>
-          <div class="kpi"><div class="label">출고 완료율</div><div class="num">93%</div><div class="note">샘플 데이터</div></div>
+          <div class="kpi"><div class="label">평균 발주금액</div><div class="num">₩560K</div></div>
+          <div class="kpi"><div class="label">출고 완료율</div><div class="num">93%</div></div>
         </div>
         <div class="card pad">
           <h3 class="section-title">월별 수주 추이</h3>
@@ -512,7 +504,7 @@ const notices=[
 ];
 let currentUser=localStorage.getItem('wonjun_v7_session')||null,cart={};
 
-// 프로토타입 영속 저장: 새로고침해도 거래처/제품/주문/공지/단가 데이터와 로그인 상태를 유지합니다.
+// 브라우저 저장: 새로고침 후에도 거래처/제품/주문/공지/단가 데이터와 로그인 상태를 유지합니다.
 function escapeHtmlV8(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;')}
 function cartKeyV8(){return 'wonjun_v8_cart_'+(currentUser||'guest')}
 function saveCartV8(){try{localStorage.setItem(cartKeyV8(),JSON.stringify(cart))}catch(e){}}
@@ -831,7 +823,7 @@ function editCartQty(id,value){
 }
 function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage();}
 function renderAdminNotices(){const rows=document.getElementById('adminNoticeRows');if(!rows)return;rows.innerHTML=notices.map((n,i)=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${n.date}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${n.popupStart} ~ ${n.popupEnd}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')}
-function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">프로토타입에서는 이미지가 브라우저 저장공간에 저장됩니다. 2MB 이하 권장.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 사이트 내부 팝업 사용</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
+function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">이미지는 2MB 이하로 첨부해 주세요.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 사이트 내부 팝업 사용</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
 function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices();renderAdminNotices()}
 function openPriceModal(clientId,productId){document.getElementById('modalTitle').textContent='거래처별 단가 관리';let c=clientId==='all'?null:clients.find(x=>x.id===clientId);let p=productId?products.find(x=>x.id===productId):null;
  document.getElementById('modalBody').innerHTML=c?`<div class="field"><label>거래처</label><input value="${c.company}" disabled></div><div class="field"><label>제품</label><select id="priceProduct">${products.map(x=>`<option value="${x.id}">${x.name} / ${x.spec}</option>`).join('')}</select></div><div class="field"><label>적용 단가</label><input id="priceValue" type="number" value="${products[0].prices[c.id]||products[0].base}"></div>`:`<div class="field"><label>제품</label><input value="${p?.name||''}" disabled></div><div class="form-grid">${clients.map(x=>`<div class="field"><label>${x.company} 단가</label><input id="price-${x.id}" type="number" value="${p?.prices[x.id]||p?.base||0}"></div>`).join('')}</div>`;
@@ -846,7 +838,7 @@ function openClientModal(){
   <div class="field"><label>담당자</label><input id="newManager"></div>
   <div class="field"><label>전화번호</label><input id="newPhone"></div>
  </div>
- <div style="margin-top:10px;font-size:11px;color:#64748b;background:#f8fafc;padding:10px;border-radius:8px">※ 실제 운영 버전에서는 비밀번호를 관리자 화면에 저장하지 않고 인증 시스템에서 안전하게 관리합니다.</div>`;
+ `;
  document.getElementById('modalSave').onclick=()=>{
    if(!newCompany.value||!newCode.value||!newId.value){alert('회사명, 거래처 코드, 로그인 아이디는 필수입니다.');return}
    if(clients.some(c=>c.id===newId.value||c.code===newCode.value)){alert('이미 사용 중인 거래처 코드 또는 아이디입니다.');return}
@@ -924,8 +916,8 @@ function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(
 function downloadDocumentPDF(no,type,orderNo,date){
  const c=clients.find(x=>x.loginId===currentUser);
  const company=c?.name||'원준테이프';
- const lines=[`WONJUN TAPE`,`${type}`,`문서번호: ${no}`,`발행일: ${date}`,`거래처: ${company}`,`관련 발주: ${orderNo}`,``, `본 문서는 프로토타입 거래 문서입니다.`, `실제 운영 버전에서는 서버에서 공식 PDF를 생성합니다.`];
- // 브라우저 단독 프로토타입에서는 인쇄→PDF 저장 방식으로 확실하게 동작시킵니다.
+ const lines=[`WONJUN TAPE`,`${type}`,`문서번호: ${no}`,`발행일: ${date}`,`거래처: ${company}`,`관련 발주: ${orderNo}`,``, ];
+ // 브라우저에서 인쇄 기능을 통해 PDF로 저장할 수 있습니다.
  const w=window.open('','_blank','width=900,height=1000');
  if(!w){alert('팝업 차단을 해제해 주세요.');return}
  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
