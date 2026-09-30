@@ -166,7 +166,9 @@ html,body{overflow-x:hidden}
 .doc-btn{min-width:54px}
 .notice-content-v8{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.9}
 @media(max-width:900px){.smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}}
-</style></head>
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
 <body>
 
 <!-- LOGIN -->
@@ -502,6 +504,17 @@ const notices=[
  {title:'9월 정기 생산 일정 안내',date:'2026-09-18',content:'9월 정기 생산 일정 안내입니다.\\n\\n생산 라인별 일정에 따라 일부 제품의 출고일이 변동될 수 있습니다. 발주 현황에서 현재 진행 상태를 확인해 주세요.'},
  {title:'신규 제품 규격 등록 안내',date:'2026-09-10',content:'신규 제품 규격이 등록되었습니다.\\n\\n제품 주문 메뉴에서 새롭게 등록된 제품과 거래처 적용 단가를 확인하실 수 있습니다.'}
 ];
+/* =========================================================
+   SUPABASE 연결 설정
+   - Project URL과 Publishable key만 입력합니다.
+   - Secret / service_role key는 절대 넣지 않습니다.
+   ========================================================= */
+const SUPABASE_URL='https://lnidkhnxxmqmkfbmlbzi.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_9Hmps6bC3ygMyn7bZzlywQ_BWuXPiyJ';
+const supabaseERP=(window.supabase && SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('PASTE_') && !SUPABASE_PUBLISHABLE_KEY.includes('PASTE_'))
+  ? window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
 let currentUser=localStorage.getItem('wonjun_v7_session')||null,cart={};
 
 // 브라우저 저장: 새로고침 후에도 거래처/제품/주문/공지/단가 데이터와 로그인 상태를 유지합니다.
@@ -536,15 +549,46 @@ function saveV7Data(){
 loadV7Data();
 
 const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
-function login(){
+async function login(){
  const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
- const adminOK=id==='admin' && pw==='1234';
+ if(!id||!pw){alert('아이디와 비밀번호를 입력해 주세요.');return}
+
+ // 1) Supabase Auth: 관리자 계정
+ if(supabaseERP && id.includes('@')){
+   const {data,error}=await supabaseERP.auth.signInWithPassword({email:id,password:pw});
+   if(error){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
+   const user=data.user;
+   const {data:profile,error:profileError}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
+   if(profileError || !profile || profile.role!=='admin'){
+     await supabaseERP.auth.signOut();
+     alert('관리자 권한이 확인되지 않습니다.');
+     return;
+   }
+   currentUser='admin';
+   localStorage.setItem('wonjun_v7_session','admin');
+   applyLoggedInUI();
+   return;
+ }
+
+ // 2) 아직 Supabase Auth로 이전하지 않은 거래처는 기존 데이터로 로그인
  const client=clients.find(x=>(x.loginId||'').toLowerCase()===id.toLowerCase() && x.password===pw && x.status!=='거래중지');
- if(!adminOK && !client){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
- currentUser=adminOK?'admin':client.loginId;
+ if(!client){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
+ currentUser=client.loginId;
  localStorage.setItem('wonjun_v7_session',currentUser);
  applyLoggedInUI();
 }
+
+async function restoreSupabaseSession(){
+ if(!supabaseERP)return false;
+ const {data:{session}}=await supabaseERP.auth.getSession();
+ if(!session?.user)return false;
+ const {data:profile}=await supabaseERP.from('profiles').select('role').eq('id',session.user.id).maybeSingle();
+ if(profile?.role!=='admin'){await supabaseERP.auth.signOut();return false}
+ currentUser='admin';
+ localStorage.setItem('wonjun_v7_session','admin');
+ return true;
+}
+
 function applyLoggedInUI(){
  const id=currentUser;
  if(!id){showLogin();return}
@@ -570,7 +614,10 @@ function applyLoggedInUI(){
 }
 function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
 
-function logout(){localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();document.getElementById('loginId').value='';document.getElementById('loginPw').value='';}
+async function logout(){
+ if(supabaseERP){try{await supabaseERP.auth.signOut()}catch(e){console.warn('Supabase 로그아웃 실패',e)}}
+ localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();document.getElementById('loginId').value='';document.getElementById('loginPw').value='';
+}
 function go(page,btn){
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
  document.getElementById(page)?.classList.add('active');
@@ -929,7 +976,19 @@ let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e)
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
 renderAll();
-if(currentUser) setTimeout(applyLoggedInUI,30); else showLogin();
+
+(async function bootERP(){
+  const restored=await restoreSupabaseSession();
+  if(restored){
+    applyLoggedInUI();
+  }else if(currentUser && currentUser!=='admin'){
+    setTimeout(applyLoggedInUI,30);
+  }else{
+    localStorage.removeItem('wonjun_v7_session');
+    currentUser=null;
+    showLogin();
+  }
+})();
 
 /* 기본적인 캡처/인쇄 억제: 브라우저 보안 경계가 아니며 실제 보안은 서버 권한/RLS로 구현해야 함 */
 document.addEventListener('contextmenu',e=>e.preventDefault());
