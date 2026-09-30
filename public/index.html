@@ -25,7 +25,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans KR",sans-serif;font-size:14px}
-button,input,select,textarea{font:inherit}
+button,input,select{font:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
 
@@ -40,8 +40,8 @@ button{cursor:pointer}
 .login-card .sub{color:var(--muted);margin:0 0 24px}
 .field{margin-bottom:15px}
 .field label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;color:#475569}
-.field input,.field textarea,.field select{width:100%;padding:13px 14px;border:1px solid #dbe1e8;border-radius:9px;outline:0;background:#fff}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue2)}
+.field input,.field textarea{width:100%;padding:13px 14px;border:1px solid #dbe1e8;border-radius:9px;outline:0}
+.field input:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue2)}
 .btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700}
 .btn.primary{background:var(--blue);color:#fff}
 .btn.primary:hover{background:#1d4ed8}
@@ -81,14 +81,8 @@ button{cursor:pointer}
 .kpi .label{font-size:12px;color:var(--muted);font-weight:700}.kpi .num{font-size:25px;font-weight:800;margin-top:8px}.kpi .note{font-size:11px;color:#94a3b8;margin-top:5px}
 .grid2{display:grid;grid-template-columns:1.15fr 1.35fr;gap:16px}
 .home-dashboard-grid{grid-template-columns:1fr 1.25fr}
-.notice-thumb{width:86px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;display:block;margin:10px 0}
-.notice-popup-v9{position:fixed;inset:0;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px}
-.notice-popup-v9.hidden{display:none}
-.notice-popup-card-v9{width:min(560px,94vw);max-height:82vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:24px;position:relative}
-.notice-popup-card-v9 img{width:100%;max-height:320px;object-fit:contain;border-radius:12px;margin:14px 0}
-.notice-popup-close-v9{position:absolute;right:14px;top:12px;border:0;background:#f1f5f9;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:18px}
-.memo-client-v9{width:100%;min-height:120px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
-.section-title{font-weight:800;font-size:14px;margin:0 0 18px;color:#1e293b}
+.notice-thumb{width:86px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;display:block;margin:10px 0}.notice-popup-v9{position:fixed;inset:0;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px}.notice-popup-v9.hidden{display:none}.notice-popup-card-v9{width:min(560px,94vw);max-height:82vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:24px;position:relative}.notice-popup-card-v9 img{width:100%;max-height:320px;object-fit:contain;border-radius:12px;margin:14px 0}.notice-popup-close-v9{position:absolute;right:14px;top:12px;border:0;background:#f1f5f9;border-radius:999px;width:32px;height:32px;cursor:pointer;font-size:18px}.memo-client-v9{width:100%;min-height:120px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
+.section-title{font-weight:800;font-size:14px;margin:0}
 .table-wrap{overflow:auto}
 table{width:100%;border-collapse:collapse;min-width:650px}
 th{background:#f8fafc;color:#64748b;font-size:11px;text-align:left;padding:12px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -96,14 +90,14 @@ td{padding:12px;border-bottom:1px solid #eef2f7;vertical-align:middle;font-size:
 tr:last-child td{border-bottom:0}
 .status{display:inline-flex;padding:5px 8px;border-radius:99px;font-size:10px;font-weight:800}
 .s-blue{background:#eff6ff;color:#2563eb}.s-green{background:#ecfdf5;color:#047857}.s-orange{background:#fffbeb;color:#b45309}.s-gray{background:#f1f5f9;color:#64748b}.s-red{background:#fef2f2;color:#b91c1c}
-.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-.toolbar input,.toolbar select,.modal input,.modal select{padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff;outline:0}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select,.modal input,.modal select{padding:10px;border:1px solid #dbe1e8;border-radius:8px;background:#fff;outline:0}
 .toolbar input{min-width:220px}
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
 .product{padding:17px;border:1px solid var(--line);border-radius:11px;background:#fff}
 .product .cat{font-size:10px;color:#2563eb;font-weight:800;margin-bottom:8px}
 .product h3{font-size:14px;margin:0 0 5px}.spec{font-size:11px;color:#64748b;margin-bottom:15px}
-.price-row{display:flex;align-items:flex-end;justify-content:space-between}.price{font-size:18px;font-weight:800}.unit{font-size:10px;color:#94a3b8}
+.price-row{display:flex;align-items:end;justify-content:space-between}.price{font-size:18px;font-weight:800}.unit{font-size:10px;color:#94a3b8}
 .qty{width:76px;padding:8px;border:1px solid #dbe1e8;border-radius:7px}
 .cart-bar{position:fixed;bottom:20px;right:28px;background:#0f172a;color:#fff;padding:13px 16px;border-radius:11px;box-shadow:0 15px 35px rgba(15,23,42,.25);display:flex;align-items:center;gap:16px;z-index:30}
 .cart-bar strong{font-size:15px}
@@ -127,36 +121,43 @@ tr:last-child td{border-bottom:0}
 .security-overlay{position:fixed;inset:0;background:#000;z-index:9999;color:#fff;display:none;align-items:center;justify-content:center;text-align:center}
 .security-overlay.show{display:flex}.security-overlay h2{font-size:25px;letter-spacing:.15em}.security-overlay p{color:#888}
 
-/* V8 FIX & ECOUNT STYLES */
+@media(max-width:1000px){
+ .sidebar{width:205px}.main{margin-left:205px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.product-grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+ .sidebar{display:none}.main{margin-left:0}.content{padding:18px}.topbar{padding:0 18px}.kpi-grid,.product-grid{grid-template-columns:1fr}.topbar .client-chip{display:none}
+}
+
+.password-row{display:flex;gap:8px;align-items:center}
+.password-row input{flex:1}
+.help-text{font-size:11px;color:#94a3b8;line-height:1.6;margin-top:7px}
+.account-warning{margin-top:22px;padding:14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
+.account-warning b{font-size:12px;color:#334155}
+.account-warning p{margin:6px 0 0;font-size:11px;color:#64748b;line-height:1.6}
+.section-title{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:18px}
+</style>
+<style id="v4-enhancements">
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff}.search-input{min-width:260px}.category-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9dee8;border-radius:999px;background:#fff;margin:4px}.inventory-qty{width:110px;padding:8px;border:1px solid #d9dee8;border-radius:7px}.status-select{padding:8px 10px;border:1px solid #d9dee8;border-radius:7px;background:#fff}.v4-empty{text-align:center;padding:28px;color:#8a93a3}
+</style>
+<style id="ecount-v6-css">
+.smartbox{position:relative;min-width:250px}.smartinput{width:100%;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:99px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:5px}.smartbox.open .smartdrop{display:block}.smartopt{display:flex;gap:8px;align-items:center;padding:9px;border-radius:6px;cursor:pointer}.smartopt:hover{background:#f8fafc}.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}.date-range-v6{display:flex;gap:7px;align-items:center}.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.result-v6{margin-left:auto;color:#64748b;font-size:12px}.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}.detail-link{cursor:pointer;color:#2563eb;font-weight:700}.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
+</style>
+<style id="v8-fix-css">
+/* V8 ECOUNT-style usability */
 html,body{overflow-x:hidden}
 .table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
 .table-wrap table{min-width:900px}
 #adminClients .table-wrap table{min-width:820px}
 #adminOrders .table-wrap table{min-width:1050px}
 #adminPrices .table-wrap table{min-width:1050px}
-
-.smartbox{position:relative;min-width:260px;max-width:360px}
-.smartinput{width:100%;height:40px;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}
-.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:300px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:9px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:4px}
-.smartbox.open .smartdrop{display:block}
-.smartopt{display:flex;gap:8px;align-items:center;min-height:38px;padding:8px 10px;border-bottom:1px solid #f1f5f9;border-radius:6px;cursor:pointer;outline:none}
-.smartopt:hover,.smartopt.selected{background:#f8fafc;color:#334155}
+.smartbox{min-width:260px;max-width:360px}
+.smartinput{height:40px}
+.smartdrop{max-height:300px;padding:4px}
+.smartopt{min-height:38px;padding:8px 10px;border-bottom:1px solid #f1f5f9;outline:none}
 .smartopt.active{background:#eff6ff;color:#1d4ed8;font-weight:700}
+.smartopt.selected{background:#f8fafc;color:#334155}
 .smartopt .smart-check{margin-left:auto;font-size:11px;color:#2563eb;font-weight:800}
 .smart-hint{padding:8px 10px;color:#94a3b8;font-size:11px;border-bottom:1px solid #eef2f7}
-.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}
-.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}
-
-.date-range-v6{display:flex;gap:7px;align-items:center}
-.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}
-.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}
-.result-v6{margin-left:auto;color:#64748b;font-size:12px}
-.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}
-.detail-link{cursor:pointer;color:#2563eb;font-weight:700}
-.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
-
 #adminOrders .toolbar,#adminClients .toolbar,#adminPrices .toolbar{align-items:flex-start}
 #adminOrders .toolbar{overflow:visible}
 #adminOrders .toolbar>*,#adminClients .toolbar>*,#adminPrices .toolbar>*{flex:0 0 auto}
@@ -165,26 +166,7 @@ html,body{overflow-x:hidden}
 .order-head-check{width:42px;text-align:center}
 .doc-btn{min-width:54px}
 .notice-content-v8{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.9}
-.category-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9dee8;border-radius:999px;background:#fff;margin:4px}
-.inventory-qty{width:110px;padding:8px;border:1px solid #d9dee8;border-radius:7px}
-.status-select{padding:8px 10px;border:1px solid #d9dee8;border-radius:7px;background:#fff}
-.v4-empty{text-align:center;padding:28px;color:#8a93a3}
-.password-row{display:flex;gap:8px;align-items:center}
-.password-row input{flex:1}
-.help-text{font-size:11px;color:#94a3b8;line-height:1.6;margin-top:7px}
-.account-warning{margin-top:22px;padding:14px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0}
-.account-warning b{font-size:12px;color:#334155}
-.account-warning p{margin:6px 0 0;font-size:11px;color:#64748b;line-height:1.6}
-
-@media(max-width:1000px){
- .sidebar{width:205px}.main{margin-left:205px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.product-grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}
-}
-@media(max-width:900px){
- .smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}
-}
-@media(max-width:720px){
- .sidebar{display:none}.main{margin-left:0}.content{padding:18px}.topbar{padding:0 18px}.kpi-grid,.product-grid{grid-template-columns:1fr}.topbar .client-chip{display:none}
-}
+@media(max-width:900px){.smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -364,6 +346,7 @@ html,body{overflow-x:hidden}
         <div class="card table-wrap"><table><thead><tr><th>거래처 코드</th><th>회사명</th><th>아이디</th><th>담당자</th><th>전화번호</th><th>상태</th><th>관리</th></tr></thead><tbody id="clientRows"></tbody></table></div>
       </section>
 
+
       <!-- ADMIN CLIENT DETAIL -->
       <section id="adminClientDetail" class="page">
         <div class="page-head">
@@ -482,7 +465,7 @@ html,body{overflow-x:hidden}
   </main>
 </section>
 
-<!-- CART BAR -->
+<!-- CART -->
 <div id="cartBar" class="cart-bar hidden"><button class="btn light" onclick="go('cartPage')" style="padding:7px 10px">장바구니 <strong id="cartCount">0</strong>개</button><span id="cartTotal">₩ 0</span><button class="btn primary" onclick="checkout()">발주 확인</button></div>
 
 <!-- MODAL -->
@@ -528,7 +511,6 @@ const supabaseERP=(window.supabase && SUPABASE_URL.startsWith('https://') && !SU
   : null;
 
 let currentUser=localStorage.getItem('wonjun_v7_session')||null,cart={};
-const smartState={};
 
 function escapeHtmlV8(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function cartKeyV8(){return 'wonjun_v8_cart_'+(currentUser||'guest')}
@@ -560,7 +542,7 @@ function saveV7Data(){
 }
 loadV7Data();
 
-const won=n=>'₩ '+Number(n||0).toLocaleString('ko-KR');
+const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
 
 async function login(){
  const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
@@ -628,8 +610,7 @@ function showLogin(){document.getElementById('loginScreen').classList.remove('hi
 
 async function logout(){
  if(supabaseERP){try{await supabaseERP.auth.signOut()}catch(e){console.warn('Supabase 로그아웃 실패',e)}}
- localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();
- document.getElementById('loginId').value='';document.getElementById('loginPw').value='';
+ localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();document.getElementById('loginId').value='';document.getElementById('loginPw').value='';
 }
 
 function go(page,btn){
@@ -639,48 +620,26 @@ function go(page,btn){
  if(btn)btn.classList.add('active');
  const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',inventory:'재고 현황',documents:'거래 문서',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminInventory:'재고/창고 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
- if(page==='products')renderProducts();
- if(page==='cartPage')renderCartPage();
+ if(page==='products')renderProducts(); if(page==='cartPage')renderCartPage();
  if(page==='orders')renderClientOrders();
  if(page==='adminOrders')renderAdminOrders();
- if(page==='adminClients')renderClients();
- if(page==='adminNotices')renderAdminNotices();
+ if(page==='adminClients')renderClients(); if(page==='adminNotices')renderAdminNotices();
  if(page==='adminProducts')renderAdminProducts();
- if(page==='adminPrices')renderPriceManagement();
- if(page==='adminInventory')renderAdminInventory();
- if(page==='inventory')renderInventoryRows();
- if(page==='home')renderHome();
- if(page==='adminDash')renderAdminDashboard();
+ if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
 }
 
 function price(p){return currentUser==='admin'?p.base:(p.prices[currentUser]??p.base)}
 
-function renderAll(){
- updateCart();
- renderHome();
- renderProducts();
- renderCartPage();
- renderClientOrders();
- renderInventoryRows();
- renderNotices();
- renderAdminDashboard();
- renderAdminOrders();
- renderClients();
- renderAdminProducts();
- renderPriceManagement();
- renderAdminInventory();
-}
-
 function renderProducts(){
- const q=(document.getElementById('productSearch')?.value||'').toLowerCase(),c=document.getElementById('productCat')?.value||'전체';
- const grid=document.getElementById('productGrid');if(!grid)return;
- grid.innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
+ const q=(document.getElementById('productSearch').value||'').toLowerCase(),c=document.getElementById('productCat').value;
+ document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
  <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1롤 기준 · 거래처 적용 단가</div></div>
- <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${p.id})">담기</button></div></div></div>`).join('')||'<div class="v4-empty" style="grid-column:1/-1">등록된 제품이 없습니다.</div>';
+ <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${p.id})">담기</button></div></div></div>`).join('');
 }
 
-function addCart(id){const q=Number(document.getElementById('qty-'+id)?.value||1);if(q<1)return;cart[id]=(cart[id]||0)+q;saveCartV8();updateCart();renderCartPage()}
+function addCart(id){const q=Number(document.getElementById('qty-'+id).value);if(q<1)return;cart[id]=(cart[id]||0)+q;saveCartV8();updateCart();renderCartPage()}
+
 function renderCartPage(){
  const rows=document.getElementById('cartRows'); if(!rows)return;
  const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
@@ -692,26 +651,30 @@ function renderCartPage(){
 
 function updateCart(){
  let count=0,total=0;
- Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);if(p){count+=q;total+=q*price(p)}});
- const cEl=document.getElementById('cartCount');if(cEl)cEl.textContent=count.toLocaleString();
- const tEl=document.getElementById('cartTotal');if(tEl)tEl.textContent=won(total);
- const cbEl=document.getElementById('cartBar');if(cbEl)cbEl.classList.toggle('hidden',count===0);
+ Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);if(p){count+=q;total+=q*price(p);}});
+ document.getElementById('cartCount').textContent=count.toLocaleString();
+ document.getElementById('cartTotal').textContent=won(total);
+ document.getElementById('cartBar').classList.toggle('hidden',count===0);
  const pageTotal=document.getElementById('cartPageTotal'); if(pageTotal)pageTotal.textContent=won(total);
+ if(document.getElementById('cartRows'))renderCartPage();
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
 
 function checkout(){
  if(!Object.keys(cart).length)return;
- let count=0,total=0,names=[];Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);if(p){count+=q;total+=q*price(p);names.push(p.name)}});
+ let count=0,total=0,names=[];
+ Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);if(p){count+=q;total+=q*price(p);names.push(p.name);}});
  if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\n발주를 접수하시겠습니까?`))return;
  const cl=clients.find(x=>x.loginId===currentUser);
  orders.unshift({no:'WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(orders.length+1).padStart(3,'0'),client:cl?.name||currentUser,id:currentUser,date:new Date().toISOString().slice(0,10),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),qty:count,amount:total,status:'접수 완료',clientMemo:''});
- cart={};saveCartV8();saveV7Data();updateCart();alert('발주가 접수되었습니다.');go('orders');renderAll();
+ cart={};saveCartV8();updateCart();alert('발주가 접수되었습니다.');go('orders');renderAll();
 }
 
 function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
-function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
-function renderInventoryRows(){document.getElementById('clientInventoryRows').innerHTML=products.filter(p=>p.inventoryPublic!==false).map(p=>{const ok=p.stock>p.safety;return `<tr><td>${p.code}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${p.stock.toLocaleString()}롤</td><td>${badge(ok?'정상':'재고 주의')}</td><td>${ok?'가능':'확인 필요'}</td></tr>`}).join('')||'<tr><td colspan="6" class="v4-empty">공개된 재고 정보가 없습니다.</td></tr>'}
+
+function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
+
+function renderInventoryRows(){document.getElementById('clientInventoryRows').innerHTML=products.filter(p=>p.inventoryPublic!==false).map(p=>{const ok=p.stock>p.safety;return `<tr><td>${p.code}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${p.stock.toLocaleString()}롤</td><td>${badge(ok?'정상':'재고 주의')}</td><td>${ok?'가능':'확인 필요'}</td></tr>`}).join('')}
 
 function renderNotices(){
  const html=notices.map((n,i)=>`<div class="notice" style="cursor:pointer" onclick="openNoticeDetail(${i})"><div style="min-width:0"><b>${escapeHtmlV8(n.title)}</b>${n.image?`<img class="notice-thumb" src="${n.image}" alt="">`:''}</div><span>${n.date}</span></div>`).join('');
@@ -721,10 +684,15 @@ function renderNotices(){
 }
 
 function openNoticeDetail(i){const n=notices[i];if(!n)return;document.getElementById('modalTitle').textContent=n.title;document.getElementById('modalBody').innerHTML=`<div style="font-size:11px;color:#94a3b8;margin-bottom:18px">${n.date}</div>${n.image?`<img src="${n.image}" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;margin-bottom:16px" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(n.content||'공지사항 내용입니다.')}</div>`;document.getElementById('modalSave').style.display='none';document.getElementById('modalBg').classList.add('show')}
+
 function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))return;const d=document.createElement('div');d.id='noticePopupV9';d.className='notice-popup-v9 hidden';d.innerHTML='<div class="notice-popup-card-v9"><button class="notice-popup-close-v9" onclick="closeNoticePopupV9()">×</button><div id="noticePopupBodyV9"></div></div>';document.body.appendChild(d)}
+
 function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
+
 function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
+
 function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'롤';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
+
 function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'롤';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
 
 function renderAdminOrders(){
@@ -733,7 +701,7 @@ function renderAdminOrders(){
  const from=document.getElementById('adminOrderDateFrom')?.value||'',to=document.getElementById('adminOrderDateTo')?.value||'',st=document.getElementById('adminStatus')?.value||'전체';
  const list=orders.filter(o=>{const c=clients.find(x=>x.loginId===o.id);const clientOK=!clientsSel.length||clientsSel.includes(String(c?.id));const prodNames=productsSel.map(x=>products.find(p=>String(p.id)===x)?.name||'');const productOK=!productsSel.length||prodNames.some(n=>n&&String(o.item||'').includes(n.replace('WJ ','')))||productsSel.some(x=>String(o.item||'').includes(String(x)));const d=String(o.date||'').slice(0,10);return clientOK&&productOK&&(!from||d>=from)&&(!to||d<=to)&&(st==='전체'||o.status===st)});
  const rc=document.getElementById('orderResultV6');if(rc)rc.textContent=`조회 결과 ${list.length}건`;
- rows.innerHTML=list.map(o=>`<tr><td><input class="order-check-v6" type="checkbox" value="${o.no}"></td><td><b class="detail-link" onclick="showOrderDetail('${o.no}')">${o.no}</b></td><td>${o.client}</td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td><select class="status-select" onchange="setOrderStatusV6('${o.no}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>'
+ rows.innerHTML=list.map(o=>`<tr><td><input class="order-check-v6" type="checkbox" value="${o.no}"></td><td><b class="detail-link" onclick="showOrderDetail('${o.no}')">${o.no}</b></td><td>${o.client}</td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td><select class="status-select" onchange="setOrderStatusV6('${o.no}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>';
 }
 
 function openClientDetail(id){
@@ -767,7 +735,7 @@ function saveClientDetail(){
  c.email=document.getElementById('detailClientEmail').value.trim();
  c.address=document.getElementById('detailClientAddress').value.trim();
  c.status=document.getElementById('detailClientStatus').value;
- saveV7Data();renderClients();initV6Smart();
+ saveV7Data();renderClients();
  alert('거래처 기본정보가 저장되었습니다.');
 }
 
@@ -857,60 +825,17 @@ function renderClients(){
  </tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
 }
 
-function openProductModal(){
- document.getElementById('modalTitle').textContent='신규 제품 등록';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid">
-  <div class="field"><label>제품 코드</label><input id="addPCode" placeholder="예: WJ-OPP-4860"></div>
-  <div class="field"><label>제품명</label><input id="addPName" placeholder="예: WJ 투명 OPP 테이프"></div>
-  <div class="field"><label>분류</label><select id="addPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
-  <div class="field"><label>기본 단가</label><input id="addPBase" type="number" placeholder="원"></div>
-  <div class="field full"><label>규격</label><input id="addPSpec" placeholder="예: 48mm × 60m"></div>
- </div>`;
- const save=document.getElementById('modalSave');save.style.display='';
- save.onclick=()=>{
-   const code=document.getElementById('addPCode').value.trim(),name=document.getElementById('addPName').value.trim(),base=Number(document.getElementById('addPBase').value);
-   if(!code||!name||!base){alert('제품 코드, 제품명, 기본 단가는 필수입니다.');return}
-   products.push({id:Date.now(),code,name,cat:document.getElementById('addPCat').value,spec:document.getElementById('addPSpec').value,base,stock:0,safety:1000,warehouse:'A-01',prices:{},inventoryPublic:true});
-   saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();initV6Smart();alert('새 제품이 등록되었습니다.');
- };
- document.getElementById('modalBg').classList.add('show');
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>'}
+
+function renderPriceClients(){
+ const sel=document.getElementById('priceClientSelect');
+ if(!sel)return;
+ const prev=sel.value;
+ sel.innerHTML=clients.map(c=>`<option value="${c.id}">${c.name} · ${c.code}</option>`).join('');
+ if(clients.some(c=>c.id===prev))sel.value=prev;
 }
 
-function openCategoryModal(){
- document.getElementById('modalTitle').textContent='제품 분류 관리';
- document.getElementById('modalBody').innerHTML=`<div class="field"><label>새 분류명</label><input id="newCatName" placeholder="분류 이름 입력"></div>
- <div style="margin-top:14px"><strong>현재 등록된 분류:</strong><div id="catChips" style="margin-top:8px">${productCategories.map(c=>`<span class="category-chip">${c}</span>`).join('')}</div></div>`;
- const save=document.getElementById('modalSave');save.style.display='';
- save.onclick=()=>{
-   const name=document.getElementById('newCatName').value.trim();
-   if(!name)return;
-   if(productCategories.includes(name)){alert('이미 존재하는 분류입니다.');return}
-   productCategories.push(name);saveV7Data();closeModal();renderAdminProducts();alert('분류가 추가되었습니다.');
- };
- document.getElementById('modalBg').classList.add('show');
-}
-
-function renderAdminProducts(){
- const q=smartGet('productAdminSmart');
- const c=document.getElementById('productAdminCat')?.value||'전체';
- const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));
- const catSelect=document.getElementById('productAdminCat');
- if(catSelect && catSelect.options.length<=1){
-   catSelect.innerHTML='<option>전체</option>'+productCategories.map(cat=>`<option ${c===cat?'selected':''}>${cat}</option>`).join('');
- }
- document.getElementById('productCategories').innerHTML=productCategories.map(cat=>`<span class="category-chip">${cat}</span>`).join('');
- document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>';
-}
-
-function renderPriceManagement(){
- const box=document.getElementById('priceManagementRows');if(!box)return;
- const cs=smartGet('priceClientSmart');
- const ps=smartGet('priceProductSmart');
- const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));
- if(!cs.length){box.innerHTML=list.map(p=>`<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`).join('')||'<tr><td colspan="8" class="v4-empty">제품이 없습니다.</td></tr>';return}
- const selectedClients=clients.filter(c=>cs.includes(String(c.id)));
- box.innerHTML=selectedClients.flatMap(c=>list.map(p=>{const key=c.loginId;const val=p.prices[key]??p.base;const custom=p.prices[key]!==undefined;return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" onclick="openSinglePriceModal('${c.id}',${p.id})">단가 수정</button></td></tr>`})).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>'
-}
+function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));if(!cs.length){box.innerHTML=list.map(p=>`<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`).join('')||'<tr><td colspan="8" class="v4-empty">제품이 없습니다.</td></tr>';return}const selectedClients=clients.filter(c=>cs.includes(String(c.id)));box.innerHTML=selectedClients.flatMap(c=>list.map(p=>{const key=c.loginId;const val=p.prices[key]??p.base;const custom=p.prices[key]!==undefined;return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" onclick="openSinglePriceModal('${c.id}',${p.id})">단가 수정</button></td></tr>`})).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>'}
 
 function openSinglePriceModal(clientId,productId){
  const c=clients.find(x=>x.id===clientId),p=products.find(x=>x.id===productId);
@@ -920,8 +845,7 @@ function openSinglePriceModal(clientId,productId){
   <div class="field"><label>제품</label><input value="${p.name} / ${p.spec}" disabled></div>
   <div class="field"><label>기본 단가</label><input value="${won(p.base)}" disabled></div>
   <div class="field"><label>적용 단가</label><input id="singlePriceValue" type="number" value="${p.prices[c.loginId]??p.base}"></div>`;
- const save=document.getElementById('modalSave');save.style.display='';
- save.onclick=()=>{
+ document.getElementById('modalSave').onclick=()=>{
    p.prices[c.loginId]=Number(document.getElementById('singlePriceValue').value);
    saveV7Data();closeModal();renderPriceManagement();alert(`${c.name} · ${p.name} 단가가 저장되었습니다.`);
  };
@@ -938,167 +862,240 @@ function openProductEdit(i){
   <div class="field"><label>기본 단가</label><input id="editPBase" type="number" value="${p.base}"></div>
   <div class="field full"><label>규격</label><input id="editPSpec" value="${p.spec}"></div>
  </div>`;
- const save=document.getElementById('modalSave');save.style.display='';
- save.onclick=()=>{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.spec=editPSpec.value;saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('제품 정보가 저장되었습니다.')};
+ document.getElementById('modalSave').onclick=()=>{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.spec=editPSpec.value;saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('제품 정보가 저장되었습니다.')};
  document.getElementById('modalBg').classList.add('show');
 }
 
 function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" type="number" min="0" value="${p.stock}" onchange="saveInventoryQtyV6(${p.id},this.value)"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" onchange="saveInventoryVisibilityV6(${p.id},this.value)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
-function saveInventoryQtyV6(id,val){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(val));saveV7Data();renderInventoryRows();renderAdminDashboard()}}
-function saveInventoryVisibilityV6(id,val){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=val==='public';saveV7Data();renderInventoryRows()}}
 
-function editCartQty(id,value){const q=Math.floor(Number(value));if(q<1){removeCart(id);return}cart[id]=q;saveCartV8();updateCart();renderCartPage()}
-function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage()}
+function editCartQty(id,value){
+ const q=Math.floor(Number(value));
+ if(q<1){removeCart(id);return}
+ cart[id]=q;saveCartV8();updateCart();renderCartPage();
+}
+
+function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage();}
 
 function renderAdminNotices(){const rows=document.getElementById('adminNoticeRows');if(!rows)return;rows.innerHTML=notices.map((n,i)=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${n.date}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${n.popupStart} ~${n.popupEnd}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')}
-function openNoticeModal(index=null){
- const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};
- document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';
- document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div>
- <div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div>
- <div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:120px;padding:10px;border:1px solid #dbe1e8;border-radius:8px">${escapeHtmlV8(n.content||'')}</textarea></div>
- <div class="field"><label>이미지 URL (선택)</label><input id="noticeImage" value="${escapeHtmlV8(n.image||'')}"></div>
- <div class="field"><label><input type="checkbox" id="noticePopupEnabled" ${n.popupEnabled?'checked':''}> 팝업 공지 설정</label></div>
- <div class="form-grid"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div>`;
- const save=document.getElementById('modalSave');save.style.display='';
- save.onclick=()=>{
-   const title=document.getElementById('noticeTitle').value.trim();
-   if(!title){alert('제목을 입력해 주세요.');return}
-   const item={title,date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image:document.getElementById('noticeImage').value.trim(),popupEnabled:document.getElementById('noticePopupEnabled').checked,popupStart:document.getElementById('noticePopupStart').value,popupEnd:document.getElementById('noticePopupEnd').value};
-   if(editing)notices[index]=item; else notices.unshift(item);
-   saveV7Data();closeModal();renderNotices();alert('공지사항이 저장되었습니다.');
+
+function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">이미지는 2MB 이하로 첨부해 주세요.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 사이트 내부 팝업 사용</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
+
+function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices();renderAdminNotices()}
+
+function openProductModal(){
+ document.getElementById('modalTitle').textContent='제품 등록';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+  <div class="field"><label>제품명 *</label><input id="newPName" placeholder="WJ 제품명"></div>
+  <div class="field"><label>제품 코드 *</label><input id="newPCode" placeholder="WJ-XXXX"></div>
+  <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
+  <div class="field"><label>기본 단가 *</label><input id="newPBase" type="number" placeholder="0"></div>
+  <div class="field full"><label>규격 *</label><input id="newPSpec" placeholder="폭 × 길이 × 두께"></div>
+  <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
+  <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
+ </div>`;
+ document.getElementById('modalSave').onclick=()=>{
+   if(!newPName.value||!newPCode.value||!newPSpec.value){alert('제품명, 제품 코드, 규격은 필수입니다.');return}
+   if(products.some(p=>p.code===newPCode.value)){alert('이미 존재하는 제품 코드입니다.');return}
+   products.push({id:Date.now(),code:newPCode.value,cat:newPCat.value,name:newPName.value,spec:newPSpec.value,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{}});saveV7Data();
+   closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();alert('제품이 등록되었습니다. 이제 단가 관리에서 거래처별 단가를 지정할 수 있습니다.');
  };
  document.getElementById('modalBg').classList.add('show');
 }
-function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices()}
 
-function setOrderStatusV6(no,val){const o=orders.find(x=>x.no===no);if(o){o.status=val;saveV7Data();renderHome();renderAdminDashboard()}}
-function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세 정보';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div>`;document.getElementById('modalSave').style.display='none';document.getElementById('modalBg').classList.add('show')}
-function showClientOrderDetail(no){showOrderDetail(no)}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('modalSave').style.display='';}
 
-function quickOrderDate(type){
- const now=new Date(),y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
- const pad=n=>String(n).padStart(2,'0');
- const fmt=dt=>`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
- let from='',to=fmt(now);
- if(type==='today')from=to;
- else if(type==='week'){const day=now.getDay()||7;const start=new Date(now);start.setDate(d-day+1);from=fmt(start)}
- else if(type==='lastweek'){const day=now.getDay()||7;const end=new Date(now);end.setDate(d-day);const start=new Date(end);start.setDate(end.getDate()-6);from=fmt(start);to=fmt(end)}
- else if(type==='month')from=`${y}-${pad(m+1)}-01`;
- else if(type==='lastmonth'){const lm=m===0?11:m-1,ly=m===0?y-1:y;from=`${ly}-${pad(lm+1)}-01`;to=fmt(new Date(ly,lm+1,0))}
- document.getElementById('adminOrderDateFrom').value=from;
- document.getElementById('adminOrderDateTo').value=to;
+function renderCategories(){const box=document.getElementById('productCategories');if(box)box.innerHTML=productCategories.map((c,i)=>`<span class="category-chip">${c} <button class="small-btn" onclick="deleteCategory(${i})">×</button></span>`).join('');const sel=document.getElementById('productAdminCat');if(sel){const v=sel.value;sel.innerHTML='<option>전체</option>'+productCategories.map(c=>`<option>${c}</option>`).join('');if(productCategories.includes(v))sel.value=v;}}
+
+function openCategoryModal(){const name=prompt('추가할 제품 분류명을 입력하세요.');if(!name)return;const v=name.trim();if(!v)return;if(productCategories.includes(v)){alert('이미 존재하는 분류입니다.');return}productCategories.push(v);saveV7Data();renderCategories();renderAdminProducts()}
+
+function deleteCategory(i){if(productCategories.length<=1){alert('최소 1개의 분류는 남겨두어야 합니다.');return}if(!confirm('"'+productCategories[i]+'" 분류를 삭제할까요?'))return;productCategories.splice(i,1);saveV7Data();renderCategories();renderAdminProducts()}
+
+function smartGet(id){const e=document.getElementById(id);return e&&e._smartGet?e._smartGet():[]}
+
+function smartBuild(id,items,placeholder,cb){
+ const root=document.getElementById(id);if(!root)return;
+ root.className='smartbox';
+ root.innerHTML=`<input class="smartinput" placeholder="${placeholder}" autocomplete="off"><div class="smartdrop"></div><div class="smarttags"></div>`;
+ const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags'),sel=[];
+ let focusIndex=-1;
+ root._smartGet=()=>sel.slice();
+ root._smartSet=a=>{sel.splice(0,sel.length,...(a||[]).map(String));focusIndex=-1;draw()};
+ function draw(){
+   const q=input.value.trim().toLowerCase();
+   const list=items.filter(x=>String(x.label).toLowerCase().includes(q));
+   if(root.classList.contains('open')){
+     drop.innerHTML=(list.length?'<div class="smart-hint">↑ ↓ 이동 · Enter 선택 · Esc 닫기</div>':'<div style="padding:12px;color:#94a3b8">검색 결과가 없습니다.</div>')+list.map((x,i)=>`<div class="smartopt ${i===focusIndex?'active ':''}${sel.includes(String(x.value))?'selected':''}" tabindex="-1" data-value="${x.value}">${x.label}${sel.includes(String(x.value))?'<span class="smart-check">선택됨</span>':''}</div>`).join('');
+   }
+   tags.innerHTML=sel.map(v=>{const x=items.find(i=>String(i.value)===v);return `<span class="smarttag">${x?.label||v}<button type="button" data-remove="${v}">×</button></span>`}).join('');
+ }
+ function choose(v){const s=String(v);if(sel.includes(s))sel.splice(sel.indexOf(s),1);else sel.push(s);input.value='';focusIndex=-1;draw();cb&&cb()}
+ input.onfocus=()=>{root.classList.add('open');focusIndex=-1;draw()};
+ input.oninput=()=>{root.classList.add('open');focusIndex=-1;draw()};
+ input.onkeydown=e=>{
+   const list=items.filter(x=>String(x.label).toLowerCase().includes(input.value.trim().toLowerCase()));
+   if(e.key==='ArrowDown'){e.preventDefault();if(!list.length)return;root.classList.add('open');focusIndex=(focusIndex+1)%list.length;draw()}
+   else if(e.key==='ArrowUp'){e.preventDefault();if(!list.length)return;root.classList.add('open');focusIndex=(focusIndex-1+list.length)%list.length;draw()}
+   else if(e.key==='Enter'){e.preventDefault();if(root.classList.contains('open')&&list[focusIndex])choose(list[focusIndex].value);else if(list.length===1)choose(list[0].value)}
+   else if(e.key==='Escape'){root.classList.remove('open');focusIndex=-1;draw()}
+   else if(e.key==='Backspace'&&!input.value&&sel.length){sel.pop();draw();cb&&cb()}
+ };
+ drop.onclick=e=>{const row=e.target.closest('.smartopt');if(row)choose(row.dataset.value)};
+ tags.onclick=e=>{const b=e.target.closest('[data-remove]');if(!b)return;sel.splice(sel.indexOf(b.dataset.remove),1);draw();cb&&cb()};
+ if(!root._smartOutsideBound){root._smartOutsideBound=true;document.addEventListener('click',e=>{if(!root.contains(e.target)){root.classList.remove('open');focusIndex=-1;draw()}})}
+ draw();
+}
+
+function initV6Smart(){
+ smartBuild('orderClientFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderAdminOrders);
+ smartBuild('orderProductFilter',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminOrders);
+ smartBuild('clientSmartFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code} · ${c.loginId}`})),'거래처 검색 · 여러 개 선택',renderClients);
+ smartBuild('priceClientSmart',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderPriceManagement);
+ smartBuild('priceProductSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderPriceManagement);
+ smartBuild('productAdminSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.code} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminProducts);
+}
+
+function quickOrderDate(k){
+ const d=new Date(),f=x=>x.toISOString().slice(0,10);let s,e;
+ if(k==='today')s=e=f(d);
+ if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}
+ if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}
+ if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}
+ if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}
+ document.getElementById('adminOrderDateFrom').value=s;
+ document.getElementById('adminOrderDateTo').value=e;
  renderAdminOrders();
 }
 
 function clearOrderFilters(){
- smartClear('orderClientFilter');smartClear('orderProductFilter');
- document.getElementById('adminOrderDateFrom').value='';
- document.getElementById('adminOrderDateTo').value='';
+ ['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');
  document.getElementById('adminStatus').value='전체';
+ const cFilter=document.getElementById('orderClientFilter'); if(cFilter&&cFilter._smartSet)cFilter._smartSet([]);
+ const pFilter=document.getElementById('orderProductFilter'); if(pFilter&&pFilter._smartSet)pFilter._smartSet([]);
  renderAdminOrders();
 }
 
 function toggleAllOrders(btn){
- const chks=document.querySelectorAll('#adminOrderRows .order-check-v6');
- const allChecked=Array.from(chks).every(c=>c.checked);
- chks.forEach(c=>c.checked=!allChecked);
- btn.textContent=!allChecked?'선택 해제':'전체 선택';
+ const checks=document.querySelectorAll('.order-check-v6');
+ const allChecked=Array.from(checks).every(c=>c.checked);
+ checks.forEach(c=>c.checked=!allChecked);
+ if(btn)btn.textContent=allChecked?'전체 선택':'선택 해제';
 }
 
 function bulkOrderStatus(){
- const chks=Array.from(document.querySelectorAll('#adminOrderRows .order-check-v6:checked')).map(c=>c.value);
- if(!chks.length){alert('변경할 항목을 선택해 주세요.');return}
- document.getElementById('modalTitle').textContent='일괄 상태 변경';
- document.getElementById('modalBody').innerHTML=`<div class="field"><label>선택한 ${chks.length}건의 변경할 상태</label><select id="bulkStatusVal"><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select></div>`;
- const save=document.getElementById('modalSave');save.style.display='';
+ const checked=Array.from(document.querySelectorAll('.order-check-v6:checked')).map(c=>c.value);
+ if(!checked.length){alert('변경할 발주건을 선택해 주세요.');return}
+ const status=prompt('변경할 상태를 입력하세요:\n(접수 완료 / 생산 중 / 출고 대기 / 출고 중 / 출고 완료)');
+ if(!status)return;
+ if(!['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(status.trim())){
+   alert('올바른 상태를 입력해 주세요.');return;
+ }
+ orders.forEach(o=>{if(checked.includes(o.no))o.status=status.trim()});
+ saveV7Data();renderAdminOrders();renderAdminDashboard();
+ alert(`${checked.length}건의 상태가 '${status.trim()}'(으)로 변경되었습니다.`);
+}
+
+function setOrderStatusV6(no,status){
+ const o=orders.find(x=>x.no===no);
+ if(!o)return;
+ o.status=status;
+ saveV7Data();renderAdminDashboard();
+}
+
+function showOrderDetail(no){
+ const o=orders.find(x=>x.no===no);
+ if(!o)return;
+ document.getElementById('modalTitle').textContent='발주 상세 정보';
+ document.getElementById('modalBody').innerHTML=`
+   <div class="info-list">
+     <div class="key">발주번호</div><div><b>${o.no}</b></div>
+     <div class="key">거래처</div><div>${o.client}</div>
+     <div class="key">접수일</div><div>${o.date}</div>
+     <div class="key">품목</div><div>${o.item}</div>
+     <div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div>
+     <div class="key">금액</div><div><b>${won(o.amount)}</b></div>
+     <div class="key">상태</div><div>${badge(o.status)}</div>
+   </div>
+   <div class="field" style="margin-top:16px"><label>거래처 메모</label><textarea id="orderClientMemo" class="memo-v6">${escapeHtmlV8(o.clientMemo||'')}</textarea></div>`;
+ const save=document.getElementById('modalSave');
+ save.style.display='';
  save.onclick=()=>{
-   const st=document.getElementById('bulkStatusVal').value;
-   orders.forEach(o=>{if(chks.includes(o.no))o.status=st});
-   saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();renderHome();alert('선택한 주문의 상태가 변경되었습니다.');
+   o.clientMemo=document.getElementById('orderClientMemo').value;
+   saveV7Data();closeModal();alert('메모가 저장되었습니다.');
  };
  document.getElementById('modalBg').classList.add('show');
 }
 
+function showClientOrderDetail(no){
+ const o=orders.find(x=>x.no===no);
+ if(!o)return;
+ document.getElementById('modalTitle').textContent='발주 상세 내역';
+ document.getElementById('modalBody').innerHTML=`
+   <div class="info-list">
+     <div class="key">발주번호</div><div><b>${o.no}</b></div>
+     <div class="key">접수일</div><div>${o.date}</div>
+     <div class="key">품목</div><div>${o.item}</div>
+     <div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div>
+     <div class="key">금액</div><div><b>${won(o.amount)}</b></div>
+     <div class="key">진행상태</div><div>${badge(o.status)}</div>
+   </div>`;
+ document.getElementById('modalSave').style.display='none';
+ document.getElementById('modalBg').classList.add('show');
+}
+
 function downloadOrderCSV(){
- const rows=[['발주번호','거래처','접수일','품목','수량','금액','상태']];
- orders.forEach(o=>rows.push([o.no,o.client,o.date,o.item,o.qty,o.amount,o.status]));
- const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
- const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`wonjun_orders_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+ const list=orders;
+ if(!list.length){alert('다운로드할 데이터가 없습니다.');return}
+ let csv='\uFEFF발주번호,거래처,접수일,품목,수량,금액,상태\n';
+ list.forEach(o=>{
+   csv+=`"${o.no}","${o.client}","${o.date}","${o.item.replace(/"/g,'""')}",${o.qty},${o.amount},"${o.status}"\n`;
+ });
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+ const link=document.createElement('a');
+ link.href=URL.createObjectURL(blob);
+ link.download=`원준테이프_발주목록_${new Date().toISOString().slice(0,10)}.csv`;
+ link.click();
 }
 
-function downloadDocumentPDF(no,type,orderNo,date){
- alert(`[${type}] ${no} 문서를 다운로드합니다.`);
+function saveInventoryQtyV6(id,val){
+ const p=products.find(x=>x.id===id);
+ if(!p)return;
+ p.stock=Math.max(0,Number(val)||0);
+ saveV7Data();renderAdminDashboard();
 }
 
-function closeModal(){document.getElementById('modalBg').classList.remove('show')}
-
-function smartInit(containerId,placeholder,getItemsFunc,onChangeFunc){
- smartState[containerId]={selected:[],itemsFunc:getItemsFunc,onChange:onChangeFunc,placeholder};
- const el=document.getElementById(containerId);if(!el)return;
- el.innerHTML=`<div class="smartinput" style="display:flex;align-items:center;cursor:pointer" onclick="smartToggle('${containerId}')"><span id="${containerId}-ph" style="color:#94a3b8">${placeholder}</span></div><div class="smartdrop" id="${containerId}-drop"></div><div class="smarttags" id="${containerId}-tags"></div>`;
- document.addEventListener('click',e=>{if(!el.contains(e.target))el.classList.remove('open')});
+function saveInventoryVisibilityV6(id,val){
+ const p=products.find(x=>x.id===id);
+ if(!p)return;
+ p.inventoryPublic=val==='public';
+ saveV7Data();renderInventoryRows();
 }
 
-function smartToggle(id){
- const box=document.getElementById(id);if(!box)return;
- const open=!box.classList.contains('open');
- document.querySelectorAll('.smartbox').forEach(b=>b.classList.remove('open'));
- if(open){
-   box.classList.add('open');
-   smartRenderDrop(id);
- }
+function downloadDocumentPDF(docNo,type,orderNo,date){
+ alert(`[${type}] 문서번호: ${docNo}\n다운로드 기능 준비 중입니다.`);
 }
 
-function smartRenderDrop(id){
- const drop=document.getElementById(id+'-drop');if(!drop)return;
- const st=smartState[id];const items=st.itemsFunc();
- drop.innerHTML=`<div class="smart-hint">여러 항목 클릭하여 다중 선택 가능</div>`+items.map(it=>{
-   const active=st.selected.includes(String(it.id));
-   return `<div class="smartopt ${active?'active':''}" onclick="smartSelect('${id}','${it.id}')"><span>${escapeHtmlV8(it.label)}</span>${active?'<span class="smart-check">✓</span>':''}</div>`;
- }).join('');
+function renderAll(){
+ renderHome();
+ renderProducts();
+ renderCartPage();
+ renderClientOrders();
+ renderInventoryRows();
+ renderNotices();
+ renderCategories();
+ renderAdminDashboard();
+ renderAdminOrders();
+ renderClients();
+ renderAdminProducts();
+ renderPriceClients();
+ renderPriceManagement();
+ renderAdminInventory();
 }
 
-function smartSelect(id,val){
- const st=smartState[id];val=String(val);
- if(st.selected.includes(val))st.selected=st.selected.filter(x=>x!==val);
- else st.selected.push(val);
- smartRenderTags(id);smartRenderDrop(id);
- if(st.onChange)st.onChange(st.selected);
-}
-
-function smartRenderTags(id){
- const st=smartState[id];const tags=document.getElementById(id+'-tags');const ph=document.getElementById(id+'-ph');
- const items=st.itemsFunc();
- if(tags)tags.innerHTML=st.selected.map(val=>{
-   const it=items.find(x=>String(x.id)===val);
-   return `<span class="smarttag">${escapeHtmlV8(it?.label||val)}<button onclick="smartSelect('${id}','${val}')">×</button></span>`;
- }).join('');
- if(ph)ph.textContent=st.selected.length?`${st.selected.length}개 선택됨`:st.placeholder;
-}
-
-function smartGet(id){return smartState[id]?.selected||[]}
-function smartClear(id){if(smartState[id]){smartState[id].selected=[];smartRenderTags(id);smartRenderDrop(id)}}
-
-function initV6Smart(){
- smartInit('orderClientFilter','거래처 선택',()=>clients.map(c=>({id:c.id,label:`${c.name} (${c.code})`})),()=>renderAdminOrders());
- smartInit('orderProductFilter','제품 선택',()=>products.map(p=>({id:p.id,label:`${p.name} (${p.spec})`})),()=>renderAdminOrders());
- smartInit('clientSmartFilter','거래처 검색/선택',()=>clients.map(c=>({id:c.id,label:`${c.name} (${c.code})`})),()=>renderClients());
- smartInit('productAdminSmart','제품 검색/선택',()=>products.map(p=>({id:p.id,label:`${p.name} (${p.spec})`})),()=>renderAdminProducts());
- smartInit('priceClientSmart','거래처 선택',()=>clients.map(c=>({id:c.id,label:`${c.name} (${c.code})`})),()=>renderPriceManagement());
- smartInit('priceProductSmart','제품 선택',()=>products.map(p=>({id:p.id,label:`${p.name} (${p.spec})`})),()=>renderPriceManagement());
-}
-
-window.addEventListener('DOMContentLoaded',async()=>{
- const restored=await restoreSupabaseSession();
- if(!restored && currentUser){
-   applyLoggedInUI();
- } else if(restored){
-   applyLoggedInUI();
- } else {
-   showLogin();
- }
+window.addEventListener('DOMContentLoaded', async ()=>{
+ let restored=false;
+ if(supabaseERP){restored=await restoreSupabaseSession()}
+ if(!restored&&currentUser){applyLoggedInUI()}
+ else if(!currentUser){showLogin()}
 });
 </script>
 </body>
