@@ -553,7 +553,7 @@ async function login(){
  const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
  if(!id||!pw){alert('아이디와 비밀번호를 입력해 주세요.');return}
 
- // 1) Supabase Auth: 관리자 계정
+ // 관리자: 이메일 계정으로 Supabase Auth 로그인
  if(supabaseERP && id.includes('@')){
    const {data,error}=await supabaseERP.auth.signInWithPassword({email:id,password:pw});
    if(error){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
@@ -570,7 +570,42 @@ async function login(){
    return;
  }
 
- // 2) 아직 Supabase Auth로 이전하지 않은 거래처는 기존 데이터로 로그인
+ // 거래처: 로그인 ID를 Supabase Auth의 내부 이메일로 변환해 로그인
+ if(supabaseERP){
+   const authEmail=makeClientAuthEmail(id);
+   const {data,error}=await supabaseERP.auth.signInWithPassword({email:authEmail,password:pw});
+   if(!error && data?.user){
+     const user=data.user;
+     const {data:profile}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
+     if(profile?.role==='client'){
+       const {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
+       if(!clientError && clientRow){
+         const mapped={
+           id:clientRow.id,
+           code:clientRow.code,
+           name:clientRow.name,
+           loginId:clientRow.login_id,
+           password:'',
+           manager:clientRow.manager||'',
+           phone:clientRow.phone||'',
+           bizNo:clientRow.biz_no||'',
+           email:clientRow.email||'',
+           address:clientRow.address||'',
+           status:clientRow.status||'정상'
+         };
+         const idx=clients.findIndex(c=>String(c.id)===String(mapped.id));
+         if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
+         currentUser=mapped.loginId;
+         localStorage.setItem('wonjun_v7_session',currentUser);
+         applyLoggedInUI();
+         return;
+       }
+     }
+     await supabaseERP.auth.signOut();
+   }
+ }
+
+ // 기존 로컬 거래처 계정 호환
  const client=clients.find(x=>(x.loginId||'').toLowerCase()===id.toLowerCase() && x.password===pw && x.status!=='거래중지');
  if(!client){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
  currentUser=client.loginId;
@@ -758,40 +793,89 @@ function generateClientPassword(){
  document.querySelector('#adminClientDetail .password-row .small-btn').textContent='숨기기';
 }
 
+function makeClientAuthEmail(loginId){
+  return String(loginId||'').trim().toLowerCase().replace(/[^a-z0-9._-]/g,'-')+'@client.wonjuntape.local';
+}
+
 function openClientCreateModal(){
  document.getElementById('modalTitle').textContent='거래처 등록';
  document.getElementById('modalBody').innerHTML=`
-   <div class="field"><label>거래처 코드</label><input id="newClientCode" placeholder="예: WJ-C004"></div>
-   <div class="field"><label>거래처명</label><input id="newClientName" placeholder="회사명"></div>
-   <div class="field"><label>로그인 ID</label><input id="newClientLoginId" placeholder="거래처 전용 로그인 ID"></div>
-   <div class="field"><label>비밀번호</label><input id="newClientPassword" type="text" placeholder="거래처 전용 비밀번호"></div>
-   <div class="field"><label>담당자</label><input id="newClientManager" placeholder="담당자명"></div>
-   <div class="field"><label>연락처</label><input id="newClientPhone" placeholder="010-0000-0000"></div>
-   <div class="field"><label>사업자번호</label><input id="newClientBizNo" placeholder="000-00-00000"></div>
-   <div class="field"><label>이메일</label><input id="newClientEmail" placeholder="example@company.com"></div>`;
+   <div class="form-grid">
+    <div class="field"><label>거래처 코드 *</label><input id="newClientCode" placeholder="예: WJ-C004"></div>
+    <div class="field"><label>거래처명 *</label><input id="newClientName" placeholder="회사명"></div>
+    <div class="field"><label>로그인 ID *</label><input id="newClientLoginId" placeholder="거래처 전용 로그인 ID"></div>
+    <div class="field"><label>비밀번호 *</label><input id="newClientPassword" type="text" placeholder="거래처 전용 비밀번호"></div>
+    <div class="field"><label>담당자</label><input id="newClientManager" placeholder="담당자명"></div>
+    <div class="field"><label>연락처</label><input id="newClientPhone" placeholder="010-0000-0000"></div>
+    <div class="field"><label>사업자번호</label><input id="newClientBizNo" placeholder="000-00-00000"></div>
+    <div class="field"><label>이메일</label><input id="newClientEmail" placeholder="example@company.com"></div>
+   </div>`;
  const save=document.getElementById('modalSave');
  save.style.display='';
- save.onclick=()=>{
+ save.textContent='저장';
+ save.onclick=async()=>{
    const code=document.getElementById('newClientCode').value.trim();
    const name=document.getElementById('newClientName').value.trim();
    const loginId=document.getElementById('newClientLoginId').value.trim();
    const password=document.getElementById('newClientPassword').value;
+   const manager=document.getElementById('newClientManager').value.trim();
+   const phone=document.getElementById('newClientPhone').value.trim();
+   const bizNo=document.getElementById('newClientBizNo').value.trim();
+   const email=document.getElementById('newClientEmail').value.trim();
+
    if(!code||!name||!loginId||!password){alert('거래처 코드, 거래처명, 로그인 ID, 비밀번호는 필수입니다.');return}
    if(clients.some(c=>c.code===code)){alert('이미 사용 중인 거래처 코드입니다.');return}
    if(clients.some(c=>(c.loginId||'').toLowerCase()===loginId.toLowerCase())){alert('이미 사용 중인 로그인 ID입니다.');return}
-   clients.push({
-     id:'C'+Date.now(),code,name,loginId,password,
-     manager:document.getElementById('newClientManager').value.trim(),
-     phone:document.getElementById('newClientPhone').value.trim(),
-     bizNo:document.getElementById('newClientBizNo').value.trim(),
-     email:document.getElementById('newClientEmail').value.trim(),
-     address:'',status:'정상'
-   });
-   saveV7Data();
-   closeModal();
-   renderClients();renderAdminDashboard();
-   initV6Smart();
-   alert('거래처가 등록되었습니다.');
+   if(!supabaseERP){alert('Supabase 연결이 확인되지 않습니다.');return}
+
+   save.disabled=true;
+   save.textContent='등록 중...';
+   try{
+     const {data:{session},error:sessionError}=await supabaseERP.auth.getSession();
+     if(sessionError||!session){throw new Error('관리자 로그인이 필요합니다.')}
+
+     const response=await fetch(SUPABASE_URL+'/functions/v1/dynamic-function',{
+       method:'POST',
+       headers:{
+         'Authorization':'Bearer '+session.access_token,
+         'apikey':SUPABASE_PUBLISHABLE_KEY,
+         'Content-Type':'application/json'
+       },
+       body:JSON.stringify({code,name,loginId,password,manager,phone,bizNo,email,address:'',status:'정상'})
+     });
+
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok)throw new Error(result.error||'거래처 등록에 실패했습니다.');
+
+     const newClient=result.client;
+     clients.push({
+       id:newClient.id,
+       code:newClient.code,
+       name:newClient.name,
+       loginId:newClient.loginId,
+       password:'',
+       manager:newClient.manager||'',
+       phone:newClient.phone||'',
+       bizNo:newClient.bizNo||'',
+       email:newClient.email||'',
+       address:newClient.address||'',
+       status:newClient.status||'정상'
+     });
+
+     saveV7Data();
+     closeModal();
+     renderClients();
+     renderAdminDashboard();
+     renderPriceClients();
+     initV6Smart();
+     alert('거래처가 Supabase에 등록되었습니다.');
+   }catch(error){
+     console.error('거래처 등록 오류:',error);
+     alert('거래처 등록에 실패했습니다.\n\n'+(error?.message||'알 수 없는 오류'));
+   }finally{
+     save.disabled=false;
+     save.textContent='저장';
+   }
  };
  document.getElementById('modalBg').classList.add('show');
 }
@@ -998,3 +1082,4 @@ document.addEventListener('keydown',e=>{
 });
 </script>
 </body>
+</html>
