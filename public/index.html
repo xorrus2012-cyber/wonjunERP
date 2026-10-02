@@ -553,7 +553,7 @@ async function login(){
  const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
  if(!id||!pw){alert('아이디와 비밀번호를 입력해 주세요.');return}
 
- // 관리자: 이메일 계정으로 Supabase Auth 로그인
+ // 관리자: Supabase Auth 이메일 로그인
  if(supabaseERP && id.includes('@')){
    const {data,error}=await supabaseERP.auth.signInWithPassword({email:id,password:pw});
    if(error){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
@@ -570,7 +570,7 @@ async function login(){
    return;
  }
 
- // 거래처: 로그인 ID를 Supabase Auth의 내부 이메일로 변환해 로그인
+ // 거래처: 로그인 ID를 Supabase Auth 내부 이메일로 변환해 로그인
  if(supabaseERP){
    const authEmail=makeClientAuthEmail(id);
    const {data,error}=await supabaseERP.auth.signInWithPassword({email:authEmail,password:pw});
@@ -578,13 +578,19 @@ async function login(){
      const user=data.user;
      const {data:profile}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
      if(profile?.role==='client'){
-       const {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
+       let {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('user_id',user.id).maybeSingle();
+       if(!clientRow && !clientError){
+         const fallback=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
+         clientRow=fallback.data;
+         clientError=fallback.error;
+       }
        if(!clientError && clientRow){
          const mapped={
            id:clientRow.id,
-           code:clientRow.code,
-           name:clientRow.name,
-           loginId:clientRow.login_id,
+           userId:clientRow.user_id||user.id,
+           code:clientRow.code||'',
+           name:clientRow.name||profile.display_name||'',
+           loginId:clientRow.login_id||id,
            password:'',
            manager:clientRow.manager||'',
            phone:clientRow.phone||'',
@@ -593,7 +599,12 @@ async function login(){
            address:clientRow.address||'',
            status:clientRow.status||'정상'
          };
-         const idx=clients.findIndex(c=>String(c.id)===String(mapped.id));
+         if(mapped.status==='거래중지'){
+           await supabaseERP.auth.signOut();
+           alert('현재 거래처 상태가 거래중지입니다. 관리자에게 문의해 주세요.');
+           return;
+         }
+         const idx=clients.findIndex(c=>String(c.id)===String(mapped.id)||String(c.userId)===String(mapped.userId));
          if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
          currentUser=mapped.loginId;
          localStorage.setItem('wonjun_v7_session',currentUser);
@@ -617,11 +628,47 @@ async function restoreSupabaseSession(){
  if(!supabaseERP)return false;
  const {data:{session}}=await supabaseERP.auth.getSession();
  if(!session?.user)return false;
- const {data:profile}=await supabaseERP.from('profiles').select('role').eq('id',session.user.id).maybeSingle();
- if(profile?.role!=='admin'){await supabaseERP.auth.signOut();return false}
- currentUser='admin';
- localStorage.setItem('wonjun_v7_session','admin');
- return true;
+
+ const user=session.user;
+ const {data:profile}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
+ if(profile?.role==='admin'){
+   currentUser='admin';
+   localStorage.setItem('wonjun_v7_session','admin');
+   return true;
+ }
+
+ if(profile?.role==='client'){
+   let {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('user_id',user.id).maybeSingle();
+   if(!clientRow && !clientError){
+     const fallback=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
+     clientRow=fallback.data;
+     clientError=fallback.error;
+   }
+   if(!clientError && clientRow && clientRow.status!=='거래중지'){
+     const mapped={
+       id:clientRow.id,
+       userId:clientRow.user_id||user.id,
+       code:clientRow.code||'',
+       name:clientRow.name||profile.display_name||'',
+       loginId:clientRow.login_id||user.email?.split('@')[0]||'',
+       password:'',
+       manager:clientRow.manager||'',
+       phone:clientRow.phone||'',
+       bizNo:clientRow.biz_no||'',
+       email:clientRow.email||'',
+       address:clientRow.address||'',
+       status:clientRow.status||'정상'
+     };
+     const idx=clients.findIndex(c=>String(c.id)===String(mapped.id)||String(c.userId)===String(mapped.userId));
+     if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
+     currentUser=mapped.loginId;
+     localStorage.setItem('wonjun_v7_session',currentUser);
+     return true;
+   }
+ }
+
+ await supabaseERP.auth.signOut();
+ return false;
 }
 
 function applyLoggedInUI(){
