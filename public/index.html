@@ -377,7 +377,7 @@ html,body{overflow-x:hidden}
 
           <div class="card pad">
             <div class="section-title">접속 정보</div>
-            <div class="field"><label>로그인 ID</label><input id="detailClientLoginId"></div>
+            <div class="field"><label>아이디</label><input id="detailClientLoginId"></div>
             <div class="field">
               <label>비밀번호</label>
               <div class="password-row">
@@ -574,46 +574,60 @@ async function login(){
  if(supabaseERP){
    const authEmail=makeClientAuthEmail(id);
    const {data,error}=await supabaseERP.auth.signInWithPassword({email:authEmail,password:pw});
-   if(!error && data?.user){
-     const user=data.user;
-     const {data:profile}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
-     if(profile?.role==='client'){
-       let {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('user_id',user.id).maybeSingle();
-       if(!clientRow && !clientError){
-         const fallback=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
-         clientRow=fallback.data;
-         clientError=fallback.error;
-       }
-       if(!clientError && clientRow){
-         const mapped={
-           id:clientRow.id,
-           userId:clientRow.user_id||user.id,
-           code:clientRow.code||'',
-           name:clientRow.name||profile.display_name||'',
-           loginId:clientRow.login_id||id,
-           password:'',
-           manager:clientRow.manager||'',
-           phone:clientRow.phone||'',
-           bizNo:clientRow.biz_no||'',
-           email:clientRow.email||'',
-           address:clientRow.address||'',
-           status:clientRow.status||'정상'
-         };
-         if(mapped.status==='거래중지'){
-           await supabaseERP.auth.signOut();
-           alert('현재 거래처 상태가 거래중지입니다. 관리자에게 문의해 주세요.');
-           return;
-         }
-         const idx=clients.findIndex(c=>String(c.id)===String(mapped.id)||String(c.userId)===String(mapped.userId));
-         if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
-         currentUser=mapped.loginId;
-         localStorage.setItem('wonjun_v7_session',currentUser);
-         applyLoggedInUI();
-         return;
-       }
-     }
-     await supabaseERP.auth.signOut();
+   if(error || !data?.user){
+     // Supabase Auth 내부 이메일은 사용자에게 노출하지 않습니다.
+     // 거래처는 ERP에서 ID + 비밀번호만 사용합니다.
+     alert('아이디 또는 비밀번호를 확인해 주세요.');
+     return;
    }
+   const user=data.user;
+   const {data:profile,error:profileError}=await supabaseERP.from('profiles').select('role,display_name').eq('id',user.id).maybeSingle();
+   if(profileError || profile?.role!=='client'){
+     await supabaseERP.auth.signOut();
+     alert('거래처 계정을 확인할 수 없습니다.');
+     return;
+   }
+
+   let {data:clientRow,error:clientError}=await supabaseERP.from('clients').select('*').eq('user_id',user.id).maybeSingle();
+   if(!clientRow && !clientError){
+     const fallback=await supabaseERP.from('clients').select('*').eq('id',user.id).maybeSingle();
+     clientRow=fallback.data;
+     clientError=fallback.error;
+   }
+
+   if(clientError || !clientRow){
+     await supabaseERP.auth.signOut();
+     alert('거래처 정보를 불러오지 못했습니다. 관리자에게 문의해 주세요.');
+     return;
+   }
+
+   const mapped={
+     id:clientRow.id,
+     userId:clientRow.user_id||user.id,
+     code:clientRow.code||'',
+     name:clientRow.name||profile.display_name||'',
+     loginId:clientRow.login_id||id,
+     password:'',
+     manager:clientRow.manager||'',
+     phone:clientRow.phone||'',
+     bizNo:clientRow.biz_no||'',
+     email:clientRow.email||'',
+     address:clientRow.address||'',
+     status:clientRow.status||'정상'
+   };
+
+   if(mapped.status==='거래중지'){
+     await supabaseERP.auth.signOut();
+     alert('현재 거래처 상태가 거래중지입니다. 관리자에게 문의해 주세요.');
+     return;
+   }
+
+   const idx=clients.findIndex(c=>String(c.id)===String(mapped.id)||String(c.userId)===String(mapped.userId));
+   if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
+   currentUser=mapped.loginId;
+   localStorage.setItem('wonjun_v7_session',currentUser);
+   applyLoggedInUI();
+   return;
  }
 
  // 기존 로컬 거래처 계정 호환
