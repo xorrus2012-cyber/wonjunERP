@@ -626,6 +626,7 @@ async function login(){
    if(idx>=0)clients[idx]=mapped;else clients.push(mapped);
    currentUser=mapped.loginId;
    localStorage.setItem('wonjun_v7_session',currentUser);
+   await refreshCurrentClientFromSupabase();
    applyLoggedInUI();
    return;
  }
@@ -636,6 +637,45 @@ async function login(){
  currentUser=client.loginId;
  localStorage.setItem('wonjun_v7_session',currentUser);
  applyLoggedInUI();
+}
+
+
+async function refreshCurrentClientFromSupabase(){
+  if(!supabaseERP || !currentUser || currentUser==='admin') return true;
+  try{
+    const {data:{session},error:sessionError}=await supabaseERP.auth.getSession();
+    if(sessionError || !session?.user) return false;
+    const userId=session.user.id;
+    const {data:clientRow,error:clientError}=await supabaseERP
+      .from('clients').select('*').eq('user_id',userId).maybeSingle();
+    if(clientError || !clientRow){
+      console.error('거래처 정보 조회 오류:',clientError);
+      return false;
+    }
+    const mapped={
+      id:clientRow.id, userId:clientRow.user_id||userId,
+      code:clientRow.code||'', name:clientRow.name||'',
+      loginId:clientRow.login_id||currentUser, password:'',
+      manager:clientRow.manager||'', phone:clientRow.phone||'',
+      bizNo:clientRow.biz_no||'', email:clientRow.email||'',
+      address:clientRow.address||'', status:clientRow.status||'정상'
+    };
+    if(mapped.status==='거래중지'){
+      await supabaseERP.auth.signOut();
+      currentUser=null;
+      localStorage.removeItem('wonjun_v7_session');
+      alert('현재 거래처 상태가 거래중지입니다. 관리자에게 문의해 주세요.');
+      return false;
+    }
+    const idx=clients.findIndex(c=>String(c.id)===String(mapped.id)||String(c.userId)===String(mapped.userId));
+    if(idx>=0) clients[idx]=mapped; else clients.push(mapped);
+    currentUser=mapped.loginId;
+    localStorage.setItem('wonjun_v7_session',currentUser);
+    return true;
+  }catch(e){
+    console.error('거래처 정보 동기화 오류:',e);
+    return false;
+  }
 }
 
 async function restoreSupabaseSession(){
