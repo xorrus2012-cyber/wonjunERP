@@ -586,6 +586,7 @@ async function loadClientsFromSupabase(){
     id:r.id, userId:r.user_id||'',
     code:firstValue(r,['code'],''),
     name:firstValue(r,['name','company','company_name'],''),
+    company:firstValue(r,['name','company','company_name'],''),
     loginId:firstValue(r,['login_id'],''),
     password:'',
     manager:firstValue(r,['manager'],''),
@@ -736,7 +737,7 @@ async function syncClientsToSupabase(){
   for(const c of clients){
     if(!c.userId && !c.id)continue;
     const payload={
-      id:c.id,user_id:c.userId||null,code:c.code,name:c.name,manager:c.manager,
+      id:c.id,user_id:c.userId||null,code:c.code,name:c.name||c.company||'',manager:c.manager,
       phone:c.phone,biz_no:c.bizNo,email:c.email,address:c.address,status:c.status,
       login_id:c.loginId
     };
@@ -860,7 +861,7 @@ function subscribeERPRealtime(){
   if(!supabaseERP || supabaseRealtimeChannel)return;
   const tables=['clients','product_categories','products','client_prices','inventory','orders','order_items','notices','notice_files'];
   supabaseRealtimeChannel=supabaseERP.channel('wonjun-erp-realtime')
-    .on('postgres_changes',{event:'*',schema:'public',table:'clients'},async()=>{await loadClientsFromSupabase();renderAll();initV6Smart()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'clients'},async()=>{await loadClientsFromSupabase();if(currentUser&&currentUser!=='admin'&&typeof refreshCurrentClientFromSupabase==='function')await refreshCurrentClientFromSupabase();renderAll();initV6Smart()})
     .on('postgres_changes',{event:'*',schema:'public',table:'products'},async()=>{await loadProductsFromSupabase();renderAll();initV6Smart()})
     .on('postgres_changes',{event:'*',schema:'public',table:'product_categories'},async()=>{await loadProductsFromSupabase();renderAll();initV6Smart()})
     .on('postgres_changes',{event:'*',schema:'public',table:'client_prices'},async()=>{await loadProductsFromSupabase();renderAll()})
@@ -938,6 +939,7 @@ async function login(){
      userId:clientRow.user_id||user.id,
      code:clientRow.code||'',
      name:clientRow.name||profile.display_name||'',
+     company:clientRow.name||profile.display_name||'',
      loginId:clientRow.login_id||id,
      password:'',
      manager:clientRow.manager||'',
@@ -1365,7 +1367,7 @@ function openClientEdit(i){
   <div class="field"><label>전화번호</label><input id="editPhone" value="${c.phone}"></div>
   <div class="field"><label>상태</label><select id="editStatus"><option ${c.status==='정상'?'selected':''}>정상</option><option ${c.status==='거래중지'?'selected':''}>거래중지</option></select></div>
  </div>`;
- document.getElementById('modalSave').onclick=()=>{c.company=editCompany.value;c.code=editCode.value;c.loginId=editId.value.trim();c.manager=editManager.value;c.phone=editPhone.value;c.status=editStatus.value;saveV7Data();closeModal();renderClients();renderPriceManagement();alert('거래처 정보가 저장되었습니다.')};
+ document.getElementById('modalSave').onclick=async()=>{const companyValue=editCompany.value.trim();c.company=companyValue;c.name=companyValue;c.code=editCode.value.trim();c.loginId=editId.value.trim();c.manager=editManager.value.trim();c.phone=editPhone.value.trim();c.status=editStatus.value;saveV7Data();closeModal();renderClients();renderPriceManagement();alert('거래처 정보가 저장되었습니다.')};
  document.getElementById('modalBg').classList.add('show');
 }
 function openProductEdit(i){
@@ -1491,7 +1493,7 @@ function downloadDocumentPDF(no,type,orderNo,date){
 
 function showClientOrderDetail(no){const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
 function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;const c=clients.find(x=>x.loginId===o.id);document.getElementById('modalTitle').textContent='주문 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${c?.name||o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
-let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};function refreshFromV9(){loadV7Data();if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
+let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
 renderAll();
