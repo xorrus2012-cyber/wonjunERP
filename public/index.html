@@ -559,63 +559,73 @@ async function saveClientPriceToSupabase(clientId, productId, price){
   let cid=String(clientId||'').trim();
   let pid=String(productId||'').trim();
   const n=Number(String(price??'').replace(/,/g,''));
-
-  if(!cid || !pid || !Number.isFinite(n)){
-    throw new Error('거래처, 상품, 단가를 확인해주세요.');
-  }
-
-  // 기존 화면에는 localStorage에서 만들어진 숫자 ID(예: 1)가 남아 있을 수 있습니다.
-  // Supabase의 client_prices.client_id / product_id는 UUID이므로 실제 DB UUID로 변환합니다.
   const uuidRe=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+  if(!cid || !pid || !Number.isFinite(n)) throw new Error('거래처, 상품, 단가를 확인해주세요.');
+
+  // 거래처: 화면의 로컬 ID/코드가 들어와도 실제 Supabase UUID로 변환
   if(!uuidRe.test(cid)){
     const localClient=(typeof clients!=='undefined'?clients:[]).find(c=>
       String(c.id)===cid || String(c.userId||'')===cid || String(c.code||'')===cid || String(c.loginId||'')===cid
     );
     if(localClient && uuidRe.test(String(localClient.id||''))) cid=String(localClient.id);
     else if(localClient){
-      const key=String(localClient.code||localClient.loginId||'').trim();
-      if(key){
-        const q=await supabaseERP.from('clients').select('id').eq('code',key).maybeSingle();
-        if(!q.error && q.data?.id) cid=String(q.data.id);
-        else {
-          const q2=await supabaseERP.from('clients').select('id').eq('login_id',String(localClient.loginId||'')).maybeSingle();
-          if(!q2.error && q2.data?.id) cid=String(q2.data.id);
-        }
-      }
+      const tries=[];
+      if(localClient.code) tries.push(supabaseERP.from('clients').select('id').eq('code',String(localClient.code)).maybeSingle());
+      if(localClient.loginId) tries.push(supabaseERP.from('clients').select('id').eq('login_id',String(localClient.loginId)).maybeSingle());
+      if(localClient.name||localClient.company) tries.push(supabaseERP.from('clients').select('id').eq('name',String(localClient.name||localClient.company)).maybeSingle());
+      for(const q of tries){ const r=await q; if(!r.error && r.data?.id){cid=String(r.data.id);break;} }
     }
   }
 
+  // 제품: 화면의 숫자 ID(예: 1)는 Supabase products UUID가 아닙니다.
+  // 1) 로컬 제품 객체 확인 → 2) DB 기존 제품 검색 → 3) 없으면 DB에 제품을 생성하고 UUID 확보
   if(!uuidRe.test(pid)){
     const localProduct=(typeof products!=='undefined'?products:[]).find(p=>
       String(p.id)===pid || String(p.code||'')===pid
     );
     if(localProduct && uuidRe.test(String(localProduct.id||''))) pid=String(localProduct.id);
     else if(localProduct){
-      // 로컬 제품 ID(예: 1)는 Supabase UUID와 다를 수 있으므로
-      // 코드 → 제품명/규격 순서로 실제 DB 제품 UUID를 찾습니다.
       const code=String(localProduct.code||'').trim();
       const name=String(localProduct.name||'').trim();
       const spec=String(localProduct.spec||'').trim();
       let found=null;
+
+      // 기존 DB 제품 검색
       if(code){
-        const q=await supabaseERP.from('products').select('id,code,name,spec').eq('code',code).maybeSingle();
-        if(!q.error && q.data?.id) found=q.data;
+        const q=await supabaseERP.from('products').select('*').eq('code',code).limit(1);
+        if(!q.error && q.data?.[0]) found=q.data[0];
       }
       if(!found && name){
-        const q=await supabaseERP.from('products').select('id,code,name,spec').eq('name',name).limit(20);
-        if(!q.error && Array.isArray(q.data)){
-          found=q.data.find(x=>!spec || String(x.spec||'').trim()===spec) || q.data[0] || null;
-        }
+        const q=await supabaseERP.from('products').select('*').eq('name',name).limit(50);
+        if(!q.error && q.data?.length) found=q.data.find(x=>!spec || String(x.spec||x.specification||'').trim()===spec)||q.data[0];
       }
+
+      // DB에 제품이 없으면 로컬 제품을 products 테이블에 생성
       if(!found){
-        const q=await supabaseERP.from('products').select('id,code,name,spec').limit(1000);
-        if(!q.error && Array.isArray(q.data)){
-          found=q.data.find(x=>
-            (code && String(x.code||'').trim()===code) ||
-            (name && String(x.name||'').trim()===name && (!spec || String(x.spec||'').trim()===spec))
-          ) || null;
+        let categoryId=null;
+        if(localProduct.cat){
+          const cq=await supabaseERP.from('product_categories').select('id,name').eq('name',String(localProduct.cat)).limit(1);
+          if(!cq.error && cq.data?.[0]?.id) categoryId=cq.data[0].id;
         }
+
+        const candidates=[];
+        const basePayload={code:code||null,name:name||'',spec:spec||null,base_price:Number(localProduct.base)||0};
+        if(categoryId) basePayload.category_id=categoryId;
+        candidates.push(basePayload);
+        // 일부 스키마가 기본단가 컬럼명을 price로 사용하는 경우
+        if(!('price' in basePayload)) candidates.push({...basePayload,price:basePayload.base_price});
+
+        let ins=null, lastErr=null;
+        for(const payload of candidates){
+          const r=await supabaseERP.from('products').insert(payload).select('*').single();
+          if(!r.error && r.data){ins=r.data;break;}
+          lastErr=r.error;
+        }
+        if(!ins){
+          throw new Error('Supabase products에 제품을 생성하지 못했습니다. '+(lastErr?.message||lastErr||''));
+        }
+        found=ins;
       }
       if(found?.id) pid=String(found.id);
     }
@@ -626,39 +636,21 @@ async function saveClientPriceToSupabase(clientId, productId, price){
   }
 
   const {data:existing,error:findError}=await supabaseERP
-    .from('client_prices')
-    .select('id,client_id,product_id,price')
-    .eq('client_id',cid)
-    .eq('product_id',pid)
-    .maybeSingle();
-
+    .from('client_prices').select('id,client_id,product_id,price')
+    .eq('client_id',cid).eq('product_id',pid).maybeSingle();
   if(findError) throw findError;
 
   if(existing){
-    const {data,error}=await supabaseERP
-      .from('client_prices')
-      .update({
-        price:n,
-        updated_at:new Date().toISOString()
-      })
-      .eq('id',existing.id)
-      .select('*')
-      .single();
-
+    const {data,error}=await supabaseERP.from('client_prices')
+      .update({price:n,updated_at:new Date().toISOString()})
+      .eq('id',existing.id).select('*').single();
     if(error) throw error;
     return data;
   }
 
-  const {data,error}=await supabaseERP
-    .from('client_prices')
-    .insert({
-      client_id:cid,
-      product_id:pid,
-      price:n
-    })
-    .select('*')
-    .single();
-
+  const {data,error}=await supabaseERP.from('client_prices')
+    .insert({client_id:cid,product_id:pid,price:n})
+    .select('*').single();
   if(error) throw error;
   return data;
 }
