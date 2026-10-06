@@ -545,8 +545,338 @@ function saveV7Data(){
     localStorage.setItem('wonjun_v7_notices',JSON.stringify(notices));
     localStorage.setItem('wonjun_v7_categories',JSON.stringify(productCategories));
   }catch(e){console.warn('저장 데이터 저장 실패',e)}
+  if(typeof syncAllLocalChangesToSupabase==='function'){
+    syncAllLocalChangesToSupabase();
+  }
+}loadV7Data();
+
+/* =========================================================
+   V16 SUPABASE SINGLE SOURCE OF TRUTH + REALTIME SYNC
+   - 화면 데이터는 Supabase를 원본으로 사용합니다.
+   - localStorage는 장바구니/세션 보조용으로만 사용합니다.
+   ========================================================= */
+let supabaseSyncReady=false;
+let supabaseRealtimeChannel=null;
+let supabaseSyncBusy=false;
+
+function firstValue(row,names,fallback=''){
+  for(const n of names){ if(row && row[n]!==undefined && row[n]!==null) return row[n]; }
+  return fallback;
 }
-loadV7Data();
+function firstColumn(row,names){
+  if(!row)return null;
+  for(const n of names){if(Object.prototype.hasOwnProperty.call(row,n))return n;}
+  return null;
+}
+function normalizeDate(v){
+  if(!v)return new Date().toISOString().slice(0,10);
+  return String(v).slice(0,10);
+}
+
+async function loadClientsFromSupabase(){
+  if(!supabaseERP)return;
+  const {data,error}=await supabaseERP.from('clients').select('*').order('created_at',{ascending:true});
+  if(error){console.error('clients 불러오기 실패',error);return;}
+  const authMap=new Map();
+  (data||[]).forEach(r=>{
+    authMap.set(String(r.id),r);
+    if(r.user_id)authMap.set(String(r.user_id),r);
+  });
+  const mapped=(data||[]).map(r=>({
+    id:r.id, userId:r.user_id||'',
+    code:firstValue(r,['code'],''),
+    name:firstValue(r,['name','company','company_name'],''),
+    loginId:firstValue(r,['login_id'],''),
+    password:'',
+    manager:firstValue(r,['manager'],''),
+    phone:firstValue(r,['phone'],''),
+    bizNo:firstValue(r,['biz_no','business_no'],''),
+    email:firstValue(r,['email'],''),
+    address:firstValue(r,['address'],''),
+    status:firstValue(r,['status'],'정상')
+  }));
+  clients.splice(0,clients.length,...mapped);
+}
+
+async function loadProductsFromSupabase(){
+  if(!supabaseERP)return;
+  const {data,error}=await supabaseERP.from('products').select('*').order('created_at',{ascending:true});
+  if(error){console.error('products 불러오기 실패',error);return;}
+  const rows=data||[];
+  const categoryRows=(await supabaseERP.from('product_categories').select('*')).data||[];
+  const catMap=new Map();
+  categoryRows.forEach(r=>catMap.set(String(r.id),firstValue(r,['name','title','category_name'],'')));
+  const mapped=rows.map(r=>{
+    const catId=firstValue(r,['category_id'],'');
+    return {
+      id:r.id,
+      code:firstValue(r,['code','product_code'],''),
+      cat:firstValue(r,['category','cat'],catMap.get(String(catId))||'기타'),
+      name:firstValue(r,['name','product_name'],''),
+      spec:firstValue(r,['spec','specification'],''),
+      base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
+      stock:0,
+      safety:0,
+      warehouse:firstValue(r,['warehouse','warehouse_name'],''),
+      prices:{},
+      inventoryPublic:true
+    };
+  });
+  // inventory is separated from products in the production schema.
+  const inv=(await supabaseERP.from('inventory').select('*')).data||[];
+  const byProduct=new Map(inv.map(r=>[String(firstValue(r,['product_id','product'],'') ),r]));
+  mapped.forEach(p=>{
+    const r=byProduct.get(String(p.id));
+    if(r){
+      p.stock=Number(firstValue(r,['quantity','stock','qty'],0))||0;
+      p.safety=Number(firstValue(r,['safety_stock','safety'],0))||0;
+      p.warehouse=firstValue(r,['warehouse','warehouse_name'],p.warehouse);
+      p.inventoryPublic=firstValue(r,['is_public','public','inventory_public'],true)!==false;
+    }
+  });
+  const cp=(await supabaseERP.from('client_prices').select('*')).data||[];
+  const clientById=new Map(clients.map(c=>[String(c.id),c]));
+  const clientByUser=new Map(clients.filter(c=>c.userId).map(c=>[String(c.userId),c]));
+  const productById=new Map(mapped.map(p=>[String(p.id),p]));
+  cp.forEach(r=>{
+    const cid=firstValue(r,['client_id','client'],'');
+    const pid=firstValue(r,['product_id','product'],'');
+    const c=clientById.get(String(cid))||clientByUser.get(String(cid));
+    const p=productById.get(String(pid));
+    if(c&&p){
+      const val=Number(firstValue(r,['price','unit_price','custom_price'],p.base));
+      p.prices[c.loginId]=val;
+    }
+  });
+  products.splice(0,products.length,...mapped);
+}
+
+async function loadOrdersFromSupabase(){
+  if(!supabaseERP)return;
+  const {data,error}=await supabaseERP.from('orders').select('*').order('created_at',{ascending:false});
+  if(error){console.error('orders 불러오기 실패',error);return;}
+  const rows=data||[];
+  const cById=new Map(clients.map(c=>[String(c.id),c]));
+  const cByUser=new Map(clients.filter(c=>c.userId).map(c=>[String(c.userId),c]));
+  const mapped=rows.map(r=>{
+    const cid=firstValue(r,['client_id','client'],'');
+    const c=cById.get(String(cid))||cByUser.get(String(cid));
+    return {
+      id:firstValue(r,['order_no','no','id'],''),
+      no:firstValue(r,['order_no','no','id'],''),
+      client:c?.name||firstValue(r,['client_name'],''),
+      clientId:c?.id||cid,
+      idLogin:c?.loginId||'',
+      id:c?.loginId||firstValue(r,['client_login_id'],''),
+      date:normalizeDate(firstValue(r,['order_date','date','created_at'])),
+      item:firstValue(r,['item_summary','item','title'],''),
+      qty:Number(firstValue(r,['total_qty','qty','quantity'],0))||0,
+      amount:Number(firstValue(r,['total_amount','amount'],0))||0,
+      status:firstValue(r,['status'],'접수 완료'),
+      clientMemo:firstValue(r,['client_memo'],''),
+      adminMemo:firstValue(r,['admin_memo'],'')
+    };
+  });
+  orders.splice(0,orders.length,...mapped);
+}
+
+async function loadNoticesFromSupabase(){
+  if(!supabaseERP)return;
+  const {data,error}=await supabaseERP.from('notices').select('*').order('created_at',{ascending:false});
+  if(error){console.error('notices 불러오기 실패',error);return;}
+  const mapped=(data||[]).map(r=>({
+    id:r.id,
+    title:firstValue(r,['title','name'],''),
+    date:normalizeDate(firstValue(r,['notice_date','date','created_at'])),
+    content:firstValue(r,['content','body'],''),
+    image:firstValue(r,['image_url','image'],''),
+    popupEnabled:firstValue(r,['popup_enabled','is_popup'],false)===true,
+    popupStart:firstValue(r,['popup_start','popup_start_date'],''),
+    popupEnd:firstValue(r,['popup_end','popup_end_date'],'')
+  }));
+  notices.splice(0,notices.length,...mapped);
+}
+
+async function loadAllERPDataFromSupabase(){
+  if(!supabaseERP||supabaseSyncBusy)return;
+  supabaseSyncBusy=true;
+  try{
+    await loadClientsFromSupabase();
+    await loadProductsFromSupabase();
+    await loadOrdersFromSupabase();
+    await loadNoticesFromSupabase();
+    supabaseSyncReady=true;
+    renderAll();
+    if(typeof initV6Smart==='function')setTimeout(initV6Smart,20);
+  }catch(e){console.error('ERP 전체 데이터 동기화 실패',e)}
+  finally{supabaseSyncBusy=false}
+}
+
+/* DB의 실제 컬럼만 골라서 보내므로 스키마에 없는 필드 때문에 전체 동기화가 깨지지 않게 합니다. */
+async function upsertDynamic(table,payload,match){
+  if(!supabaseERP)return null;
+  const probe=await supabaseERP.from(table).select('*').limit(1);
+  if(probe.error)throw probe.error;
+  const sample=probe.data?.[0]||{};
+  const clean={};
+  for(const [k,v] of Object.entries(payload)){
+    if(Object.prototype.hasOwnProperty.call(sample,k) || k==='id' && table!=='clients') clean[k]=v;
+  }
+  for(const [k,v] of Object.entries(match||{})){
+    if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
+  }
+  if(Object.keys(clean).length===0)return null;
+  const res=await supabaseERP.from(table).upsert(clean,{onConflict:Object.keys(match||{})[0]});
+  if(res.error)throw res.error;
+  return res;
+}
+
+async function syncClientsToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  for(const c of clients){
+    if(!c.userId && !c.id)continue;
+    const payload={
+      id:c.id,user_id:c.userId||null,code:c.code,name:c.name,manager:c.manager,
+      phone:c.phone,biz_no:c.bizNo,email:c.email,address:c.address,status:c.status,
+      login_id:c.loginId
+    };
+    const {data:existing}=await supabaseERP.from('clients').select('id').eq('id',c.id).maybeSingle();
+    const q=existing
+      ? supabaseERP.from('clients').update(payload).eq('id',c.id)
+      : supabaseERP.from('clients').insert(payload);
+    const {error}=await q;
+    if(error)console.error('clients 저장 실패',error);
+  }
+}
+
+async function syncProductsToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  for(const p of products){
+    const {data:existing}=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();
+    if(!existing)continue;
+    const payload={code:p.code,name:p.name,spec:p.spec,base_price:p.base,price:p.base,category:p.cat};
+    const clean={};
+    for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(existing,k))clean[k]=v;
+    if(Object.keys(clean).length){
+      const {error}=await supabaseERP.from('products').update(clean).eq('id',p.id);
+      if(error)console.error('products 저장 실패',error);
+    }
+    const {data:inv}=await supabaseERP.from('inventory').select('*').eq('product_id',p.id).maybeSingle();
+    if(inv){
+      const ip={quantity:p.stock,stock:p.stock,qty:p.stock,safety_stock:p.safety,warehouse:p.warehouse,is_public:p.inventoryPublic,inventory_public:p.inventoryPublic};
+      const cleanI={};
+      for(const [k,v] of Object.entries(ip))if(Object.prototype.hasOwnProperty.call(inv,k))cleanI[k]=v;
+      if(Object.keys(cleanI).length){
+        const {error}=await supabaseERP.from('inventory').update(cleanI).eq('product_id',p.id);
+        if(error)console.error('inventory 저장 실패',error);
+      }
+    }
+  }
+}
+
+async function syncPricesToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  const {data:rows}=await supabaseERP.from('client_prices').select('*');
+  const sample=rows?.[0]||{};
+  if(!Object.keys(sample).length)return;
+  for(const c of clients)for(const p of products){
+    const v=p.prices?.[c.loginId];
+    if(v===undefined)continue;
+    const cidCol=firstColumn(sample,['client_id','client']);
+    const pidCol=firstColumn(sample,['product_id','product']);
+    const priceCol=firstColumn(sample,['price','unit_price','custom_price']);
+    if(!cidCol||!pidCol||!priceCol)continue;
+    const payload={[cidCol]:c.id,[pidCol]:p.id,[priceCol]:Number(v)};
+    const {data:existing}=await supabaseERP.from('client_prices').select('*').eq(cidCol,c.id).eq(pidCol,p.id).maybeSingle();
+    const res=existing
+      ? await supabaseERP.from('client_prices').update({[priceCol]:Number(v)}).eq(cidCol,c.id).eq(pidCol,p.id)
+      : await supabaseERP.from('client_prices').insert(payload);
+    if(res.error)console.error('client_prices 저장 실패',res.error);
+  }
+}
+
+async function syncNoticesToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  const {data:rows}=await supabaseERP.from('notices').select('*');
+  const sample=rows?.[0]||{};
+  if(!Object.keys(sample).length)return;
+  for(const n of notices){
+    if(!n.id)continue;
+    const payload={title:n.title,content:n.content,date:n.date,notice_date:n.date,image:n.image,popup_enabled:n.popupEnabled,popup_start:n.popupStart,popup_end:n.popupEnd};
+    const clean={};
+    for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
+    if(Object.keys(clean).length){
+      const {error}=await supabaseERP.from('notices').update(clean).eq('id',n.id);
+      if(error)console.error('notices 저장 실패',error);
+    }
+  }
+}
+
+async function syncOrdersToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  const {data:rows}=await supabaseERP.from('orders').select('*');
+  const sample=rows?.[0]||{};
+  if(!Object.keys(sample).length)return;
+  const orderCols={
+    order_no:'no',no:'no',client_id:'clientId',client:'clientId',
+    order_date:'date',date:'date',item_summary:'item',item:'item',
+    total_qty:'qty',qty:'qty',total_amount:'amount',amount:'amount',
+    status:'status',client_memo:'clientMemo',admin_memo:'adminMemo'
+  };
+  for(const o of orders){
+    const clean={};
+    for(const [col,prop] of Object.entries(orderCols)){
+      if(Object.prototype.hasOwnProperty.call(sample,col)){
+        let v=o[prop];
+        if(col==='client_id'||col==='client')v=clients.find(c=>c.loginId===o.id)?.id||o.clientId;
+        clean[col]=v;
+      }
+    }
+    if(!Object.keys(clean).length)continue;
+    const key=firstColumn(sample,['order_no','no','id']);
+    const val=key?(key==='id'&&String(o.no).startsWith('WJ-')?o.no:o.no):null;
+    if(key&&val!==null){
+      const {data:ex}=await supabaseERP.from('orders').select('id').eq(key,val).maybeSingle();
+      const res=ex
+        ? await supabaseERP.from('orders').update(clean).eq(key,val)
+        : await supabaseERP.from('orders').insert(clean);
+      if(res.error)console.error('orders 저장 실패',res.error);
+    }
+  }
+}
+
+async function syncAllLocalChangesToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  try{
+    await syncClientsToSupabase();
+    await syncProductsToSupabase();
+    await syncPricesToSupabase();
+    await syncNoticesToSupabase();
+    await syncOrdersToSupabase();
+  }catch(e){console.error('Supabase 저장 동기화 실패',e)}
+}
+
+function subscribeERPRealtime(){
+  if(!supabaseERP || supabaseRealtimeChannel)return;
+  const tables=['clients','product_categories','products','client_prices','inventory','orders','order_items','notices','notice_files'];
+  supabaseRealtimeChannel=supabaseERP.channel('wonjun-erp-realtime')
+    .on('postgres_changes',{event:'*',schema:'public',table:'clients'},async()=>{await loadClientsFromSupabase();renderAll();initV6Smart()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'products'},async()=>{await loadProductsFromSupabase();renderAll();initV6Smart()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'product_categories'},async()=>{await loadProductsFromSupabase();renderAll();initV6Smart()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'client_prices'},async()=>{await loadProductsFromSupabase();renderAll()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'inventory'},async()=>{await loadProductsFromSupabase();renderAll()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'orders'},async()=>{await loadOrdersFromSupabase();renderAll()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},async()=>{await loadOrdersFromSupabase();renderAll()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'notices'},async()=>{await loadNoticesFromSupabase();renderAll()})
+    .subscribe(status=>console.log('WONJUN ERP Realtime:',status));
+}
+
+/* 3초 폴링은 Realtime publication이 아직 켜지지 않은 환경에서도 즉시성에 가깝게 동작하게 하는 안전망입니다. */
+setInterval(async()=>{
+  if(supabaseERP && supabaseSyncReady && !document.hidden) await loadAllERPDataFromSupabase();
+},3000);
+
+
 
 const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
 async function login(){
@@ -566,6 +896,8 @@ async function login(){
    }
    currentUser='admin';
    localStorage.setItem('wonjun_v7_session','admin');
+   await loadAllERPDataFromSupabase();
+   subscribeERPRealtime();
    applyLoggedInUI();
    return;
  }
@@ -627,6 +959,8 @@ async function login(){
    currentUser=mapped.loginId;
    localStorage.setItem('wonjun_v7_session',currentUser);
    await refreshCurrentClientFromSupabase();
+   await loadAllERPDataFromSupabase();
+   subscribeERPRealtime();
    applyLoggedInUI();
    return;
  }
@@ -1184,3 +1518,8 @@ document.addEventListener('keydown',e=>{
 </script>
 </body>
 </html>
+
+<script>
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
+window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
+</script>
