@@ -609,12 +609,16 @@ async function saveClientPriceToSupabase(clientId, productId, price){
           if(!cq.error && cq.data?.[0]?.id) categoryId=cq.data[0].id;
         }
 
+        // products 테이블에는 기본단가 컬럼을 넣지 않습니다.
+        // 기본단가는 client_prices에서 거래처별로 관리합니다.
         const candidates=[];
-        const basePayload={code:code||null,name:name||'',spec:spec||null,base_price:Number(localProduct.base)||0};
+        const basePayload={code:code||null,name:name||'',spec:spec||null};
         if(categoryId) basePayload.category_id=categoryId;
         candidates.push(basePayload);
-        // 일부 스키마가 기본단가 컬럼명을 price로 사용하는 경우
-        if(!('price' in basePayload)) candidates.push({...basePayload,price:basePayload.base_price});
+        // category_id 컬럼이 없는 환경까지 대비해 최소 컬럼으로 재시도
+        candidates.push({code:code||null,name:name||'',spec:spec||null});
+        // code/spec가 nullable이 아닌 특수 스키마를 대비한 최후 fallback
+        candidates.push({name:name||''});
 
         let ins=null, lastErr=null;
         for(const payload of candidates){
