@@ -551,6 +551,149 @@ function saveV7Data(){
 }loadV7Data();
 
 
+
+/* V19: client_prices direct Supabase persistence */
+async function saveClientPriceToSupabase(clientId, productId, price){
+  if(!supabaseERP) throw new Error('Supabase 연결이 확인되지 않습니다.');
+
+  const cid=String(clientId||'').trim();
+  const pid=String(productId||'').trim();
+  const n=Number(String(price??'').replace(/,/g,''));
+
+  if(!cid || !pid || !Number.isFinite(n)){
+    throw new Error('거래처, 상품, 단가를 확인해주세요.');
+  }
+
+  const {data:existing,error:findError}=await supabaseERP
+    .from('client_prices')
+    .select('id,client_id,product_id,price')
+    .eq('client_id',cid)
+    .eq('product_id',pid)
+    .maybeSingle();
+
+  if(findError) throw findError;
+
+  if(existing){
+    const {data,error}=await supabaseERP
+      .from('client_prices')
+      .update({
+        price:n,
+        updated_at:new Date().toISOString()
+      })
+      .eq('id',existing.id)
+      .select('*')
+      .single();
+
+    if(error) throw error;
+    return data;
+  }
+
+  const {data,error}=await supabaseERP
+    .from('client_prices')
+    .insert({
+      client_id:cid,
+      product_id:pid,
+      price:n
+    })
+    .select('*')
+    .single();
+
+  if(error) throw error;
+  return data;
+}
+
+async function loadClientPricesDirect(){
+  if(!supabaseERP) return [];
+
+  const {data,error}=await supabaseERP
+    .from('client_prices')
+    .select('*');
+
+  if(error) throw error;
+
+  window.__wonjunClientPrices = data || [];
+  return window.__wonjunClientPrices;
+}
+
+async function refreshClientPricesEverywhere(){
+  try{
+    const rows=await loadClientPricesDirect();
+
+    // Keep the existing application's local structures in sync too.
+    (rows||[]).forEach(r=>{
+      const cid=String(r.client_id||'');
+      const pid=String(r.product_id||'');
+      const price=Number(r.price);
+      if(!cid || !pid || !Number.isFinite(price)) return;
+
+      const client=clients.find(c=>String(c.id)===cid);
+      if(client){
+        client.prices=client.prices||{};
+        client.prices[pid]=price;
+      }
+
+      const product=products.find(p=>String(p.id)===pid);
+      if(product){
+        product.clientPrices=product.clientPrices||{};
+        product.clientPrices[cid]=price;
+      }
+    });
+
+    // Reload the DB-backed product view as well.
+    if(typeof loadProductsFromSupabase==='function'){
+      await loadProductsFromSupabase();
+    }
+
+    if(typeof renderAll==='function') renderAll();
+    if(typeof renderPriceManagement==='function') renderPriceManagement();
+
+    return rows;
+  }catch(e){
+    console.error('단가 Supabase 재조회 실패:',e);
+    throw e;
+  }
+}
+
+/* Try to persist a price object exposed by existing UI code. */
+async function persistPriceEditObject(obj){
+  if(!obj) return false;
+
+  const cid=obj.clientId ?? obj.client_id ?? obj.customerId ?? obj.customer_id;
+  const pid=obj.productId ?? obj.product_id;
+  const price=obj.price ?? obj.value ?? obj.amount;
+
+  if(cid==null || pid==null || price==null) return false;
+
+  await saveClientPriceToSupabase(cid,pid,price);
+  await refreshClientPricesEverywhere();
+  return true;
+}
+
+
+/* V19: capture price-save buttons that expose data-client-id/data-product-id. */
+document.addEventListener('click', async function(e){
+  const btn=e.target.closest('[data-price-save],[data-save-price]');
+  if(!btn || btn.dataset.v19Bound==='1') return;
+
+  const cid=btn.dataset.clientId || btn.getAttribute('data-client-id');
+  const pid=btn.dataset.productId || btn.getAttribute('data-product-id');
+  const input=btn.dataset.priceInput ? document.querySelector(btn.dataset.priceInput) : null;
+  const price=input ? input.value : (btn.dataset.price ?? btn.getAttribute('data-price'));
+
+  if(cid && pid && price!=null){
+    try{
+      btn.dataset.v19Bound='1';
+      await saveClientPriceToSupabase(cid,pid,price);
+      await refreshClientPricesEverywhere();
+    }catch(err){
+      console.error('단가 직접 저장 실패:',err);
+      alert('단가 저장에 실패했습니다.\n\n'+(err.message||err));
+    }finally{
+      delete btn.dataset.v19Bound;
+    }
+  }
+}, true);
+
 /* V18: direct DB verification helper */
 async function verifyCurrentClientInSupabase(){
   if(!supabaseERP)return null;
