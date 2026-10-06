@@ -1600,9 +1600,27 @@ function openSinglePriceModal(clientId,productId){
   <div class="field"><label>제품</label><input value="${p.name} / ${p.spec}" disabled></div>
   <div class="field"><label>기본 단가</label><input value="${won(p.base)}" disabled></div>
   <div class="field"><label>적용 단가</label><input id="singlePriceValue" type="number" value="${p.prices[c.loginId]??p.base}"></div>`;
- document.getElementById('modalSave').onclick=()=>{
-   p.prices[c.loginId]=Number(document.getElementById('singlePriceValue').value);
-   saveV7Data();closeModal();renderPriceManagement();alert(`${c.company} · ${p.name} 단가가 저장되었습니다.`);
+ document.getElementById('modalSave').onclick=async()=>{
+   const saveBtn=document.getElementById('modalSave');
+   const value=Number(document.getElementById('singlePriceValue').value);
+   if(!Number.isFinite(value)||value<0){alert('적용 단가를 올바르게 입력해 주세요.');return}
+   saveBtn.disabled=true;saveBtn.textContent='저장 중...';
+   try{
+     // 관리자 화면의 단가 저장도 이제 반드시 Supabase client_prices에 직접 기록합니다.
+     await saveClientPriceToSupabase(c.id,p.id,value);
+     p.prices=p.prices||{};
+     p.prices[c.loginId]=value;
+     await refreshClientPricesEverywhere();
+     saveV7Data();
+     closeModal();
+     renderPriceManagement();
+     alert(`${c.company||c.name} · ${p.name} 단가가 저장되었습니다.`);
+   }catch(err){
+     console.error('거래처 단가 DB 저장 실패:',err);
+     alert('단가 저장에 실패했습니다.\n\n'+(err?.message||err));
+   }finally{
+     saveBtn.disabled=false;saveBtn.textContent='저장';
+   }
  };
  document.getElementById('modalBg').classList.add('show');
 }
@@ -1645,7 +1663,38 @@ function openNoticeModal(index=null){const editing=index!==null,n=editing?notice
 function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices();renderAdminNotices()}
 function openPriceModal(clientId,productId){document.getElementById('modalTitle').textContent='거래처별 단가 관리';let c=clientId==='all'?null:clients.find(x=>x.id===clientId);let p=productId?products.find(x=>x.id===productId):null;
  document.getElementById('modalBody').innerHTML=c?`<div class="field"><label>거래처</label><input value="${c.company}" disabled></div><div class="field"><label>제품</label><select id="priceProduct">${products.map(x=>`<option value="${x.id}">${x.name} / ${x.spec}</option>`).join('')}</select></div><div class="field"><label>적용 단가</label><input id="priceValue" type="number" value="${products[0].prices[c.id]||products[0].base}"></div>`:`<div class="field"><label>제품</label><input value="${p?.name||''}" disabled></div><div class="form-grid">${clients.map(x=>`<div class="field"><label>${x.company} 단가</label><input id="price-${x.id}" type="number" value="${p?.prices[x.id]||p?.base||0}"></div>`).join('')}</div>`;
- document.getElementById('modalSave').onclick=()=>{if(c){const pp=products.find(x=>x.id==document.getElementById('priceProduct').value);pp.prices[c.loginId]=Number(document.getElementById('priceValue').value)}else{clients.forEach(x=>p.prices[x.loginId]=Number(document.getElementById('price-'+x.id).value))}saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('단가가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+ document.getElementById('modalSave').onclick=async()=>{
+   const saveBtn=document.getElementById('modalSave');
+   saveBtn.disabled=true;saveBtn.textContent='저장 중...';
+   try{
+     if(c){
+       const pp=products.find(x=>String(x.id)===String(document.getElementById('priceProduct').value));
+       const value=Number(document.getElementById('priceValue').value);
+       if(!pp||!Number.isFinite(value)||value<0)throw new Error('거래처, 제품, 단가를 확인해 주세요.');
+       await saveClientPriceToSupabase(c.id,pp.id,value);
+       pp.prices=pp.prices||{};pp.prices[c.loginId]=value;
+     }else{
+       if(!p)throw new Error('제품을 찾을 수 없습니다.');
+       for(const x of clients){
+         const value=Number(document.getElementById('price-'+x.id).value);
+         if(!Number.isFinite(value)||value<0)throw new Error(`${x.company||x.name}의 단가를 확인해 주세요.`);
+         await saveClientPriceToSupabase(x.id,p.id,value);
+         p.prices=p.prices||{};p.prices[x.loginId]=value;
+       }
+     }
+     await refreshClientPricesEverywhere();
+     saveV7Data();
+     closeModal();
+     renderAdminProducts();renderPriceManagement();
+     alert('단가가 Supabase에 저장되었습니다.');
+   }catch(err){
+     console.error('거래처별 단가 DB 저장 실패:',err);
+     alert('단가 저장에 실패했습니다.\n\n'+(err?.message||err));
+   }finally{
+     saveBtn.disabled=false;saveBtn.textContent='저장';
+   }
+ };
+ document.getElementById('modalBg').classList.add('show')}
 function openClientModal(){
  document.getElementById('modalTitle').textContent='거래처 등록';
  document.getElementById('modalBody').innerHTML=`<div class="form-grid">
