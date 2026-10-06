@@ -592,11 +592,32 @@ async function saveClientPriceToSupabase(clientId, productId, price){
     );
     if(localProduct && uuidRe.test(String(localProduct.id||''))) pid=String(localProduct.id);
     else if(localProduct){
-      const key=String(localProduct.code||'').trim();
-      if(key){
-        const q=await supabaseERP.from('products').select('id').eq('code',key).maybeSingle();
-        if(!q.error && q.data?.id) pid=String(q.data.id);
+      // 로컬 제품 ID(예: 1)는 Supabase UUID와 다를 수 있으므로
+      // 코드 → 제품명/규격 순서로 실제 DB 제품 UUID를 찾습니다.
+      const code=String(localProduct.code||'').trim();
+      const name=String(localProduct.name||'').trim();
+      const spec=String(localProduct.spec||'').trim();
+      let found=null;
+      if(code){
+        const q=await supabaseERP.from('products').select('id,code,name,spec').eq('code',code).maybeSingle();
+        if(!q.error && q.data?.id) found=q.data;
       }
+      if(!found && name){
+        const q=await supabaseERP.from('products').select('id,code,name,spec').eq('name',name).limit(20);
+        if(!q.error && Array.isArray(q.data)){
+          found=q.data.find(x=>!spec || String(x.spec||'').trim()===spec) || q.data[0] || null;
+        }
+      }
+      if(!found){
+        const q=await supabaseERP.from('products').select('id,code,name,spec').limit(1000);
+        if(!q.error && Array.isArray(q.data)){
+          found=q.data.find(x=>
+            (code && String(x.code||'').trim()===code) ||
+            (name && String(x.name||'').trim()===name && (!spec || String(x.spec||'').trim()===spec))
+          ) || null;
+        }
+      }
+      if(found?.id) pid=String(found.id);
     }
   }
 
