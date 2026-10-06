@@ -556,12 +556,52 @@ function saveV7Data(){
 async function saveClientPriceToSupabase(clientId, productId, price){
   if(!supabaseERP) throw new Error('Supabase 연결이 확인되지 않습니다.');
 
-  const cid=String(clientId||'').trim();
-  const pid=String(productId||'').trim();
+  let cid=String(clientId||'').trim();
+  let pid=String(productId||'').trim();
   const n=Number(String(price??'').replace(/,/g,''));
 
   if(!cid || !pid || !Number.isFinite(n)){
     throw new Error('거래처, 상품, 단가를 확인해주세요.');
+  }
+
+  // 기존 화면에는 localStorage에서 만들어진 숫자 ID(예: 1)가 남아 있을 수 있습니다.
+  // Supabase의 client_prices.client_id / product_id는 UUID이므로 실제 DB UUID로 변환합니다.
+  const uuidRe=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if(!uuidRe.test(cid)){
+    const localClient=(typeof clients!=='undefined'?clients:[]).find(c=>
+      String(c.id)===cid || String(c.userId||'')===cid || String(c.code||'')===cid || String(c.loginId||'')===cid
+    );
+    if(localClient && uuidRe.test(String(localClient.id||''))) cid=String(localClient.id);
+    else if(localClient){
+      const key=String(localClient.code||localClient.loginId||'').trim();
+      if(key){
+        const q=await supabaseERP.from('clients').select('id').eq('code',key).maybeSingle();
+        if(!q.error && q.data?.id) cid=String(q.data.id);
+        else {
+          const q2=await supabaseERP.from('clients').select('id').eq('login_id',String(localClient.loginId||'')).maybeSingle();
+          if(!q2.error && q2.data?.id) cid=String(q2.data.id);
+        }
+      }
+    }
+  }
+
+  if(!uuidRe.test(pid)){
+    const localProduct=(typeof products!=='undefined'?products:[]).find(p=>
+      String(p.id)===pid || String(p.code||'')===pid
+    );
+    if(localProduct && uuidRe.test(String(localProduct.id||''))) pid=String(localProduct.id);
+    else if(localProduct){
+      const key=String(localProduct.code||'').trim();
+      if(key){
+        const q=await supabaseERP.from('products').select('id').eq('code',key).maybeSingle();
+        if(!q.error && q.data?.id) pid=String(q.data.id);
+      }
+    }
+  }
+
+  if(!uuidRe.test(cid) || !uuidRe.test(pid)){
+    throw new Error(`Supabase UUID 변환 실패 (거래처: ${cid}, 상품: ${pid})`);
   }
 
   const {data:existing,error:findError}=await supabaseERP
