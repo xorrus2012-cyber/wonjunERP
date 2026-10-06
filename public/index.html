@@ -550,6 +550,18 @@ function saveV7Data(){
   }
 }loadV7Data();
 
+
+/* V18: direct DB verification helper */
+async function verifyCurrentClientInSupabase(){
+  if(!supabaseERP)return null;
+  const c=clients.find(x=>String(x.id)===String(window.currentClientId));
+  if(!c)return null;
+  const {data,error}=await supabaseERP.from('clients').select('id,name,code,login_id,user_id,status').eq('id',c.id).maybeSingle();
+  if(error)console.error('거래처 DB 확인 실패',error);
+  else console.log('WONJUN DB 거래처 확인:',data);
+  return data;
+}
+
 /* =========================================================
    V16 SUPABASE SINGLE SOURCE OF TRUTH + REALTIME SYNC
    - 화면 데이터는 Supabase를 원본으로 사용합니다.
@@ -1183,19 +1195,78 @@ function openClientDetail(id){
  go('adminClientDetail');
 }
 
-function saveClientDetail(){
+async function saveClientDetail(){
  const c=clients.find(x=>String(x.id)===String(window.currentClientId));
  if(!c)return;
- c.code=document.getElementById('detailClientCode').value.trim();
- c.name=document.getElementById('detailClientName').value.trim();
- c.bizNo=document.getElementById('detailClientBizNo').value.trim();
- c.manager=document.getElementById('detailClientManager').value.trim();
- c.phone=document.getElementById('detailClientPhone').value.trim();
- c.email=document.getElementById('detailClientEmail').value.trim();
- c.address=document.getElementById('detailClientAddress').value.trim();
- c.status=document.getElementById('detailClientStatus').value;
- saveV7Data();renderClients();
- alert('거래처 기본정보가 저장되었습니다.');
+
+ const next={
+   code:document.getElementById('detailClientCode').value.trim(),
+   name:document.getElementById('detailClientName').value.trim(),
+   bizNo:document.getElementById('detailClientBizNo').value.trim(),
+   manager:document.getElementById('detailClientManager').value.trim(),
+   phone:document.getElementById('detailClientPhone').value.trim(),
+   email:document.getElementById('detailClientEmail').value.trim(),
+   address:document.getElementById('detailClientAddress').value.trim(),
+   status:document.getElementById('detailClientStatus').value
+ };
+
+ if(!supabaseERP){alert('Supabase 연결이 확인되지 않습니다.');return}
+
+ const btn=document.querySelector('#adminClientDetail .btn.primary');
+ if(btn){btn.disabled=true;btn.textContent='저장 중...';}
+
+ try{
+   const payload={
+     code:next.code,
+     name:next.name,
+     biz_no:next.bizNo,
+     manager:next.manager,
+     phone:next.phone,
+     email:next.email,
+     address:next.address,
+     status:next.status,
+     updated_at:new Date().toISOString()
+   };
+
+   const {data,error}=await supabaseERP
+     .from('clients')
+     .update(payload)
+     .eq('id',c.id)
+     .select('*')
+     .single();
+
+   if(error) throw error;
+   if(!data) throw new Error('Supabase에서 수정된 거래처 데이터를 받지 못했습니다.');
+
+   // DB 응답을 즉시 화면의 유일한 거래처 데이터로 반영
+   Object.assign(c,{
+     id:data.id,
+     userId:data.user_id||c.userId||'',
+     code:data.code||'',
+     name:data.name||'',
+     company:data.name||'',
+     loginId:data.login_id||c.loginId||'',
+     manager:data.manager||'',
+     phone:data.phone||'',
+     bizNo:data.biz_no||'',
+     email:data.email||'',
+     address:data.address||'',
+     status:data.status||'정상'
+   });
+
+   // 다른 화면/브라우저가 같은 DB를 바라보도록 다시 로드
+   await loadClientsFromSupabase();
+   if(typeof loadAllERPDataFromSupabase==='function') await loadAllERPDataFromSupabase();
+
+   renderClients();
+   if(typeof renderClientDetail==='function') renderClientDetail();
+   alert('거래처 기본정보가 Supabase에 저장되었습니다.');
+ }catch(e){
+   console.error('거래처 기본정보 Supabase 저장 실패:',e);
+   alert('거래처 정보 저장에 실패했습니다.\n\n'+(e.message||e));
+ }finally{
+   if(btn){btn.disabled=false;btn.textContent='기본정보 저장';}
+ }
 }
 
 function saveClientCredentials(){
