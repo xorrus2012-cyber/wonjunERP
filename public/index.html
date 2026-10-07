@@ -1451,69 +1451,133 @@ function updateCart(){
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
 async function checkout(){
- const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
+ const entries=Object.entries(cart||{}).filter(([id,q])=>products.find(p=>String(p.id)===String(id))&&Number(q)>0);
  if(!entries.length){alert('장바구니가 비어 있습니다.');return}
  if(!supabaseERP||!supabaseSyncReady){alert('주문 서버 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
  const cl=clients.find(x=>String(x.loginId)===String(currentUser));
  if(!cl){alert('거래처 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');return}
  const items=entries.map(([id,q])=>{
    const p=products.find(x=>String(x.id)===String(id));
-   return p?{p,q:Number(q),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Number(q)}:null;
+   return p?{p,q:Math.floor(Number(q)),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Math.floor(Number(q))}:null;
  }).filter(Boolean);
  if(!items.length){alert('장바구니의 제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
  const count=items.reduce((a,x)=>a+x.q,0);
  const total=items.reduce((a,x)=>a+x.amount,0);
  const names=items.map(x=>x.p.name);
- if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\n발주를 접수하시겠습니까?`))return;
+ if(!confirm(`${count.toLocaleString()}박스 / ${won(total)}\n발주를 접수하시겠습니까?`))return;
  try{
-   const {data:sampleRows,error:probeError}=await supabaseERP.from('orders').select('*').limit(1);
-   if(probeError)throw probeError;
-   const sample=sampleRows?.[0]||{};
    const orderNo='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
-   const orderPayload={
-     order_no:orderNo,no:orderNo,id:orderNo,
-     client_id:cl.id,client:cl.id,client_login_id:currentUser,
-     order_date:new Date().toISOString().slice(0,10),date:new Date().toISOString().slice(0,10),
-     item_summary:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),
-     total_qty:count,qty:count,quantity:count,
-     total_amount:total,amount:total,
-     status:'접수 완료',client_memo:'',admin_memo:''
+   const orderDate=new Date().toISOString().slice(0,10);
+   const itemSummary=names[0]+(names.length>1?' 외 '+(names.length-1)+'종':'');
+
+   // orders 테이블에 기존 데이터가 하나도 없어도 저장되도록
+   // 샘플 행에 의존하지 않고 실제 스키마 후보 중 존재하는 컬럼을 찾아 저장합니다.
+   const probe=await supabaseERP.from('orders').select('*').limit(1);
+   if(probe.error)throw probe.error;
+   const sample=probe.data?.[0]||{};
+   const candidate={
+     order_no:orderNo,
+     no:orderNo,
+     client_id:cl.id,
+     client_login_id:currentUser,
+     client:cl.id,
+     order_date:orderDate,
+     date:orderDate,
+     item_summary:itemSummary,
+     item:itemSummary,
+     total_qty:count,
+     qty:count,
+     quantity:count,
+     total_amount:total,
+     amount:total,
+     status:'접수 완료',
+     client_memo:'',
+     admin_memo:''
    };
    const clean={};
-   for(const [k,v] of Object.entries(orderPayload))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
-   if(!Object.keys(clean).length)throw new Error('orders 테이블 컬럼을 확인할 수 없습니다.');
-   const inserted=await supabaseERP.from('orders').insert(clean).select('*').single();
+   // 테이블에 이미 행이 있으면 실제 컬럼만 사용
+   for(const [k,v] of Object.entries(candidate)){
+     if(Object.prototype.hasOwnProperty.call(sample,k)) clean[k]=v;
+   }
+   // 테이블이 비어 있어 select 결과가 {}인 경우, 실제 프로젝트 스키마의 기본 컬럼으로 저장 시도
+   if(!Object.keys(clean).length){
+     Object.assign(clean,{order_no:orderNo,client_id:cl.id,order_date:orderDate,item_summary:itemSummary,total_qty:count,total_amount:total,status:'접수 완료',client_memo:''});
+   }
+
+   let inserted=await supabaseERP.from('orders').insert(clean).select('*').single();
+   if(inserted.error){
+     // order_no/no 컬럼 차이 등으로 실패한 경우 최소 필드 조합으로 한 번 더 시도
+     const retry={
+       client_id:cl.id,
+       order_date:orderDate,
+       item_summary:itemSummary,
+       total_qty:count,
+       total_amount:total,
+       status:'접수 완료',
+       client_memo:''
+     };
+     const retryProbe={};
+     for(const [k,v] of Object.entries(retry)){
+       if(Object.prototype.hasOwnProperty.call(sample,k)) retryProbe[k]=v;
+     }
+     if(!Object.keys(retryProbe).length) Object.assign(retryProbe,retry);
+     inserted=await supabaseERP.from('orders').insert(retryProbe).select('*').single();
+   }
    if(inserted.error)throw inserted.error;
-   const orderRow=inserted.data||clean;
+
+   const orderRow=inserted.data||{};
    const orderDbId=orderRow.id||orderRow.order_id||orderRow.order_no||orderNo;
 
-   const {data:itemSampleRows,error:itemProbeError}=await supabaseERP.from('order_items').select('*').limit(1);
-   if(itemProbeError)throw itemProbeError;
-   const itemSample=itemSampleRows?.[0]||{};
-   for(const x of items){
-     const payload={
-       order_id:orderDbId,order:orderDbId,
-       product_id:x.p.id,product:x.p.id,
-       product_name:x.p.name,name:x.p.name,
-       spec:x.p.spec,quantity:x.q,qty:x.q,
-       unit_price:x.unit,total_price:x.amount,amount:x.amount,
-       price:x.unit
-     };
-     const cleanItem={};
-     for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(itemSample,k))cleanItem[k]=v;
-     if(Object.keys(cleanItem).length){
-       const r=await supabaseERP.from('order_items').insert(cleanItem);
-       if(r.error)throw r.error;
+   // 상세 품목은 orders 저장을 막지 않도록 별도로 저장합니다.
+   // order_items 테이블 구조가 다른 경우에도 발주 자체는 성공해야 합니다.
+   try{
+     const itemProbe=await supabaseERP.from('order_items').select('*').limit(1);
+     if(!itemProbe.error){
+       const itemSample=itemProbe.data?.[0]||{};
+       for(const x of items){
+         const itemCandidate={
+           order_id:orderDbId,
+           order_no:orderNo,
+           order:orderDbId,
+           product_id:x.p.id,
+           product:x.p.id,
+           product_name:x.p.name,
+           name:x.p.name,
+           spec:x.p.spec,
+           quantity:x.q,
+           qty:x.q,
+           unit_price:x.unit,
+           price:x.unit,
+           total_price:x.amount,
+           total_amount:x.amount,
+           amount:x.amount
+         };
+         const cleanItem={};
+         for(const [k,v] of Object.entries(itemCandidate)){
+           if(Object.prototype.hasOwnProperty.call(itemSample,k)) cleanItem[k]=v;
+         }
+         if(!Object.keys(cleanItem).length){
+           Object.assign(cleanItem,{order_id:orderDbId,product_id:x.p.id,quantity:x.q,unit_price:x.unit,total_amount:x.amount});
+         }
+         const r=await supabaseERP.from('order_items').insert(cleanItem);
+         if(r.error) console.warn('order_items 저장 실패(발주 자체는 성공):',r.error);
+       }
+     }else{
+       console.warn('order_items 조회 실패(발주 자체는 성공):',itemProbe.error);
      }
+   }catch(itemErr){
+     console.warn('order_items 저장 중 오류(발주 자체는 성공):',itemErr);
    }
-   cart={};saveCartV8();
+
+   // 저장된 주문을 즉시 다시 읽어 관리자/거래처 양쪽 화면에 반영
    await loadOrdersFromSupabase();
+   cart={};saveCartV8();
    updateCart();renderCartPage();renderClientOrders();renderHome();renderAdminOrders();renderAdminDashboard();
    alert('발주가 접수되었습니다.');
    go('orders');
  }catch(e){
    console.error('발주 저장 실패:',e);
-   alert('발주 저장에 실패했습니다.\n\n'+(e?.message||'서버 오류'));
+   alert('발주 저장에 실패했습니다.\n\n'+(e?.message||e));
  }
 }
 function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
