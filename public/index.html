@@ -778,6 +778,44 @@ async function loadClientsFromSupabase(){
   clients.splice(0,clients.length,...mapped);
 }
 
+
+/* V27 FIX: Supabase products를 제품 목록의 단일 원본으로 유지 */
+async function ensureProductInSupabase(localProduct){
+  if(!supabaseERP || !localProduct) return null;
+  const code=String(localProduct.code||'').trim(), name=String(localProduct.name||'').trim(), spec=String(localProduct.spec||'').trim();
+  if(!code || !name) throw new Error('제품 코드와 제품명이 필요합니다.');
+  let q=await supabaseERP.from('products').select('*').eq('code',code).limit(1).maybeSingle();
+  let existing=(!q.error&&q.data)?q.data:null;
+  if(!existing && name){
+    q=await supabaseERP.from('products').select('*').eq('name',name).limit(50);
+    if(!q.error && Array.isArray(q.data)) existing=q.data.find(x=>!spec || String(x.spec||x.specification||'').trim()===spec)||q.data[0]||null;
+  }
+  if(existing) return existing;
+  const probe=await supabaseERP.from('products').select('*').limit(1);
+  if(probe.error) throw probe.error;
+  const sample=probe.data?.[0]||{}, payload={};
+  const put=(k,v)=>{if(Object.prototype.hasOwnProperty.call(sample,k))payload[k]=v};
+  put('code',code);put('product_code',code);put('name',name);put('product_name',name);put('spec',spec);put('specification',spec);
+  const base=Number(localProduct.base||0); put('base_price',base);put('base',base);put('unit_price',base);put('price',base);put('category',localProduct.cat||'');
+  if(Object.prototype.hasOwnProperty.call(sample,'category_id')){
+    const cq=await supabaseERP.from('product_categories').select('id,name').eq('name',String(localProduct.cat||'')).limit(1).maybeSingle();
+    if(!cq.error&&cq.data?.id)payload.category_id=cq.data.id;
+  }
+  if(!Object.keys(payload).length)throw new Error('products 테이블에 저장할 제품 컬럼을 찾지 못했습니다.');
+  const ins=await supabaseERP.from('products').insert(payload).select('*').single();
+  if(ins.error)throw ins.error;
+  return ins.data;
+}
+async function syncLocalProductsToSupabase(){
+  if(!supabaseERP||!supabaseSyncReady)return;
+  for(const local of [...products]){
+    const isUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(local.id||''));
+    if(isUuid){const r=await supabaseERP.from('products').select('id').eq('id',local.id).maybeSingle();if(r.data?.id)continue;}
+    try{const row=await ensureProductInSupabase(local);if(row?.id)local.id=row.id;}catch(e){console.error('제품 Supabase 이관 실패:',local,e)}
+  }
+  try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
+}
+
 async function loadProductsFromSupabase(){
   if(!supabaseERP)return;
   const {data,error}=await supabaseERP.from('products').select('*').order('created_at',{ascending:true});
@@ -1107,6 +1145,9 @@ async function login(){
    currentUser='admin';
    localStorage.setItem('wonjun_v7_session','admin');
    await loadAllERPDataFromSupabase();
+   supabaseSyncReady=true;
+   await syncLocalProductsToSupabase();
+   await loadProductsFromSupabase();
    subscribeERPRealtime();
    applyLoggedInUI();
    return;
@@ -1752,11 +1793,20 @@ function openProductModal(){
   <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
   <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
  </div>`;
- document.getElementById('modalSave').onclick=()=>{
+ document.getElementById('modalSave').onclick=async()=>{
+   const save=document.getElementById('modalSave');
    if(!newPName.value||!newPCode.value||!newPSpec.value){alert('제품명, 제품 코드, 규격은 필수입니다.');return}
-   if(products.some(p=>p.code===newPCode.value)){alert('이미 존재하는 제품 코드입니다.');return}
-   products.push({id:Date.now(),code:newPCode.value,cat:newPCat.value,name:newPName.value,spec:newPSpec.value,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{}});saveV7Data();
-   closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();alert('제품이 등록되었습니다. 이제 단가 관리에서 거래처별 단가를 지정할 수 있습니다.');
+   if(products.some(p=>String(p.code)===String(newPCode.value))){alert('이미 존재하는 제품 코드입니다.');return}
+   const local={id:'',code:newPCode.value.trim(),cat:newPCat.value,name:newPName.value.trim(),spec:newPSpec.value.trim(),base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
+   save.disabled=true;save.textContent='저장 중...';
+   try{
+     if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+     const row=await ensureProductInSupabase(local);local.id=row.id;products.push(local);
+     try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
+     await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();renderProducts();
+     alert('제품이 Supabase에 저장되었습니다. 관리자와 거래처가 같은 제품 목록을 사용합니다.');
+   }catch(err){console.error('제품 등록 실패:',err);alert('제품 등록에 실패했습니다.\n\n'+(err?.message||err))}
+   finally{save.disabled=false;save.textContent='저장'}
  };
  document.getElementById('modalBg').classList.add('show');
 }
