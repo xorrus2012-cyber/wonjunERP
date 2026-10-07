@@ -246,7 +246,7 @@ html,body{overflow-x:hidden}
 
       <!-- CLIENT PRODUCTS -->
       <section id="products" class="page">
-        <div class="page-head"><div><h2>제품 주문</h2><p>모든 수량은 롤이 아니라 <b>박스 기준</b>으로 발주합니다. 거래처에 적용된 개별 단가가 표시됩니다.</p></div></div>
+        <div class="page-head"><div><h2>제품 주문</h2><p>로그인한 거래처에 적용된 개별 단가가 표시됩니다.</p></div></div>
         <div class="toolbar"><input id="productSearch" placeholder="제품명 / 규격 검색" oninput="renderProducts()"><select id="productCat" onchange="renderProducts()"><option>전체</option><option>OPP 테이프</option><option>컬러 테이프</option><option>포장자재</option></select></div>
         <div class="product-grid" id="productGrid"></div>
       </section>
@@ -257,17 +257,9 @@ html,body{overflow-x:hidden}
           <div><h2>장바구니</h2><p>발주 전 품목·규격·단가·수량을 확인하고 수정할 수 있습니다.</p></div>
           <button class="btn light" onclick="go('products')">제품 더 담기</button>
         </div>
-        <div class="card pad" style="margin-bottom:14px">
-          <div class="section-title">발주 포장 정보</div>
-          <div class="form-grid">
-            <div class="field"><label>박스 종류</label><select id="orderBoxType"><option value="일반박스">일반박스</option><option value="인쇄박스">인쇄박스</option><option value="강화박스">강화박스</option><option value="수출박스">수출박스</option><option value="기타">기타</option></select></div>
-            <div class="field"><label>도장 표기 <span style="font-weight:400;color:#94a3b8">(박스에 표기할 내용)</span></label><input id="orderBoxStamp" placeholder="예: 50M / 거래처 지정 문구"></div>
-            <div class="field"><label>파렛트 종류</label><select id="orderPalletType"><option value="나무" selected>나무 (기본)</option><option value="플라스틱">플라스틱</option><option value="KPP">KPP</option><option value="아주">아주</option></select></div>
-          </div>
-        </div>
         <div class="card table-wrap">
           <table>
-            <thead><tr><th>제품</th><th>규격</th><th>적용 단가</th><th>박스 수량</th><th>금액</th><th>관리</th></tr></thead>
+            <thead><tr><th>제품</th><th>규격</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
             <tbody id="cartRows"></tbody>
           </table>
         </div>
@@ -343,7 +335,7 @@ html,body{overflow-x:hidden}
 <div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" onchange="renderAdminOrders()"><span>~</span><input type="date" id="adminOrderDateTo" onchange="renderAdminOrders()"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
 <select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
 <div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
-        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품목</th><th>박스 수량</th><th>금액</th><th>박스/도장/파렛트</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
       </section>
 
       <!-- ADMIN CLIENTS -->
@@ -411,7 +403,7 @@ html,body{overflow-x:hidden}
         <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><button class="btn primary" onclick="openProductModal()">+ 제품 등록</button></div>
         <div class="toolbar"><div class="smartbox" id="productAdminSmart"></div><select id="productAdminCat" onchange="renderAdminProducts()"><option>전체</option></select></div>
         <div class="card pad" style="margin-bottom:14px"><div class="page-head"><strong>제품 분류</strong><button class="btn light" onclick="openCategoryModal()">+ 분류 추가</button></div><div id="productCategories"></div></div>
-        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>입수량/박스</th><th>기본 단가</th><th>재고</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
       </section>
 
       <!-- ADMIN PRICES -->
@@ -586,58 +578,24 @@ async function saveClientPriceToSupabase(clientId, productId, price){
     }
   }
 
-  // 제품: 화면의 숫자 ID(예: 1)는 Supabase products UUID가 아닙니다.
-  // 1) 로컬 제품 객체 확인 → 2) DB 기존 제품 검색 → 3) 없으면 DB에 제품을 생성하고 UUID 확보
+  // 제품: 반드시 기존 Supabase products의 UUID를 찾아서 사용합니다.
+  // 단가 저장 때문에 제품을 새로 생성하면 제품 목록/단가 매칭이 깨질 수 있으므로
+  // 여기서는 절대로 products INSERT를 하지 않습니다.
   if(!uuidRe.test(pid)){
     const localProduct=(typeof products!=='undefined'?products:[]).find(p=>
       String(p.id)===pid || String(p.code||'')===pid
     );
-    if(localProduct && uuidRe.test(String(localProduct.id||''))) pid=String(localProduct.id);
-    else if(localProduct){
+    if(localProduct){
       const code=String(localProduct.code||'').trim();
       const name=String(localProduct.name||'').trim();
-      const spec=String(localProduct.spec||'').trim();
       let found=null;
-
-      // 기존 DB 제품 검색
       if(code){
-        const q=await supabaseERP.from('products').select('*').eq('code',code).limit(1);
-        if(!q.error && q.data?.[0]) found=q.data[0];
+        const q=await supabaseERP.from('products').select('id').eq('code',code).limit(1).maybeSingle();
+        if(!q.error && q.data?.id) found=q.data;
       }
       if(!found && name){
-        const q=await supabaseERP.from('products').select('*').eq('name',name).limit(50);
-        if(!q.error && q.data?.length) found=q.data.find(x=>!spec || String(x.spec||x.specification||'').trim()===spec)||q.data[0];
-      }
-
-      // DB에 제품이 없으면 로컬 제품을 products 테이블에 생성
-      if(!found){
-        let categoryId=null;
-        if(localProduct.cat){
-          const cq=await supabaseERP.from('product_categories').select('id,name').eq('name',String(localProduct.cat)).limit(1);
-          if(!cq.error && cq.data?.[0]?.id) categoryId=cq.data[0].id;
-        }
-
-        // products 테이블에는 기본단가 컬럼을 넣지 않습니다.
-        // 기본단가는 client_prices에서 거래처별로 관리합니다.
-        const candidates=[];
-        const basePayload={code:code||null,name:name||'',spec:spec||null};
-        if(categoryId) basePayload.category_id=categoryId;
-        candidates.push(basePayload);
-        // category_id 컬럼이 없는 환경까지 대비해 최소 컬럼으로 재시도
-        candidates.push({code:code||null,name:name||'',spec:spec||null});
-        // code/spec가 nullable이 아닌 특수 스키마를 대비한 최후 fallback
-        candidates.push({name:name||''});
-
-        let ins=null, lastErr=null;
-        for(const payload of candidates){
-          const r=await supabaseERP.from('products').insert(payload).select('*').single();
-          if(!r.error && r.data){ins=r.data;break;}
-          lastErr=r.error;
-        }
-        if(!ins){
-          throw new Error('Supabase products에 제품을 생성하지 못했습니다. '+(lastErr?.message||lastErr||''));
-        }
-        found=ins;
+        const q=await supabaseERP.from('products').select('id').eq('name',name).limit(1).maybeSingle();
+        if(!q.error && q.data?.id) found=q.data;
       }
       if(found?.id) pid=String(found.id);
     }
@@ -836,10 +794,6 @@ async function loadProductsFromSupabase(){
       cat:firstValue(r,['category','cat'],catMap.get(String(catId))||'기타'),
       name:firstValue(r,['name','product_name'],''),
       spec:firstValue(r,['spec','specification'],''),
-      thickness:firstValue(r,['thickness'],'')||String(firstValue(r,['spec','specification'],'')).split(' × ')[0]||'',
-      width:Number(firstValue(r,['width'],String(firstValue(r,['spec','specification'],'')).split(' × ')[1]||0))||0,
-      length:Number(firstValue(r,['length'],String(firstValue(r,['spec','specification'],'')).split(' × ')[2]||0))||0,
-      unitsPerBox:Number(firstValue(r,['units_per_box','box_qty','units'],String(firstValue(r,['spec','specification'],'')).split(' × ')[3]||0))||0,
       base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
       stock:0,
       safety:0,
@@ -928,10 +882,7 @@ async function loadOrdersFromSupabase(){
       amount:Number(firstValue(r,['total_amount','amount'],0))||0,
       status:firstValue(r,['status'],'접수 완료'),
       clientMemo:firstValue(r,['client_memo'],''),
-      adminMemo:firstValue(r,['admin_memo'],''),
-      boxType:firstValue(r,['box_type'],'일반박스'),
-      boxStamp:firstValue(r,['box_stamp'],''),
-      palletType:firstValue(r,['pallet_type'],'나무')
+      adminMemo:firstValue(r,['admin_memo'],'')
     };
   });
   orders.splice(0,orders.length,...mapped);
@@ -1011,7 +962,7 @@ async function syncProductsToSupabase(){
   for(const p of products){
     const {data:existing}=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();
     if(!existing)continue;
-    const payload={code:p.code,name:p.name,spec:productSpec(p),thickness:p.thickness,width:p.width,length:p.length,units_per_box:p.unitsPerBox,box_qty:p.unitsPerBox,base_price:p.base,price:p.base,category:p.cat};
+    const payload={code:p.code,name:p.name,spec:p.spec,base_price:p.base,price:p.base,category:p.cat};
     const clean={};
     for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(existing,k))clean[k]=v;
     if(Object.keys(clean).length){
@@ -1078,7 +1029,7 @@ async function syncOrdersToSupabase(){
     order_no:'no',no:'no',client_id:'clientId',client:'clientId',
     order_date:'date',date:'date',item_summary:'item',item:'item',
     total_qty:'qty',qty:'qty',total_amount:'amount',amount:'amount',
-    status:'status',client_memo:'clientMemo',admin_memo:'adminMemo',box_type:'boxType',box_stamp:'boxStamp',pallet_type:'palletType'
+    status:'status',client_memo:'clientMemo',admin_memo:'adminMemo'
   };
   for(const o of orders){
     const clean={};
@@ -1105,9 +1056,11 @@ async function syncOrdersToSupabase(){
 async function syncAllLocalChangesToSupabase(){
   if(!supabaseERP||!supabaseSyncReady)return;
   try{
+    // 중요: client_prices는 여기서 절대 동기화하지 않습니다.
+    // 거래처별 단가는 관리자에서 직접 client_prices에 저장하며,
+    // 오래된 localStorage 값으로 DB 단가를 덮어쓰면 안 됩니다.
     await syncClientsToSupabase();
     await syncProductsToSupabase();
-    await syncPricesToSupabase();
     await syncNoticesToSupabase();
     await syncOrdersToSupabase();
   }catch(e){console.error('Supabase 저장 동기화 실패',e)}
@@ -1361,84 +1314,52 @@ function go(page,btn){
  if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
 }
 function price(p){
- if(currentUser==='admin') return p.base;
+ if(!p) return 0;
+ if(currentUser==='admin') return Number(p.base)||0;
  const direct=p.prices?.[currentUser];
  if(direct!==undefined && direct!==null && Number.isFinite(Number(direct))) return Number(direct);
  const c=clients.find(x=>String(x.loginId)===String(currentUser));
+ if(c && p.prices?.[c.loginId]!==undefined) return Number(p.prices[c.loginId]);
  if(c && p.prices?.[c.id]!==undefined) return Number(p.prices[c.id]);
- return p.base;
-}
-function productSpec(p){
- const t=p.thickness??''; const w=p.width??''; const l=p.length??''; const u=p.unitsPerBox??p.boxQty??'';
- if(t!==''||w!==''||l!==''||u!=='') return `${t} × ${w} × ${l} × ${u}`;
- return p.spec||'';
+ return Number(p.base)||0;
 }
 function renderProducts(){
  const q=(document.getElementById('productSearch').value||'').toLowerCase(),c=document.getElementById('productCat').value;
- document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+productSpec(p)).toLowerCase().includes(q)).map(p=>`
- <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec"><b>두께 × 폭 × 길이 × 입수량</b><br>${productSpec(p)}</div>
- <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1박스 기준 · 거래처 적용 단가</div></div>
- <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="1"><span style="font-size:10px;color:#64748b;margin-left:3px">박스</span><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart('${p.id}')">담기</button></div></div></div>`).join('');
+ document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
+ <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
+ <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1롤 기준 · 거래처 적용 단가</div></div>
+ <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${p.id})">담기</button></div></div></div>`).join('');
 }
-function addCart(id){
- const el=document.getElementById('qty-'+id); const q=Math.floor(Number(el?.value||0));
- if(!q||q<1){alert('박스 수량을 입력해 주세요.');return}
- const key=String(id); cart=cart&&typeof cart==='object'?cart:{}; cart[key]=Number(cart[key]||0)+q;
- saveCartV8(); updateCart(); renderCartPage();
- alert(`${q.toLocaleString()}박스가 장바구니에 담겼습니다.`);
-}
+function addCart(id){const q=Number(document.getElementById('qty-'+id).value);if(q<1)return;cart[id]=(cart[id]||0)+q;saveCartV8();updateCart();renderCartPage()}
 function renderCartPage(){
  const rows=document.getElementById('cartRows'); if(!rows)return;
- const validEntries=Object.entries(cart||{}).filter(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));return p&&Number(q)>0});
- // Remove stale cart keys from old/local data so one broken product ID cannot break the whole cart.
- const cleaned={}; validEntries.forEach(([id,q])=>cleaned[id]=Math.floor(Number(q))); cart=cleaned; saveCartV8();
- if(!validEntries.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
+ const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
  let total=0;
- rows.innerHTML=validEntries.map(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));const unit=price(p),amount=unit*Number(q);total+=amount;return `<tr><td><b>${p.name}</b></td><td>${productSpec(p)}</td><td>${won(unit)}<div style="font-size:10px;color:#94a3b8">1박스</div></td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty('${p.id}',this.value)"><span style="font-size:10px;color:#64748b"> 박스</span></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart('${p.id}')">삭제</button></td></tr>`}).join('');
+ if(!entries.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
+ rows.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return '';const unit=price(p),amount=unit*Number(q);total+=amount;return `<tr><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty(${p.id},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart(${p.id})">삭제</button></td></tr>`}).join('');
  document.getElementById('cartPageTotal').textContent=won(total);
 }
 function updateCart(){
- let count=0,total=0; const clean={};
- Object.entries(cart||{}).forEach(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));const n=Math.floor(Number(q));if(p&&n>0){clean[String(id)]=n;count+=n;total+=n*price(p)}});
- cart=clean; saveCartV8();
+ let count=0,total=0;
+ Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return;count+=Number(q);total+=Number(q)*price(p)});
  document.getElementById('cartCount').textContent=count.toLocaleString();
  document.getElementById('cartTotal').textContent=won(total);
  document.getElementById('cartBar').classList.toggle('hidden',count===0);
  const pageTotal=document.getElementById('cartPageTotal'); if(pageTotal)pageTotal.textContent=won(total);
- const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count}박스)`:'';
+ if(document.getElementById('cartRows'))renderCartPage();
+ const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
-async function checkout(){
- const entries=Object.entries(cart||{}).filter(([id,q])=>products.find(p=>String(p.id)===String(id))&&Number(q)>0);
- if(!entries.length){alert('장바구니가 비어 있습니다.');return}
- const boxType=document.getElementById('orderBoxType')?.value||'일반박스';
- const boxStamp=(document.getElementById('orderBoxStamp')?.value||'').trim();
- const palletType=document.getElementById('orderPalletType')?.value||'나무';
- const cl=clients.find(x=>String(x.loginId)===String(currentUser));
- let total=0,totalBoxes=0;
- const itemDetails=entries.map(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));const unit=price(p),qty=Math.floor(Number(q)),amount=unit*qty;total+=amount;totalBoxes+=qty;return {productId:p.id,productName:p.name,spec:productSpec(p),boxQty:qty,unitPrice:unit,amount}});
- const no='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
- if(!confirm(`${totalBoxes.toLocaleString()}박스 / ${won(total)}\n박스: ${boxType}\n도장표기: ${boxStamp||'없음'}\n파렛트: ${palletType}\n\n발주를 접수하시겠습니까?`))return;
- const order={no,client:cl?.name||currentUser,id:currentUser,clientId:cl?.id||'',date:new Date().toISOString().slice(0,10),item:itemDetails[0].productName+(itemDetails.length>1?' 외 '+(itemDetails.length-1)+'종':''),qty:totalBoxes,amount:total,status:'접수 완료',clientMemo:'',boxType,boxStamp,palletType,items:itemDetails};
- if(supabaseERP&&supabaseSyncReady){
-   try{
-     const sample=(await supabaseERP.from('orders').select('*').limit(1)).data?.[0]||{};
-     const payload={};
-     const map={order_no:no,no:no,client_id:cl?.id||null,order_date:order.date,date:order.date,item_summary:order.item,item:order.item,total_qty:totalBoxes,qty:totalBoxes,total_amount:total,amount:total,status:'접수 완료',client_memo:'',box_type:boxType,box_stamp:boxStamp,pallet_type:palletType};
-     for(const [k,v] of Object.entries(map)) if(Object.prototype.hasOwnProperty.call(sample,k)) payload[k]=v;
-     if(!Object.keys(payload).length){Object.assign(payload,{order_no:no,client_id:cl?.id||null,order_date:order.date,item_summary:order.item,total_qty:totalBoxes,total_amount:total,status:'접수 완료',client_memo:''});if(boxType)payload.box_type=boxType;if(boxStamp)payload.box_stamp=boxStamp;if(palletType)payload.pallet_type=palletType;} const {error}=await supabaseERP.from('orders').insert(payload);if(error)throw error;
-     // order_items is optional in the current schema; save line items only when matching columns exist.
-     const itemSample=(await supabaseERP.from('order_items').select('*').limit(1)).data?.[0]||{};
-     if(Object.keys(itemSample).length){
-       for(const it of itemDetails){const ip={order_id:no,order_no:no,product_id:it.productId,product:it.productId,quantity:it.boxQty,qty:it.boxQty,unit_price:it.unitPrice,price:it.unitPrice,total_amount:it.amount,amount:it.amount,spec:it.spec};const clean={};for(const [k,v] of Object.entries(ip))if(Object.prototype.hasOwnProperty.call(itemSample,k))clean[k]=v;if(Object.keys(clean).length){const {error}=await supabaseERP.from('order_items').insert(clean);if(error)console.warn('order_items 저장 실패',error)}}
-     }
-     await loadOrdersFromSupabase();
-   }catch(e){console.error(e);alert('발주 저장에 실패했습니다.\n\n'+(e?.message||e));return}
- }else{orders.unshift(order);saveV7Data()}
- cart={};saveCartV8();updateCart();renderCartPage();alert('발주가 접수되었습니다.');go('orders');renderAll();
+function checkout(){
+ if(!Object.keys(cart).length)return;
+ let count=0,total=0,names=[];Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);count+=q;total+=q*price(p);names.push(p.name)});
+ if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\\n발주를 접수하시겠습니까?`))return;
+ const cl=clients.find(x=>x.loginId===currentUser);
+ orders.unshift({no:'WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(orders.length+1).padStart(3,'0'),client:cl?.name||currentUser,id:currentUser,date:new Date().toISOString().slice(0,10),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),qty:count,amount:total,status:'접수 완료',clientMemo:''});
+ cart={};saveCartV8();updateCart();alert('발주가 접수되었습니다.');go('orders');renderAll();
 }
 function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
-function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
-function renderInventoryRows(){document.getElementById('clientInventoryRows').innerHTML=products.filter(p=>p.inventoryPublic!==false).map(p=>{const ok=p.stock>p.safety;return `<tr><td>${p.code}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${p.stock.toLocaleString()}박스</td><td>${badge(ok?'정상':'재고 주의')}</td><td>${ok?'가능':'확인 필요'}</td></tr>`}).join('')}
+function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
+function renderInventoryRows(){document.getElementById('clientInventoryRows').innerHTML=products.filter(p=>p.inventoryPublic!==false).map(p=>{const ok=p.stock>p.safety;return `<tr><td>${p.code}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${p.stock.toLocaleString()}롤</td><td>${badge(ok?'정상':'재고 주의')}</td><td>${ok?'가능':'확인 필요'}</td></tr>`}).join('')}
 function renderNotices(){
  const html=notices.map((n,i)=>`<div class="notice" style="cursor:pointer" onclick="openNoticeDetail(${i})"><div style="min-width:0"><b>${escapeHtmlV8(n.title)}</b>${n.image?`<img class="notice-thumb" src="${n.image}" alt="">`:''}</div><span>${n.date}</span></div>`).join('');
  document.getElementById('homeNotices').innerHTML=html||'<div class="pad" style="color:#64748b;font-size:12px">등록된 공지사항이 없습니다.</div>';
@@ -1450,14 +1371,14 @@ function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))retur
 function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
 function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
 function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'롤';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
-function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'롤';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
+function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'롤';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
 function renderAdminOrders(){
  const rows=document.getElementById('adminOrderRows');if(!rows)return;
  const clientsSel=smartGet('orderClientFilter'), productsSel=smartGet('orderProductFilter');
  const from=document.getElementById('adminOrderDateFrom')?.value||'',to=document.getElementById('adminOrderDateTo')?.value||'',st=document.getElementById('adminStatus')?.value||'전체';
  const list=orders.filter(o=>{const c=clients.find(x=>x.loginId===o.id);const clientOK=!clientsSel.length||clientsSel.includes(String(c?.id));const prodNames=productsSel.map(x=>products.find(p=>String(p.id)===x)?.name||'');const productOK=!productsSel.length||prodNames.some(n=>n&&String(o.item||'').includes(n.replace('WJ ','')))||productsSel.some(x=>String(o.item||'').includes(String(x)));const d=String(o.date||'').slice(0,10);return clientOK&&productOK&&(!from||d>=from)&&(!to||d<=to)&&(st==='전체'||o.status===st)});
  const rc=document.getElementById('orderResultV6');if(rc)rc.textContent=`조회 결과 ${list.length}건`;
- rows.innerHTML=list.map(o=>`<tr><td><input class="order-check-v6" type="checkbox" value="${o.no}"></td><td><b class="detail-link" onclick="showOrderDetail('${o.no}')">${o.no}</b></td><td>${o.client}</td><td>${o.date}</td><td>${o.item}</td><td>${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td><div style="font-size:10px;line-height:1.6">박스: ${escapeHtmlV8(o.boxType||'일반박스')}<br>도장: ${escapeHtmlV8(o.boxStamp||'-')}<br>파렛트: ${escapeHtmlV8(o.palletType||'나무')}</div></td><td><select class="status-select" id="status-${o.no}">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="small-btn" style="margin-left:5px" onclick="saveOrderStatusV26('${o.no}')">저장</button></td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="10" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>'
+ rows.innerHTML=list.map(o=>`<tr><td><input class="order-check-v6" type="checkbox" value="${o.no}"></td><td><b class="detail-link" onclick="showOrderDetail('${o.no}')">${o.no}</b></td><td>${o.client}</td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td><select class="status-select" onchange="setOrderStatusV6('${o.no}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="small-btn" onclick="showOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>'
 }
 
 function openClientDetail(id){
@@ -1689,7 +1610,7 @@ function renderClients(){
  </tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
 }
 
-function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${productSpec(p)}</td><td>${Number(p.unitsPerBox||0).toLocaleString()}롤</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>'}
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>'}
 function renderPriceClients(){
  const sel=document.getElementById('priceClientSelect');
  if(!sel)return;
@@ -1752,12 +1673,12 @@ function openProductEdit(i){
   <div class="field"><label>제품 코드</label><input id="editPCode" value="${p.code}"></div>
   <div class="field"><label>분류</label><select id="editPCat">${productCategories.map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
   <div class="field"><label>기본 단가</label><input id="editPBase" type="number" value="${p.base}"></div>
-  <div class="field"><label>두께</label><input id="editPThickness" value="${p.thickness??(String(p.spec||'').split(' × ')[0]||'')}"></div><div class="field"><label>폭</label><input id="editPWidth" type="number" value="${p.width??(String(p.spec||'').split(' × ')[1]||'')}"></div><div class="field"><label>길이</label><input id="editPLength" type="number" value="${p.length??(String(p.spec||'').split(' × ')[2]||'')}"></div><div class="field"><label>입수량</label><input id="editPUnits" type="number" value="${p.unitsPerBox??(String(p.spec||'').split(' × ')[3]||'')}"></div><div class="field full"><label>규격</label><input id="editPSpec" value="${productSpec(p)}" readonly></div>
+  <div class="field full"><label>규격</label><input id="editPSpec" value="${p.spec}"></div>
  </div>`;
- document.getElementById('editPThickness').oninput=document.getElementById('editPWidth').oninput=document.getElementById('editPLength').oninput=document.getElementById('editPUnits').oninput=()=>{editPSpec.value=[editPThickness.value,editPWidth.value,editPLength.value,editPUnits.value].join(' × ')};document.getElementById('modalSave').onclick=async()=>{const saveBtn=document.getElementById('modalSave');saveBtn.disabled=true;saveBtn.textContent='저장 중...';try{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.thickness=editPThickness.value;p.width=Number(editPWidth.value);p.length=Number(editPLength.value);p.unitsPerBox=Number(editPUnits.value);p.spec=[p.thickness,p.width,p.length,p.unitsPerBox].join(' × ');if(supabaseERP&&supabaseSyncReady){const payload={code:p.code,name:p.name,spec:p.spec,thickness:p.thickness,width:p.width,length:p.length,units_per_box:p.unitsPerBox,box_qty:p.unitsPerBox,base_price:p.base};const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);if(error)throw error;await loadProductsFromSupabase()}else saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();renderProducts();alert('제품 정보가 저장되었습니다.')}catch(e){alert('제품 저장에 실패했습니다.\n\n'+(e?.message||e))}finally{saveBtn.disabled=false;saveBtn.textContent='저장'}};
+ document.getElementById('modalSave').onclick=()=>{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.spec=editPSpec.value;saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('제품 정보가 저장되었습니다.')};
  document.getElementById('modalBg').classList.add('show');
 }
-function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${productSpec(p)}</td><td><input class="inventory-qty" id="invqty-${p.id}" type="number" min="0" value="${p.stock}"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" id="invpub-${p.id}"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select><button class="small-btn" style="margin-left:5px" onclick="saveInventoryV26('${p.id}')">저장</button></td></tr>`).join('')}
+function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" type="number" min="0" value="${p.stock}" onchange="saveInventoryQtyV6(${p.id},this.value)"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" onchange="saveInventoryVisibilityV6(${p.id},this.value)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
 function editCartQty(id,value){
  const q=Math.floor(Number(value));
  if(q<1){removeCart(id);return}
@@ -1827,28 +1748,15 @@ function openProductModal(){
   <div class="field"><label>제품 코드 *</label><input id="newPCode" placeholder="WJ-XXXX"></div>
   <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
   <div class="field"><label>기본 단가 *</label><input id="newPBase" type="number" placeholder="0"></div>
-  <div class="field"><label>두께 *</label><input id="newPThickness" type="text" placeholder="예: 57μ"></div><div class="field"><label>폭 *</label><input id="newPWidth" type="number" placeholder="예: 48"></div><div class="field"><label>길이 *</label><input id="newPLength" type="number" placeholder="예: 50"></div><div class="field"><label>입수량 *</label><input id="newPUnits" type="number" min="1" placeholder="박스당 롤 수"></div><div class="field full"><label>규격</label><input id="newPSpec" readonly placeholder="두께 × 폭 × 길이 × 입수량"></div>
+  <div class="field full"><label>규격 *</label><input id="newPSpec" placeholder="폭 × 길이 × 두께"></div>
   <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
   <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
  </div>`;
- document.getElementById('newPThickness').oninput=document.getElementById('newPWidth').oninput=document.getElementById('newPLength').oninput=document.getElementById('newPUnits').oninput=()=>{document.getElementById('newPSpec').value=[newPThickness.value,newPWidth.value,newPLength.value,newPUnits.value].join(' × ')};
- document.getElementById('modalSave').onclick=async()=>{
-   if(!newPName.value||!newPCode.value||!newPThickness.value||!newPWidth.value||!newPLength.value||!newPUnits.value){alert('제품명, 제품 코드, 두께, 폭, 길이, 입수량은 필수입니다.');return}
+ document.getElementById('modalSave').onclick=()=>{
+   if(!newPName.value||!newPCode.value||!newPSpec.value){alert('제품명, 제품 코드, 규격은 필수입니다.');return}
    if(products.some(p=>p.code===newPCode.value)){alert('이미 존재하는 제품 코드입니다.');return}
-   const saveBtn=document.getElementById('modalSave');saveBtn.disabled=true;saveBtn.textContent='저장 중...';
-   const local={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),code:newPCode.value.trim(),cat:newPCat.value,name:newPName.value.trim(),spec:[newPThickness.value,newPWidth.value,newPLength.value,newPUnits.value].join(' × '),thickness:newPThickness.value.trim(),width:Number(newPWidth.value),length:Number(newPLength.value),unitsPerBox:Number(newPUnits.value),base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
-   try{
-     if(supabaseERP&&supabaseSyncReady){
-       const payload={id:local.id,code:local.code,name:local.name,spec:local.spec,thickness:local.thickness,width:local.width,length:local.length,units_per_box:local.unitsPerBox,box_qty:local.unitsPerBox,base_price:local.base,price:local.base};
-       const prodSample=(await supabaseERP.from('products').select('*').limit(1)).data?.[0]||{};
-       const clean={};for(const [k,v] of Object.entries(payload))if(Object.keys(prodSample).length?Object.prototype.hasOwnProperty.call(prodSample,k):['id','code','name','spec','base_price'].includes(k))clean[k]=v;
-       if(!Object.keys(clean).length)throw new Error('products 테이블 구조를 확인할 수 없습니다.');
-       const {error}=await supabaseERP.from('products').insert(clean);if(error)throw error;
-       const invSample=(await supabaseERP.from('inventory').select('*').limit(1)).data?.[0]||{};const invPayload={product_id:local.id,quantity:local.stock,stock:local.stock,qty:local.stock,safety_stock:local.safety,warehouse:local.warehouse,is_public:true};const invClean={};for(const [k,v] of Object.entries(invPayload))if(Object.keys(invSample).length?Object.prototype.hasOwnProperty.call(invSample,k):['product_id','quantity'].includes(k))invClean[k]=v;if(Object.keys(invClean).length){const {error:ie}=await supabaseERP.from('inventory').insert(invClean);if(ie)console.warn('재고 생성 실패',ie)}
-       await loadProductsFromSupabase();
-     }else{products.push(local);saveV7Data()}
-     closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();renderProducts();alert('제품이 저장되었습니다. 이제 단가 관리에서 거래처별 단가를 지정할 수 있습니다.');
-   }catch(e){alert('제품 저장에 실패했습니다.\n\n'+(e?.message||e))}finally{saveBtn.disabled=false;saveBtn.textContent='저장'}
+   products.push({id:Date.now(),code:newPCode.value,cat:newPCat.value,name:newPName.value,spec:newPSpec.value,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{}});saveV7Data();
+   closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();alert('제품이 등록되었습니다. 이제 단가 관리에서 거래처별 단가를 지정할 수 있습니다.');
  };
  document.getElementById('modalBg').classList.add('show');
 }
@@ -1893,14 +1801,12 @@ function smartBuild(id,items,placeholder,cb){
 function initV6Smart(){smartBuild('orderClientFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderAdminOrders);smartBuild('orderProductFilter',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminOrders);smartBuild('clientSmartFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code} · ${c.loginId}`})),'거래처 검색 · 여러 개 선택',renderClients);smartBuild('priceClientSmart',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderPriceManagement);smartBuild('priceProductSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderPriceManagement);smartBuild('productAdminSmart',products.map(p=>({value:p.id,label:`${p.name} · ${p.code} · ${p.spec}`})),'제품 검색 · 여러 개 선택',renderAdminProducts)}
 function quickOrderDate(k){const d=new Date(),f=x=>x.toISOString().slice(0,10);let s,e;if(k==='today')s=e=f(d);if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}document.getElementById('adminOrderDateFrom').value=s;document.getElementById('adminOrderDateTo').value=e;renderAdminOrders()}
 function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});renderAdminOrders()}
-async function saveOrderStatusV26(no){const o=orders.find(x=>x.no===no);const sel=document.getElementById('status-'+no);if(!o||!sel)return;const next=sel.value;if(next===o.status){alert('변경된 상태가 없습니다.');return}if(!confirm(`발주 ${no} 상태를 '${next}'로 저장하시겠습니까?`))return;o.status=next;try{if(supabaseERP&&supabaseSyncReady){const keyCol='order_no';const {error}=await supabaseERP.from('orders').update({status:next}).eq(keyCol,no);if(error)throw error;await loadOrdersFromSupabase()}else saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders();alert('발주 상태가 저장되었습니다.')}catch(e){alert('상태 저장에 실패했습니다.\n\n'+(e?.message||e));await loadOrdersFromSupabase();renderAll()}}
-function setOrderStatusV6(no,status){const sel=document.getElementById('status-'+no);if(sel)sel.value=status}
+function setOrderStatusV6(no,status){const o=orders.find(x=>x.no===no);if(!o)return;o.status=status;saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
 function toggleAllOrders(btn){const a=[...document.querySelectorAll('.order-check-v6')],on=!a.every(x=>x.checked);a.forEach(x=>x.checked=on);btn.textContent=on?'선택 해제':'전체 선택'}
 function bulkOrderStatus(){const ns=[...document.querySelectorAll('.order-check-v6:checked')].map(x=>x.value);if(!ns.length)return alert('주문을 선택하세요.');const s=prompt('상태 입력: 접수 완료 / 생산 중 / 출고 대기 / 출고 중 / 출고 완료');if(!['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(s||''))return alert('유효하지 않은 상태입니다.');ns.forEach(n=>{const o=orders.find(x=>x.no===n);if(o)o.status=s});saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
 function downloadOrderCSV(){const rows=[...document.querySelectorAll('#adminOrderRows tr')];if(!rows.length)return;const csv='\ufeff'+['발주번호,거래처,접수일,품목,수량,금액,상태'].concat(rows.map(r=>[...r.children].slice(1,8).map(x=>`"${x.innerText.replace(/"/g,'""')}"`).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='원준_주문조회.csv';a.click()}
-async function saveInventoryV26(id){const p=products.find(x=>String(x.id)===String(id));if(!p)return;const q=Math.max(0,Number(document.getElementById('invqty-'+id)?.value)||0);const pub=document.getElementById('invpub-'+id)?.value==='public';if(!confirm(`${p.name} 재고/공개 설정을 저장하시겠습니까?`))return;try{p.stock=q;p.inventoryPublic=pub;if(supabaseERP&&supabaseSyncReady){const {data:inv}=await supabaseERP.from('inventory').select('*').eq('product_id',p.id).maybeSingle();if(!inv)throw new Error('해당 제품의 재고 행을 찾지 못했습니다.');const payload={};for(const k of ['quantity','stock','qty'])if(Object.prototype.hasOwnProperty.call(inv,k))payload[k]=q;for(const k of ['is_public','public','inventory_public'])if(Object.prototype.hasOwnProperty.call(inv,k))payload[k]=pub;const {error}=await supabaseERP.from('inventory').update(payload).eq('product_id',p.id);if(error)throw error;await loadProductsFromSupabase()}else saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows();alert('재고/공개 설정이 저장되었습니다.')}catch(e){alert('저장에 실패했습니다.\n\n'+(e?.message||e));await loadProductsFromSupabase();renderAll()}}
-function saveInventoryQtyV6(id,v){const el=document.getElementById('invqty-'+id);if(el)el.value=v}
-function saveInventoryVisibilityV6(id,v){const el=document.getElementById('invpub-'+id);if(el)el.value=v}
+function saveInventoryQtyV6(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(v)||0);saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows()}}
+function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=v==='public';saveV7Data();renderAdminInventory()}}
 function downloadDocumentPDF(no,type,orderNo,date){
  const c=clients.find(x=>x.loginId===currentUser);
  const company=c?.name||'원준테이프';
@@ -1911,8 +1817,8 @@ function downloadDocumentPDF(no,type,orderNo,date){
  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
 
-function showClientOrderDetail(no){const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">박스 수량</div><div>${Number(o.qty||0).toLocaleString()}박스</div><div class="key">박스 종류</div><div>${escapeHtmlV8(o.boxType||'일반박스')}</div><div class="key">도장 표기</div><div>${escapeHtmlV8(o.boxStamp||'-')}</div><div class="key">파렛트</div><div>${escapeHtmlV8(o.palletType||'나무')}</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
-function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;const c=clients.find(x=>x.loginId===o.id);document.getElementById('modalTitle').textContent='주문 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${c?.name||o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">박스 수량</div><div>${Number(o.qty||0).toLocaleString()}박스</div><div class="key">박스 종류</div><div>${escapeHtmlV8(o.boxType||'일반박스')}</div><div class="key">도장 표기</div><div>${escapeHtmlV8(o.boxStamp||'-')}</div><div class="key">파렛트</div><div>${escapeHtmlV8(o.palletType||'나무')}</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+function showClientOrderDetail(no){const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
+function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;const c=clients.find(x=>x.loginId===o.id);document.getElementById('modalTitle').textContent='주문 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${c?.name||o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}롤</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
 let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
