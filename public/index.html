@@ -1393,15 +1393,31 @@ function renderProducts(){
  document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
  <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1롤 기준 · 거래처 적용 단가</div></div>
- <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${p.id})">담기</button></div></div></div>`).join('');
+ <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${JSON.stringify(String(p.id))})">담기</button></div></div></div>`).join('');
 }
-function addCart(id){const q=Number(document.getElementById('qty-'+id).value);if(q<1)return;cart[id]=(cart[id]||0)+q;saveCartV8();updateCart();renderCartPage()}
+function addCart(id){
+ const key=String(id);
+ const input=document.getElementById('qty-'+CSS.escape(key));
+ const q=Number(input?.value||0);
+ if(!Number.isFinite(q)||q<1){alert('수량을 1 이상 입력해 주세요.');return}
+ const p=products.find(x=>String(x.id)===key);
+ if(!p){alert('제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
+ cart[key]=(Number(cart[key])||0)+q;
+ saveCartV8();updateCart();renderCartPage();
+ alert(`${p.name} ${q.toLocaleString()}롤이 장바구니에 담겼습니다.`);
+}
 function renderCartPage(){
  const rows=document.getElementById('cartRows'); if(!rows)return;
  const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
  let total=0;
  if(!entries.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
- rows.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return '';const unit=price(p),amount=unit*Number(q);total+=amount;return `<tr><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty(${p.id},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart(${p.id})">삭제</button></td></tr>`}).join('');
+ rows.innerHTML=entries.map(([id,q])=>{
+   const p=products.find(x=>String(x.id)===String(id));
+   if(!p)return '';
+   const unit=price(p),amount=unit*Number(q);total+=amount;
+   const safeId=JSON.stringify(String(p.id));
+   return `<tr><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty(${safeId},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart(${safeId})">삭제</button></td></tr>`
+ }).join('');
  document.getElementById('cartPageTotal').textContent=won(total);
 }
 function updateCart(){
@@ -1414,13 +1430,71 @@ function updateCart(){
  if(document.getElementById('cartRows'))renderCartPage();
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
-function checkout(){
- if(!Object.keys(cart).length)return;
- let count=0,total=0,names=[];Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>x.id==id);count+=q;total+=q*price(p);names.push(p.name)});
- if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\\n발주를 접수하시겠습니까?`))return;
- const cl=clients.find(x=>x.loginId===currentUser);
- orders.unshift({no:'WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(orders.length+1).padStart(3,'0'),client:cl?.name||currentUser,id:currentUser,date:new Date().toISOString().slice(0,10),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),qty:count,amount:total,status:'접수 완료',clientMemo:''});
- cart={};saveCartV8();updateCart();alert('발주가 접수되었습니다.');go('orders');renderAll();
+async function checkout(){
+ const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
+ if(!entries.length){alert('장바구니가 비어 있습니다.');return}
+ if(!supabaseERP||!supabaseSyncReady){alert('주문 서버 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
+ const cl=clients.find(x=>String(x.loginId)===String(currentUser));
+ if(!cl){alert('거래처 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');return}
+ const items=entries.map(([id,q])=>{
+   const p=products.find(x=>String(x.id)===String(id));
+   return p?{p,q:Number(q),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Number(q)}:null;
+ }).filter(Boolean);
+ if(!items.length){alert('장바구니의 제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
+ const count=items.reduce((a,x)=>a+x.q,0);
+ const total=items.reduce((a,x)=>a+x.amount,0);
+ const names=items.map(x=>x.p.name);
+ if(!confirm(`${count.toLocaleString()}롤 / ${won(total)}\n발주를 접수하시겠습니까?`))return;
+ try{
+   const {data:sampleRows,error:probeError}=await supabaseERP.from('orders').select('*').limit(1);
+   if(probeError)throw probeError;
+   const sample=sampleRows?.[0]||{};
+   const orderNo='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
+   const orderPayload={
+     order_no:orderNo,no:orderNo,id:orderNo,
+     client_id:cl.id,client:cl.id,client_login_id:currentUser,
+     order_date:new Date().toISOString().slice(0,10),date:new Date().toISOString().slice(0,10),
+     item_summary:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),item:names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''),
+     total_qty:count,qty:count,quantity:count,
+     total_amount:total,amount:total,
+     status:'접수 완료',client_memo:'',admin_memo:''
+   };
+   const clean={};
+   for(const [k,v] of Object.entries(orderPayload))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
+   if(!Object.keys(clean).length)throw new Error('orders 테이블 컬럼을 확인할 수 없습니다.');
+   const inserted=await supabaseERP.from('orders').insert(clean).select('*').single();
+   if(inserted.error)throw inserted.error;
+   const orderRow=inserted.data||clean;
+   const orderDbId=orderRow.id||orderRow.order_id||orderRow.order_no||orderNo;
+
+   const {data:itemSampleRows,error:itemProbeError}=await supabaseERP.from('order_items').select('*').limit(1);
+   if(itemProbeError)throw itemProbeError;
+   const itemSample=itemSampleRows?.[0]||{};
+   for(const x of items){
+     const payload={
+       order_id:orderDbId,order:orderDbId,
+       product_id:x.p.id,product:x.p.id,
+       product_name:x.p.name,name:x.p.name,
+       spec:x.p.spec,quantity:x.q,qty:x.q,
+       unit_price:x.unit,total_price:x.amount,amount:x.amount,
+       price:x.unit
+     };
+     const cleanItem={};
+     for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(itemSample,k))cleanItem[k]=v;
+     if(Object.keys(cleanItem).length){
+       const r=await supabaseERP.from('order_items').insert(cleanItem);
+       if(r.error)throw r.error;
+     }
+   }
+   cart={};saveCartV8();
+   await loadOrdersFromSupabase();
+   updateCart();renderCartPage();renderClientOrders();renderHome();renderAdminOrders();renderAdminDashboard();
+   alert('발주가 접수되었습니다.');
+   go('orders');
+ }catch(e){
+   console.error('발주 저장 실패:',e);
+   alert('발주 저장에 실패했습니다.\n\n'+(e?.message||'서버 오류'));
+ }
 }
 function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
 function renderClientOrders(){const arr=orders.filter(o=>o.id===currentUser);document.getElementById('clientOrderRows').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.date}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}롤</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${o.no}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">발주 내역이 없습니다.</td></tr>'}
