@@ -1393,19 +1393,39 @@ function renderProducts(){
  document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
  <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1롤 기준 · 거래처 적용 단가</div></div>
- <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button class="btn primary" style="margin-left:5px;padding:9px 11px" onclick="addCart(${JSON.stringify(String(p.id))})">담기</button></div></div></div>`).join('');
+ <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button type="button" class="btn primary" data-cart-add="${String(p.id)}" style="margin-left:5px;padding:9px 11px">담기</button></div></div></div>`).join('');
 }
-function addCart(id){
+function addCart(id, qtyEl){
  const key=String(id);
- const input=document.getElementById('qty-'+CSS.escape(key));
+ const input=qtyEl || document.getElementById('qty-'+key);
  const q=Number(input?.value||0);
- if(!Number.isFinite(q)||q<1){alert('수량을 1 이상 입력해 주세요.');return}
+ if(!Number.isFinite(q)||q<1){alert('수량을 1 이상 입력해 주세요.');return false}
  const p=products.find(x=>String(x.id)===key);
- if(!p){alert('제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
+ if(!p){alert('제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return false}
+ if(!cart || typeof cart!=='object') cart={};
  cart[key]=(Number(cart[key])||0)+q;
- saveCartV8();updateCart();renderCartPage();
- alert(`${p.name} ${q.toLocaleString()}롤이 장바구니에 담겼습니다.`);
+ saveCartV8();
+ updateCart();
+ renderCartPage();
+ return true;
 }
+window.addCart=addCart;
+
+// UUID 제품에서도 인라인 onclick에 의존하지 않고 실제 버튼 클릭을 직접 처리합니다.
+document.addEventListener('click',function(e){
+ const btn=e.target.closest('[data-cart-add]');
+ if(!btn)return;
+ e.preventDefault();
+ e.stopPropagation();
+ const id=btn.getAttribute('data-cart-add');
+ const card=btn.closest('.product');
+ const input=card?.querySelector('.qty');
+ const ok=addCart(id,input);
+ if(ok){
+   const p=products.find(x=>String(x.id)===String(id));
+   if(p)alert(`${p.name} ${Number(input?.value||0).toLocaleString()}롤이 장바구니에 담겼습니다.`);
+ }
+});
 function renderCartPage(){
  const rows=document.getElementById('cartRows'); if(!rows)return;
  const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
