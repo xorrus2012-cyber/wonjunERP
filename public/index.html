@@ -1124,6 +1124,21 @@ setInterval(async()=>{
   if(supabaseERP && supabaseSyncReady && !document.hidden) await loadAllERPDataFromSupabase();
 },3000);
 
+/* V28: 제품 목록은 관리자/거래처 모두 동일한 Supabase products만 사용 */
+async function forceUnifiedProductSource(){
+  if(!supabaseERP) return;
+  try{
+    await loadClientsFromSupabase();
+    supabaseSyncReady=true;
+    await loadProductsFromSupabase();
+    renderAdminProducts();
+    renderProducts();
+  }catch(e){
+    console.error('통합 제품 원본 초기화 실패:',e);
+  }
+}
+
+
 
 
 const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
@@ -1146,7 +1161,8 @@ async function login(){
    localStorage.setItem('wonjun_v7_session','admin');
    await loadAllERPDataFromSupabase();
    supabaseSyncReady=true;
-   await syncLocalProductsToSupabase();
+   // 제품 목록은 Supabase만 원본으로 사용합니다.
+   // 초기 localStorage 제품(A 등)을 Supabase로 자동 이관하지 않습니다.
    await loadProductsFromSupabase();
    subscribeERPRealtime();
    applyLoggedInUI();
@@ -1347,11 +1363,19 @@ function go(page,btn){
  if(btn)btn.classList.add('active');
  const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',inventory:'재고 현황',documents:'거래 문서',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminInventory:'재고/창고 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
- if(page==='products')renderProducts(); if(page==='cartPage')renderCartPage();
+ if(page==='products'){
+   if(supabaseERP && supabaseSyncReady){
+     loadProductsFromSupabase().then(()=>renderProducts()).catch(e=>{console.error('거래처 제품 목록 DB 조회 실패:',e);renderProducts()});
+   }else renderProducts();
+ } if(page==='cartPage')renderCartPage();
  if(page==='orders')renderClientOrders();
  if(page==='adminOrders')renderAdminOrders();
  if(page==='adminClients')renderClients(); if(page==='adminNotices')renderAdminNotices();
- if(page==='adminProducts')renderAdminProducts();
+ if(page==='adminProducts'){
+   if(supabaseERP && supabaseSyncReady){
+     loadProductsFromSupabase().then(()=>renderAdminProducts()).catch(e=>{console.error('관리자 제품 목록 DB 조회 실패:',e);renderAdminProducts()});
+   }else renderAdminProducts();
+ }
  if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
 }
 function price(p){
@@ -1716,7 +1740,25 @@ function openProductEdit(i){
   <div class="field"><label>기본 단가</label><input id="editPBase" type="number" value="${p.base}"></div>
   <div class="field full"><label>규격</label><input id="editPSpec" value="${p.spec}"></div>
  </div>`;
- document.getElementById('modalSave').onclick=()=>{p.name=editPName.value;p.code=editPCode.value;p.cat=editPCat.value;p.base=Number(editPBase.value);p.spec=editPSpec.value;saveV7Data();closeModal();renderAdminProducts();renderPriceManagement();alert('제품 정보가 저장되었습니다.')};
+ document.getElementById('modalSave').onclick=async()=>{
+   const next={name:editPName.value.trim(),code:editPCode.value.trim(),cat:editPCat.value,base:Number(editPBase.value),spec:editPSpec.value.trim()};
+   if(!next.name||!next.code||!Number.isFinite(next.base)){alert('제품명, 제품 코드, 기본 단가를 확인해 주세요.');return}
+   if(!supabaseERP){alert('Supabase 연결이 확인되지 않습니다.');return}
+   const saveBtn=document.getElementById('modalSave'); saveBtn.disabled=true; saveBtn.textContent='저장 중...';
+   try{
+     const payload={};
+     const probe=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();
+     if(probe.error) throw probe.error;
+     const row=probe.data||{};
+     for(const [k,v] of Object.entries({name:next.name,product_name:next.name,code:next.code,product_code:next.code,spec:next.spec,specification:next.spec,base_price:next.base,base:next.base,unit_price:next.base,price:next.base,category:next.cat})){if(Object.prototype.hasOwnProperty.call(row,k))payload[k]=v}
+     const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);
+     if(error) throw error;
+     await loadProductsFromSupabase();
+     closeModal(); renderAdminProducts(); renderPriceManagement(); renderProducts();
+     alert('제품 정보가 Supabase에 저장되었습니다.');
+   }catch(err){alert('제품 정보 저장에 실패했습니다.\n\n'+(err.message||err));}
+   finally{saveBtn.disabled=false;saveBtn.textContent='저장';}
+ };
  document.getElementById('modalBg').classList.add('show');
 }
 function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" type="number" min="0" value="${p.stock}" onchange="saveInventoryQtyV6(${p.id},this.value)"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" onchange="saveInventoryVisibilityV6(${p.id},this.value)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
@@ -1893,6 +1935,9 @@ document.addEventListener('keydown',e=>{
  if((e.ctrlKey||e.metaKey)&&['p','s','u'].includes(e.key.toLowerCase())){e.preventDefault();return}
  if(e.key==='PrintScreen'){document.getElementById('securityOverlay').classList.add('show');setTimeout(()=>document.getElementById('securityOverlay').classList.remove('show'),1800)}
 });
+</script>
+<script>
+window.addEventListener('load',()=>{setTimeout(()=>forceUnifiedProductSource(),150);});
 </script>
 </body>
 </html>
