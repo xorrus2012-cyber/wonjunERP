@@ -330,15 +330,7 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN ORDERS -->
       <section id="adminOrders" class="page">
-        <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div></div>
-        <div class="card pad order-option-settings-card">
-          <div class="page-head" style="margin-bottom:10px"><div><h3 class="section-title" style="margin:0">발주 옵션 설정</h3><p style="margin:4px 0 0;color:#64748b;font-size:12px">거래처가 제품을 장바구니에 담을 때 선택하는 박스 종류와 파렛트 종류를 관리합니다.</p></div></div>
-          <div class="order-option-setting-grid">
-            <div class="order-option-setting-box"><div class="order-option-setting-title">박스 종류</div><div id="adminBoxTypeOptions" class="option-chip-list"></div><div class="option-add-row"><input id="newBoxTypeOption" placeholder="박스 종류 추가"><button class="btn light" type="button" onclick="addOrderOptionDraft('box')">+ 추가</button></div></div>
-            <div class="order-option-setting-box"><div class="order-option-setting-title">파렛트 종류</div><div id="adminPalletTypeOptions" class="option-chip-list"></div><div class="option-add-row"><input id="newPalletTypeOption" placeholder="파렛트 종류 추가"><button class="btn light" type="button" onclick="addOrderOptionDraft('pallet')">+ 추가</button></div></div>
-          </div>
-          <div class="order-option-setting-actions"><span>추가/삭제 후 <b>저장</b>해야 거래처 화면에 반영됩니다.</span><button class="btn primary" type="button" onclick="saveOrderOptionSettings()">저장</button></div>
-        </div>
+        <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div><button class="btn light order-option-manage-btn" type="button" onclick="openOrderOptionModal()">⚙️ 발주 옵션 관리</button></div>
         <div class="toolbar" style="align-items:flex-start">
 <div class="smartbox" id="orderClientFilter"></div>
 <div class="smartbox" id="orderProductFilter"></div>
@@ -480,6 +472,20 @@ html,body{overflow-x:hidden}
 <div id="cartBar" class="cart-bar hidden"><button class="btn light" onclick="go('cartPage')" style="padding:7px 10px">장바구니 <strong id="cartCount">0</strong>개</button><span id="cartTotal">₩ 0</span><button class="btn primary" onclick="checkout()">발주 확인</button></div>
 
 <!-- MODAL -->
+<div id="orderOptionModalBg" class="order-option-modal-bg" aria-hidden="true">
+  <div class="order-option-modal" role="dialog" aria-modal="true" aria-labelledby="orderOptionModalTitle">
+    <div class="order-option-modal-head">
+      <div><div class="order-option-modal-eyebrow">ORDER SETTINGS</div><h3 id="orderOptionModalTitle">발주 옵션 관리</h3><p>거래처가 제품을 장바구니에 담을 때 선택할 옵션을 관리합니다.</p></div>
+      <button class="order-option-modal-close" type="button" onclick="closeOrderOptionModal()" aria-label="닫기">×</button>
+    </div>
+    <div class="order-option-modal-body">
+      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">박스 종류</div><div class="order-option-setting-desc">거래처 발주 시 선택할 박스 종류입니다.</div></div><span class="order-option-count" id="boxOptionCount">0</span></div><div id="adminBoxTypeOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newBoxTypeOption" placeholder="예: 기본 박스, 수출용 박스"><button class="btn light" type="button" onclick="addOrderOptionDraft('box')">+ 추가</button></div></div>
+      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">파렛트 종류</div><div class="order-option-setting-desc">거래처 발주 시 선택할 파렛트 종류입니다.</div></div><span class="order-option-count" id="palletOptionCount">0</span></div><div id="adminPalletTypeOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newPalletTypeOption" placeholder="예: 나무, 플라스틱, KPP"><button class="btn light" type="button" onclick="addOrderOptionDraft('pallet')">+ 추가</button></div></div>
+    </div>
+    <div class="order-option-modal-foot"><div class="order-option-save-note">추가/삭제 후 <b>저장</b>해야 거래처 화면에 반영됩니다.</div><div class="order-option-modal-actions"><button class="btn light" type="button" onclick="closeOrderOptionModal()">취소</button><button class="btn primary" type="button" onclick="saveOrderOptionSettings()">저장</button></div></div>
+  </div>
+</div>
+
 <div id="modalBg" class="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-head"><h3 id="modalTitle">등록</h3><button class="close" onclick="closeModal()">×</button></div>
@@ -493,7 +499,7 @@ html,body{overflow-x:hidden}
 <script>
 const productCategories=['OPP 테이프','컬러 테이프','포장자재'];
 let orderOptionSettings={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주']};
-let orderOptionDraft={box:[],pallet:[]};
+let orderOptionDraft={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주']};
 let cartItems=[];
 const products=[
  {id:1,code:'WJ-OPP-4840',cat:'OPP 테이프',name:'WJ 투명 OPP 테이프',spec:'48mm × 40m × 50μ',base:900,stock:12500,safety:5000,warehouse:'A-01',prices:{'client-a':820,'client-b':850},inventoryPublic:true},
@@ -1630,8 +1636,8 @@ function openNoticeDetail(i){const n=notices[i];if(!n)return;document.getElement
 function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))return;const d=document.createElement('div');d.id='noticePopupV9';d.className='notice-popup-v9 hidden';d.innerHTML='<div class="notice-popup-card-v9"><button class="notice-popup-close-v9" onclick="closeNoticePopupV9()">×</button><div id="noticePopupBodyV9"></div></div>';document.body.appendChild(d)}
 function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
 function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
-function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'롤';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
-function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'롤';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
+function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'박스';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
+function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${o.item}</td><td>${o.qty.toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
 function renderAdminOrders(){
  const rows=document.getElementById('adminOrderRows');if(!rows)return;
  const clientsSel=smartGet('orderClientFilter'), productsSel=smartGet('orderProductFilter');
@@ -2102,6 +2108,23 @@ function downloadDocumentPDF(no,type,orderNo,date){
  const w=window.open('','_blank','width=900,height=1000');
  if(!w){alert('팝업 차단을 해제해 주세요.');return}
  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}
+/* V35: order option settings modal */
+.order-option-manage-btn{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.order-option-modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.58);backdrop-filter:blur(3px);z-index:250;display:none;align-items:center;justify-content:center;padding:24px}
+.order-option-modal-bg.show{display:flex}
+.order-option-modal{width:min(720px,100%);max-height:min(760px,92vh);overflow:hidden;background:#fff;border:1px solid rgba(226,232,240,.9);border-radius:20px;box-shadow:0 28px 90px rgba(15,23,42,.28);display:flex;flex-direction:column}
+.order-option-modal-head{padding:24px 26px 20px;display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #eef2f7}
+.order-option-modal-eyebrow{font-size:10px;font-weight:800;letter-spacing:.12em;color:#2563eb;margin-bottom:6px}
+.order-option-modal-head h3{margin:0;font-size:19px;letter-spacing:-.02em;color:#0f172a}.order-option-modal-head p{margin:7px 0 0;font-size:12px;color:#64748b;line-height:1.6}
+.order-option-modal-close{width:34px;height:34px;flex:0 0 34px;border:0;border-radius:999px;background:#f8fafc;color:#64748b;font-size:22px;line-height:1;cursor:pointer}.order-option-modal-close:hover{background:#f1f5f9;color:#0f172a}
+.order-option-modal-body{padding:22px 26px;display:grid;grid-template-columns:1fr 1fr;gap:16px;overflow:auto}
+.order-option-setting-box-modern{border:1px solid #e2e8f0;border-radius:15px;padding:17px;background:#fbfdff;min-width:0}
+.order-option-setting-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.order-option-setting-desc{font-size:11px;color:#94a3b8;margin-top:5px;line-height:1.5}.order-option-count{min-width:26px;height:26px;padding:0 8px;border-radius:999px;background:#eff6ff;color:#2563eb;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.option-chip-list-modern{min-height:42px;align-content:flex-start;gap:8px}.option-chip-list-modern .option-chip{padding:7px 9px 7px 12px;border:1px solid #dbe5ef;background:#fff;color:#334155;box-shadow:0 1px 2px rgba(15,23,42,.03)}.option-chip-list-modern .option-chip button{width:20px;height:20px;border-radius:999px;background:#f1f5f9;color:#64748b;display:inline-flex;align-items:center;justify-content:center;font-size:13px}.option-chip-list-modern .option-chip button:hover{background:#e2e8f0;color:#0f172a}
+.option-add-row-modern{margin-top:15px;align-items:center}.option-add-row-modern input{height:42px;min-width:0;padding:0 12px;border:1px solid #dbe3ec;border-radius:9px;outline:0;background:#fff}.option-add-row-modern input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.08)}.option-add-row-modern .btn{height:42px;padding:0 14px;white-space:nowrap}
+.order-option-modal-foot{padding:16px 26px 20px;border-top:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff}.order-option-save-note{font-size:11px;color:#94a3b8;line-height:1.5}.order-option-save-note b{color:#64748b}.order-option-modal-actions{display:flex;gap:8px;flex:0 0 auto}
+@media(max-width:800px){.order-option-modal-body{grid-template-columns:1fr}.order-option-modal-bg{padding:14px}.order-option-modal-head{padding:20px}.order-option-modal-body{padding:16px 20px}.order-option-modal-foot{padding:14px 20px;align-items:flex-end;flex-direction:column}.order-option-modal-actions{width:100%;justify-content:flex-end}.order-option-manage-btn{margin-top:4px}}
+
 /* V34: per-item order options + admin settings */
 .order-option-settings-card{margin-bottom:14px}.order-option-setting-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.order-option-setting-box{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff}.order-option-setting-title{font-weight:800;font-size:13px;margin-bottom:10px}.option-chip-list{display:flex;flex-wrap:wrap;gap:7px;min-height:38px}.option-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #dbe3ec;border-radius:999px;background:#f8fafc;font-size:12px}.option-chip button{border:0;background:transparent;color:#64748b;cursor:pointer;font-size:15px;line-height:1;padding:0}.option-add-row{display:flex;gap:7px;margin-top:10px}.option-add-row input{flex:1}.order-option-setting-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7;font-size:11px;color:#64748b}.cart-option-help{background:#f8fafc}.cart-option-help-title{font-size:13px;font-weight:800}.cart-option-help-text{font-size:12px;color:#64748b;margin-top:5px;line-height:1.6}.order-option-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.order-option-modal-grid .full{grid-column:1/-1}.order-option-card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff}.order-option-card label{display:block;font-size:11px;font-weight:800;margin-bottom:7px;color:#334155}.order-option-modal-product{padding:12px;border-radius:12px;background:#f8fafc;margin-bottom:14px}.order-option-modal-product b{font-size:14px}.order-option-modal-product span{display:block;font-size:11px;color:#64748b;margin-top:4px}.cart-item-options{font-size:11px;color:#64748b;line-height:1.7;margin-top:4px}.cart-item-options b{color:#334155}.cart-item-product{font-weight:800}.cart-item-spec{font-size:11px;color:#64748b;margin-top:3px}@media(max-width:800px){.order-option-setting-grid,.order-option-modal-grid{grid-template-columns:1fr}.order-option-modal-grid .full{grid-column:auto}}
 </style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
@@ -2120,30 +2143,12 @@ async function loadOrderOptionSettings(){
    if(next.box.length)orderOptionSettings.box=next.box;if(next.pallet.length)orderOptionSettings.pallet=next.pallet;
  }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
 }
-function renderOrderOptionSettings(){
- const draw=(id,type)=>{const el=document.getElementById(id);if(!el)return;const list=orderOptionSettings[type]||[];el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} ${list.length>1?`<button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제">×</button>`:''}</span>`).join('')};
- draw('adminBoxTypeOptions','box');draw('adminPalletTypeOptions','pallet');
-}
-function addOrderOptionDraft(type){
- const input=document.getElementById(type==='box'?'newBoxTypeOption':'newPalletTypeOption');const v=(input?.value||'').trim();if(!v)return;
- if((orderOptionSettings[type]||[]).includes(v)){alert('이미 등록된 항목입니다.');return}
- orderOptionSettings[type]=[...(orderOptionSettings[type]||[]),v];if(input)input.value='';renderOrderOptionSettings();
-}
-function removeOrderOptionDraft(type,index){
- const list=orderOptionSettings[type]||[];if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}
- const name=list[index];if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;list.splice(index,1);renderOrderOptionSettings();
-}
-async function saveOrderOptionSettings(){
- if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다.');return}
- if(!(orderOptionSettings.box||[]).length||!(orderOptionSettings.pallet||[]).length){alert('박스 종류와 파렛트 종류는 각각 1개 이상 필요합니다.');return}
- if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;
- try{
-   const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet']);if(del.error)throw del.error;
-   const rows=[...(orderOptionSettings.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),...(orderOptionSettings.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i}))];
-   const ins=await supabaseERP.from('order_option_settings').insert(rows);if(ins.error)throw ins.error;
-   alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.');
- }catch(e){alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e))}
-}
+function openOrderOptionModal(){orderOptionDraft={box:[...(orderOptionSettings.box||[])],pallet:[...(orderOptionSettings.pallet||[])]};renderOrderOptionSettings();const bg=document.getElementById('orderOptionModalBg');if(bg){bg.classList.add('show');bg.setAttribute('aria-hidden','false')}}
+function closeOrderOptionModal(){const bg=document.getElementById('orderOptionModalBg');if(bg){bg.classList.remove('show');bg.setAttribute('aria-hidden','true')}}
+function renderOrderOptionSettings(){const draw=(id,type,countId)=>{const el=document.getElementById(id);if(!el)return;const list=orderOptionDraft[type]||[];el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} <button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제" aria-label="${escapeHtmlV8(x)} 삭제">×</button></span>`).join('');const count=document.getElementById(countId);if(count)count.textContent=String(list.length)};draw('adminBoxTypeOptions','box','boxOptionCount');draw('adminPalletTypeOptions','pallet','palletOptionCount')}
+function addOrderOptionDraft(type){const input=document.getElementById(type==='box'?'newBoxTypeOption':'newPalletTypeOption');const v=(input?.value||'').trim();if(!v)return;if((orderOptionDraft[type]||[]).includes(v)){alert('이미 등록된 항목입니다.');return}orderOptionDraft[type]=[...(orderOptionDraft[type]||[]),v];if(input)input.value='';renderOrderOptionSettings();input?.focus()}
+function removeOrderOptionDraft(type,index){const list=orderOptionDraft[type]||[];if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}const name=list[index];if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;list.splice(index,1);renderOrderOptionSettings()}
+async function saveOrderOptionSettings(){if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다.');return}if(!(orderOptionDraft.box||[]).length||!(orderOptionDraft.pallet||[]).length){alert('박스 종류와 파렛트 종류는 각각 1개 이상 필요합니다.');return}if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;try{const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet']);if(del.error)throw del.error;const rows=[...(orderOptionDraft.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),...(orderOptionDraft.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i}))];const ins=await supabaseERP.from('order_option_settings').insert(rows);if(ins.error)throw ins.error;orderOptionSettings={box:[...orderOptionDraft.box],pallet:[...orderOptionDraft.pallet]};closeOrderOptionModal();renderProducts();alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.')}catch(e){alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e))}}
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
 renderAll();
