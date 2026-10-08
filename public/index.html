@@ -1171,14 +1171,17 @@ async function loadOrdersFromSupabase(){
 
   mapped.forEach(o=>{
     const candidates=[String(o.dbId||''),String(o.no||'')].filter(Boolean);
-    const seen=new Set();
-    o.items=[];
+    const existingItems=Array.isArray(o.items)?o.items.slice():[];
+    const merged=[...existingItems];
+    const seen=new Set(existingItems.map(item=>[item.productId,item.name,item.spec,item.qty,item.boxType,item.boxStamp,item.palletType].join('|')));
     candidates.forEach(k=>{
       (orderItemDetails[k]||[]).forEach(item=>{
         const sig=[item.productId,item.name,item.spec,item.qty,item.boxType,item.boxStamp,item.palletType].join('|');
-        if(!seen.has(sig)){seen.add(sig);o.items.push(item)}
+        if(!seen.has(sig)){seen.add(sig);merged.push(item)}
       });
     });
+    o.items=merged;
+    if(o.items.length) o.item=getWJOrderSummaryText(o);
   });
   orders.splice(0,orders.length,...mapped);
 }
