@@ -147,7 +147,7 @@ html,body{overflow-x:hidden}
 .table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
 .table-wrap table{min-width:900px}
 #adminClients .table-wrap table{min-width:820px}
-#adminOrders .table-wrap table{min-width:1050px}
+#adminOrders .table-wrap table{min-width:1450px}
 #adminPrices .table-wrap table{min-width:1050px}
 .smartbox{min-width:260px;max-width:360px}
 .smartinput{height:40px}
@@ -168,6 +168,14 @@ html,body{overflow-x:hidden}
 @media(max-width:900px){.smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style id="v36-option-modal-fix">
+/* V36: 발주 옵션 관리 모달 표시 안정화 */
+#orderOptionModalBg{display:none!important;position:fixed!important;inset:0!important;z-index:99999!important;align-items:center!important;justify-content:center!important;padding:24px!important;background:rgba(15,23,42,.58)!important;backdrop-filter:blur(3px)!important}
+#orderOptionModalBg.show{display:flex!important}
+#orderOptionModalBg .order-option-modal{display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important}
+#orderOptionModalBg .order-option-modal-body{display:grid!important}
+@media(max-width:800px){#orderOptionModalBg .order-option-modal-body{grid-template-columns:1fr!important}}
+</style>
 </head>
 <body>
 
@@ -330,14 +338,14 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN ORDERS -->
       <section id="adminOrders" class="page">
-        <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div><button class="btn light order-option-manage-btn" type="button" onclick="openOrderOptionModal()">발주 옵션 관리</button></div>
+        <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div><button class="btn light order-option-manage-btn" type="button" onclick="openOrderOptionModal();return false;">발주 옵션 관리</button></div>
         <div class="toolbar" style="align-items:flex-start">
 <div class="smartbox" id="orderClientFilter"></div>
 <div class="smartbox" id="orderProductFilter"></div>
 <div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" onchange="renderAdminOrders()"><span>~</span><input type="date" id="adminOrderDateTo" onchange="renderAdminOrders()"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
 <select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
 <div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
-        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품명</th><th>규격</th><th>수량</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>금액</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
       </section>
 
       <!-- ADMIN CLIENTS -->
@@ -2224,21 +2232,103 @@ function showOrderDetail(no){
 
 let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
 async function loadOrderOptionSettings(){
- try{
-   if(!supabaseERP||!supabaseSyncReady)return;
-   const {data,error}=await supabaseERP.from('order_option_settings').select('*').order('sort_order',{ascending:true});
-   if(error){console.warn('발주 옵션 설정 조회 실패:',error);return}
-   const next={box:[],pallet:[]};
-   (data||[]).forEach(r=>{if(r.option_type==='box')next.box.push(r.option_name);if(r.option_type==='pallet')next.pallet.push(r.option_name)});
-   if(next.box.length)orderOptionSettings.box=next.box;if(next.pallet.length)orderOptionSettings.pallet=next.pallet;
- }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
+  try{
+    if(!supabaseERP) return;
+    const {data,error}=await supabaseERP.from('order_option_settings').select('*').order('sort_order',{ascending:true});
+    if(error){
+      console.warn('발주 옵션 설정 조회 실패:',error);
+      return;
+    }
+    const next={box:[],pallet:[]};
+    (data||[]).forEach(r=>{
+      const type=String(r.option_type||'');
+      const name=String(r.option_name||'').trim();
+      if(!name)return;
+      if(type==='box')next.box.push(name);
+      if(type==='pallet')next.pallet.push(name);
+    });
+    if(next.box.length)orderOptionSettings.box=[...next.box];
+    if(next.pallet.length)orderOptionSettings.pallet=[...next.pallet];
+  }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
 }
-function openOrderOptionModal(){orderOptionDraft={box:[...(orderOptionSettings.box||[])],pallet:[...(orderOptionSettings.pallet||[])]};renderOrderOptionSettings();const bg=document.getElementById('orderOptionModalBg');if(bg){bg.classList.add('show');bg.setAttribute('aria-hidden','false')}}
-function closeOrderOptionModal(){const bg=document.getElementById('orderOptionModalBg');if(bg){bg.classList.remove('show');bg.setAttribute('aria-hidden','true')}}
-function renderOrderOptionSettings(){const draw=(id,type,countId)=>{const el=document.getElementById(id);if(!el)return;const list=orderOptionDraft[type]||[];el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} <button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제" aria-label="${escapeHtmlV8(x)} 삭제">×</button></span>`).join('');const count=document.getElementById(countId);if(count)count.textContent=String(list.length)};draw('adminBoxTypeOptions','box','boxOptionCount');draw('adminPalletTypeOptions','pallet','palletOptionCount')}
-function addOrderOptionDraft(type){const input=document.getElementById(type==='box'?'newBoxTypeOption':'newPalletTypeOption');const v=(input?.value||'').trim();if(!v)return;if((orderOptionDraft[type]||[]).includes(v)){alert('이미 등록된 항목입니다.');return}orderOptionDraft[type]=[...(orderOptionDraft[type]||[]),v];if(input)input.value='';renderOrderOptionSettings();input?.focus()}
-function removeOrderOptionDraft(type,index){const list=orderOptionDraft[type]||[];if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}const name=list[index];if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;list.splice(index,1);renderOrderOptionSettings()}
-async function saveOrderOptionSettings(){if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다.');return}if(!(orderOptionDraft.box||[]).length||!(orderOptionDraft.pallet||[]).length){alert('박스 종류와 파렛트 종류는 각각 1개 이상 필요합니다.');return}if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;try{const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet']);if(del.error)throw del.error;const rows=[...(orderOptionDraft.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),...(orderOptionDraft.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i}))];const ins=await supabaseERP.from('order_option_settings').insert(rows);if(ins.error)throw ins.error;orderOptionSettings={box:[...orderOptionDraft.box],pallet:[...orderOptionDraft.pallet]};closeOrderOptionModal();renderProducts();alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.')}catch(e){alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e))}}
+
+function openOrderOptionModal(){
+  orderOptionDraft={
+    box:[...(orderOptionSettings.box||['기본 박스'])],
+    pallet:[...(orderOptionSettings.pallet||['나무'])]
+  };
+  renderOrderOptionSettings();
+  const bg=document.getElementById('orderOptionModalBg');
+  if(!bg)return;
+  bg.classList.add('show');
+  bg.style.display='flex';
+  bg.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+function closeOrderOptionModal(){
+  const bg=document.getElementById('orderOptionModalBg');
+  if(bg){
+    bg.classList.remove('show');
+    bg.style.display='none';
+    bg.setAttribute('aria-hidden','true');
+  }
+  document.body.style.overflow='';
+}
+function renderOrderOptionSettings(){
+  const draw=(id,type,countId)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const list=(orderOptionDraft[type]||[]).filter(Boolean);
+    el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} <button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제" aria-label="${escapeHtmlV8(x)} 삭제">×</button></span>`).join('');
+    const count=document.getElementById(countId);if(count)count.textContent=String(list.length);
+  };
+  draw('adminBoxTypeOptions','box','boxOptionCount');
+  draw('adminPalletTypeOptions','pallet','palletOptionCount');
+}
+function addOrderOptionDraft(type){
+  const input=document.getElementById(type==='box'?'newBoxTypeOption':'newPalletTypeOption');
+  const v=(input?.value||'').trim();
+  if(!v)return;
+  orderOptionDraft[type]=orderOptionDraft[type]||[];
+  if(orderOptionDraft[type].includes(v)){alert('이미 등록된 항목입니다.');return}
+  orderOptionDraft[type].push(v);
+  if(input)input.value='';
+  renderOrderOptionSettings();
+  input?.focus();
+}
+function removeOrderOptionDraft(type,index){
+  const list=orderOptionDraft[type]||[];
+  if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}
+  const name=list[index];
+  if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;
+  list.splice(index,1);
+  renderOrderOptionSettings();
+}
+async function saveOrderOptionSettings(){
+  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
+  if(!(orderOptionDraft.box||[]).length||!(orderOptionDraft.pallet||[]).length){alert('박스 종류와 파렛트 종류는 각각 1개 이상 필요합니다.');return}
+  if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;
+  try{
+    const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet']);
+    if(del.error)throw del.error;
+    const rows=[
+      ...(orderOptionDraft.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),
+      ...(orderOptionDraft.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i}))
+    ];
+    const ins=await supabaseERP.from('order_option_settings').insert(rows);
+    if(ins.error)throw ins.error;
+    orderOptionSettings={box:[...orderOptionDraft.box],pallet:[...orderOptionDraft.pallet]};
+    closeOrderOptionModal();
+    renderProducts();
+    alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.');
+  }catch(e){
+    console.error('발주 옵션 설정 저장 실패:',e);
+    alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e));
+  }
+}
+
+document.getElementById('orderOptionModalBg')?.addEventListener('click',function(e){if(e.target===this)closeOrderOptionModal()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOrderOptionModal()});
+
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
 renderAll();
