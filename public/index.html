@@ -2444,18 +2444,37 @@ function downloadDocumentPDF(no,type,orderNo,date){
 </style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
 
+function getWJOrderDetailItems(order){
+  if(!order)return [];
+  const normalize=arr=>(Array.isArray(arr)?arr:[]).map(x=>({
+    productId:x.productId||x.product_id||'',
+    name:x.name||x.product_name||'',
+    spec:x.spec||x.product_spec||'',
+    qty:Number(x.qty||x.quantity||0)||0,
+    unit:Number(x.unit||x.unit_price||0)||0,
+    amount:Number(x.amount||x.total_amount||0)||0,
+    boxType:x.boxType||x.box_type||'기본 박스',
+    boxStamp:x.boxStamp||x.box_stamp||'',
+    palletType:x.palletType||x.pallet_type||'나무'
+  }));
+  if(Array.isArray(order.items)&&order.items.length)return normalize(order.items);
+  const packed=parseWJOrderItemSummary(order.item_summary||order.item||'');
+  if(Array.isArray(packed)&&packed.length)return normalize(packed);
+  return [];
+}
+
 function showClientOrderDetail(no){
  const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;
- const details=o.items?.length?o.items:[{name:o.item||'-',spec:'',qty:o.qty||0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
+ const parsedDetails=getWJOrderDetailItems(o); const details=parsedDetails.length?parsedDetails:[{name:o.item||'-',spec:'',qty:o.qty||0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
  const detailRows=details.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.unit||0))}</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='발주 상세';
- document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(o.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(o))}</div><div class="key">전체 수량</div><div>총 ${Number(o.qty||0).toLocaleString()}박스</div><div class="key">전체 금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목</label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th></tr></thead><tbody>${detailRows}</tbody></table></div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;
+ document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(o.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(o))}</div><div class="key">전체 수량</div><div>${Number(o.qty||0).toLocaleString()}박스</div><div class="key">전체 금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목</label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th></tr></thead><tbody>${detailRows}</tbody></table></div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;
  const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')
 }
 function showOrderDetail(no){
  const o=orders.find(x=>x.no===no);if(!o)return;
  const c=clients.find(x=>x.loginId===o.id);
- const details=o.items?.length?o.items:[{name:o.item||'-',spec:'',qty:o.qty||0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
+ const parsedDetails=getWJOrderDetailItems(o); const details=parsedDetails.length?parsedDetails:[{name:o.item||'-',spec:'',qty:o.qty||0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
  const detailRows=details.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='주문 상세';
  document.getElementById('modalBody').innerHTML=`
