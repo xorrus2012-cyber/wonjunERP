@@ -1122,6 +1122,7 @@ async function loadOrdersFromSupabase(){
       date:normalizeDate(firstValue(r,['order_date','date','created_at'])),
       createdAt:firstValue(r,['created_at','updated_at'], ''),
       item:firstValue(r,['item_summary','item','title'],''),
+      itemSummaryRaw:firstValue(r,['item_summary','item','title'],''),
       qty:Number(firstValue(r,['total_qty','qty','quantity'],0))||0,
       amount:Number(firstValue(r,['total_amount','amount'],0))||0,
       status:firstValue(r,['status'],'접수 완료'),
@@ -2446,6 +2447,8 @@ function downloadDocumentPDF(no,type,orderNo,date){
 
 function getWJOrderDetailItems(order){
   if(!order)return [];
+  const rawPacked=parseWJOrderItemSummary(order.itemSummaryRaw||order.item_summary||'');
+  if(Array.isArray(rawPacked)&&rawPacked.length)return rawPacked;
   const normalize=arr=>(Array.isArray(arr)?arr:[]).map(x=>({
     productId:x.productId||x.product_id||'',
     name:x.name||x.product_name||'',
