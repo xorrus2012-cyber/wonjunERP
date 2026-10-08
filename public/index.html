@@ -1894,23 +1894,26 @@ function renderAdminOrders(){
  const rowsHtml=[];
  list.forEach(o=>{
    const details=o.items?.length?o.items:[{name:o.item||'-',spec:'',qty:o.qty||0,unit:o.qty?Number(o.amount||0)/Number(o.qty):0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
-   details.forEach((it,idx)=>{
-     rowsHtml.push(`<tr>
-       <td><input class="order-check-v6" type="checkbox" value="${escapeHtmlV8(o.no)}"></td>
-       <td><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td>
-       <td>${escapeHtmlV8(o.client)}</td>
-       <td>${formatOrderDateTime(o)}</td>
-       <td><b>${escapeHtmlV8(it.name||'-')}</b></td>
-       <td>${escapeHtmlV8(it.spec||'-')}</td>
-       <td>${Number(it.qty||0).toLocaleString()}박스</td>
-       <td>${escapeHtmlV8(it.boxType||'기본 박스')}</td>
-       <td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td>
-       <td>${escapeHtmlV8(it.palletType||'나무')}</td>
-       <td>${won(Number(it.amount||0))}</td>
-       <td><select class="status-select" onchange="setOrderStatusV6('${escapeHtmlV8(o.no)}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
-       <td><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td>
-     </tr>`);
-   });
+   const first=details[0]||{};
+   const itemSummary=getWJOrderSummaryText(o)||(first.name||o.item||'-');
+   const totalQty=details.reduce((sum,it)=>sum+Number(it.qty||0),0);
+   const totalAmount=details.reduce((sum,it)=>sum+Number(it.amount||0),0);
+   const specSummary=details.length===1?(first.spec||'-'):'여러 규격';
+   rowsHtml.push(`<tr>
+     <td><input class="order-check-v6" type="checkbox" value="${escapeHtmlV8(o.no)}"></td>
+     <td><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td>
+     <td>${escapeHtmlV8(o.client)}</td>
+     <td>${formatOrderDateTime(o)}</td>
+     <td><b>${escapeHtmlV8(itemSummary)}</b></td>
+     <td>${escapeHtmlV8(specSummary)}</td>
+     <td>${totalQty.toLocaleString()}박스</td>
+     <td>${details.length>1?`${details.length}개 옵션` : escapeHtmlV8(first.boxType||'기본 박스')}</td>
+     <td>${details.length>1?'상세에서 확인':`<b>${escapeHtmlV8(first.boxStamp||'없음')}</b>`}</td>
+     <td>${details.length>1?'상세에서 확인':escapeHtmlV8(first.palletType||'나무')}</td>
+     <td>${won(totalAmount)}</td>
+     <td><select class="status-select" onchange="setOrderStatusV6('${escapeHtmlV8(o.no)}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+     <td><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td>
+   </tr>`);
  });
  rows.innerHTML=rowsHtml.join('')||'<tr><td colspan="13" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>';
 }
