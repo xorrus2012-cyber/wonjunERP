@@ -1086,10 +1086,11 @@ async function loadProductsFromSupabase(){
 }
 
 function parseWJOrderItemSummary(value){
-  if(!value)return null;
+  if(value==null||value==='')return null;
   try{
-    const parsed=JSON.parse(String(value));
+    const parsed=(typeof value==='string')?JSON.parse(value):value;
     if(parsed && Array.isArray(parsed.__wjOrderItems)) return parsed.__wjOrderItems;
+    if(Array.isArray(parsed)) return parsed;
   }catch(e){}
   return null;
 }
@@ -2480,18 +2481,40 @@ function showClientOrderDetail(no){
  document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(o.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(o))}</div><div class="key">전체 수량</div><div>${Number(o.qty||0).toLocaleString()}박스</div><div class="key">전체 금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목</label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th></tr></thead><tbody>${detailRows}</tbody></table></div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;
  const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')
 }
-function showOrderDetail(no){
- const o=orders.find(x=>x.no===no);if(!o)return;
- const c=clients.find(x=>x.loginId===o.id);
- const parsedDetails=getWJOrderDetailItems(o); const details=parsedDetails.length?parsedDetails:[{name:o.item||'-',spec:'',qty:o.qty||0,amount:o.amount||0,boxType:o.boxType||'기본 박스',boxStamp:o.boxStamp||'',palletType:o.palletType||'나무'}];
- const detailRows=details.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td></tr>`).join('');
- document.getElementById('modalTitle').textContent='주문 상세';
- document.getElementById('modalBody').innerHTML=`
- <div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(o.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||o.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(o))}</div><div class="key">전체 금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div>
- <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목</label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>
- <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div>
- <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;
- const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')
+async function showOrderDetail(no){
+  const o=orders.find(x=>String(x.no)===String(no));
+  if(!o)return;
+  let source=o;
+  // 상세 진입 시 DB의 원본 주문을 직접 다시 읽는다. 목록용 요약 데이터에 의존하지 않는다.
+  if(supabaseERP){
+    try{
+      let q=supabaseERP.from('orders').select('*');
+      if(o.dbId) q=q.eq('id',o.dbId);
+      else q=q.eq('order_no',no);
+      const {data,error}=await q.limit(1).maybeSingle();
+      if(!error&&data) source={...o,...data,
+        no:firstValue(data,['order_no','no','id'],o.no),
+        itemSummaryRaw:firstValue(data,['item_summary','item','title'],o.itemSummaryRaw||o.item||''),
+        item:firstValue(data,['item_summary','item','title'],o.item||''),
+        qty:Number(firstValue(data,['total_qty','qty','quantity'],o.qty||0))||0,
+        amount:Number(firstValue(data,['total_amount','amount'],o.amount||0))||0,
+        clientMemo:firstValue(data,['client_memo'],o.clientMemo||''),
+        adminMemo:firstValue(data,['admin_memo'],o.adminMemo||'')
+      };
+    }catch(e){console.warn('주문 상세 원본 조회 실패',e)}
+  }
+  const c=clients.find(x=>String(x.loginId)===String(source.id))||clients.find(x=>String(x.id)===String(source.clientId));
+  const parsedDetails=getWJOrderDetailItems(source);
+  const details=parsedDetails.length?parsedDetails:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무'}];
+  const detailRows=details.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td></tr>`).join('');
+  document.getElementById('modalTitle').textContent='주문 상세';
+  document.getElementById('modalBody').innerHTML=`
+  <div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
+  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 ${details.length>1?`<span style="color:#2563eb">${details.length}건</span>`:''}</label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>
+  <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'거래처 메모가 없습니다.')}</div></div>
+  <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>`;
+  const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};
+  document.getElementById('modalBg').classList.add('show');
 }
 
 let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
