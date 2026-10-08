@@ -1113,7 +1113,6 @@ async function loadOrdersFromSupabase(){
     const c=cById.get(String(cid))||cByUser.get(String(cid));
     const o = {
       dbId:firstValue(r,['id','order_id'],''),
-      id:firstValue(r,['order_no','no','id'],''),
       no:firstValue(r,['order_no','no','id'],''),
       client:c?.name||firstValue(r,['client_name'],''),
       clientId:c?.id||cid,
@@ -2447,22 +2446,29 @@ function downloadDocumentPDF(no,type,orderNo,date){
 
 function getWJOrderDetailItems(order){
   if(!order)return [];
-  const rawPacked=parseWJOrderItemSummary(order.itemSummaryRaw||order.item_summary||'');
-  if(Array.isArray(rawPacked)&&rawPacked.length)return rawPacked;
   const normalize=arr=>(Array.isArray(arr)?arr:[]).map(x=>({
     productId:x.productId||x.product_id||'',
-    name:x.name||x.product_name||'',
+    name:x.name||x.product_name||x.item_name||'',
     spec:x.spec||x.product_spec||'',
-    qty:Number(x.qty||x.quantity||0)||0,
-    unit:Number(x.unit||x.unit_price||0)||0,
-    amount:Number(x.amount||x.total_amount||0)||0,
+    qty:Number(x.qty??x.quantity??0)||0,
+    unit:Number(x.unit??x.unit_price??x.price??0)||0,
+    amount:Number(x.amount??x.total_amount??x.total_price??0)||0,
     boxType:x.boxType||x.box_type||'기본 박스',
     boxStamp:x.boxStamp||x.box_stamp||'',
     palletType:x.palletType||x.pallet_type||'나무'
-  }));
-  if(Array.isArray(order.items)&&order.items.length)return normalize(order.items);
-  const packed=parseWJOrderItemSummary(order.item_summary||order.item||'');
-  if(Array.isArray(packed)&&packed.length)return normalize(packed);
+  })).filter(x=>x.name||x.spec||x.qty||x.amount);
+
+  // 1순위: 주문 저장 당시의 item_summary JSON. 기존 주문도 이 값을 가지고 있으면 그대로 복원한다.
+  const rawCandidates=[order.itemSummaryRaw, order.item_summary, order.item];
+  for(const raw of rawCandidates){
+    const packed=parseWJOrderItemSummary(raw);
+    if(Array.isArray(packed)&&packed.length>=1) return normalize(packed);
+  }
+
+  // 2순위: 이미 메모리에 복원된 상세 품목
+  const items=normalize(order.items);
+  if(items.length)return items;
+
   return [];
 }
 
