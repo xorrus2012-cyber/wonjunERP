@@ -263,31 +263,9 @@ html,body{overflow-x:hidden}
             <tbody id="cartRows"></tbody>
           </table>
         </div>
-        <div class="card pad" style="margin-top:14px">
-          <div style="font-weight:800;font-size:14px;margin-bottom:12px">발주 옵션</div>
-          <div class="grid3" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
-            <div class="field" style="margin:0">
-              <label>박스 종류</label>
-              <select id="orderBoxType">
-                <option value="기본 박스" selected>기본 박스</option>
-                <option value="일반 박스">일반 박스</option>
-                <option value="특수 박스">특수 박스</option>
-              </select>
-            </div>
-            <div class="field" style="margin:0">
-              <label>도장 표기</label>
-              <input id="orderBoxStamp" type="text" maxlength=100 placeholder="박스에 표시할 문구를 입력하세요">
-            </div>
-            <div class="field" style="margin:0">
-              <label>파렛트 종류</label>
-              <select id="orderPalletType">
-                <option value="나무" selected>나무</option>
-                <option value="플라스틱">플라스틱</option>
-                <option value="KPP">KPP</option>
-                <option value="아주">아주</option>
-              </select>
-            </div>
-          </div>
+        <div class="card pad cart-option-help" style="margin-top:14px">
+          <div class="cart-option-help-title">발주 옵션은 <b>제품을 담을 때</b> 선택합니다.</div>
+          <div class="cart-option-help-text">제품마다 박스 종류 · 도장 표기 · 파렛트 종류를 다르게 지정할 수 있습니다. 장바구니에서 선택한 옵션도 함께 확인할 수 있습니다.</div>
           <div style="display:flex;justify-content:flex-end;align-items:center;gap:18px;margin-top:16px">
             <span style="color:#64748b;font-size:12px">총 발주금액</span>
             <strong id="cartPageTotal" style="font-size:22px">₩ 0</strong>
@@ -353,6 +331,14 @@ html,body{overflow-x:hidden}
       <!-- ADMIN ORDERS -->
       <section id="adminOrders" class="page">
         <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div></div>
+        <div class="card pad order-option-settings-card">
+          <div class="page-head" style="margin-bottom:10px"><div><h3 class="section-title" style="margin:0">발주 옵션 설정</h3><p style="margin:4px 0 0;color:#64748b;font-size:12px">거래처가 제품을 장바구니에 담을 때 선택하는 박스 종류와 파렛트 종류를 관리합니다.</p></div></div>
+          <div class="order-option-setting-grid">
+            <div class="order-option-setting-box"><div class="order-option-setting-title">박스 종류</div><div id="adminBoxTypeOptions" class="option-chip-list"></div><div class="option-add-row"><input id="newBoxTypeOption" placeholder="박스 종류 추가"><button class="btn light" type="button" onclick="addOrderOptionDraft('box')">+ 추가</button></div></div>
+            <div class="order-option-setting-box"><div class="order-option-setting-title">파렛트 종류</div><div id="adminPalletTypeOptions" class="option-chip-list"></div><div class="option-add-row"><input id="newPalletTypeOption" placeholder="파렛트 종류 추가"><button class="btn light" type="button" onclick="addOrderOptionDraft('pallet')">+ 추가</button></div></div>
+          </div>
+          <div class="order-option-setting-actions"><span>추가/삭제 후 <b>저장</b>해야 거래처 화면에 반영됩니다.</span><button class="btn primary" type="button" onclick="saveOrderOptionSettings()">저장</button></div>
+        </div>
         <div class="toolbar" style="align-items:flex-start">
 <div class="smartbox" id="orderClientFilter"></div>
 <div class="smartbox" id="orderProductFilter"></div>
@@ -506,6 +492,9 @@ html,body{overflow-x:hidden}
 
 <script>
 const productCategories=['OPP 테이프','컬러 테이프','포장자재'];
+let orderOptionSettings={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주']};
+let orderOptionDraft={box:[],pallet:[]};
+let cartItems=[];
 const products=[
  {id:1,code:'WJ-OPP-4840',cat:'OPP 테이프',name:'WJ 투명 OPP 테이프',spec:'48mm × 40m × 50μ',base:900,stock:12500,safety:5000,warehouse:'A-01',prices:{'client-a':820,'client-b':850},inventoryPublic:true},
  {id:2,code:'WJ-OPP-4850',cat:'OPP 테이프',name:'WJ 투명 OPP 테이프',spec:'48mm × 50m × 53μ',base:1040,stock:8400,safety:4000,warehouse:'A-02',prices:{'client-a':970,'client-b':990},inventoryPublic:true},
@@ -1376,7 +1365,7 @@ function applyLoggedInUI(){
  document.getElementById('sideUser').textContent=admin?'원준테이프 관리자':client.name;
  document.getElementById('sideRole').textContent=admin?'ADMIN':'CLIENT';
  document.getElementById('clientChip').textContent=admin?'관리자':client.name;
- loadCartV8();
+ loadCartV8(); loadCartItemsV34();
  if(admin) go('adminDash');
  else {
    document.getElementById('welcomeName').textContent=client.name;
@@ -1384,6 +1373,7 @@ function applyLoggedInUI(){
    go('home');
  }
  renderAll();
+ loadOrderOptionSettings().then(()=>{renderOrderOptionSettings();renderProducts()});
  setTimeout(initV6Smart,20);
 }
 function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
@@ -1405,7 +1395,7 @@ function go(page,btn){
    }else renderProducts();
  } if(page==='cartPage')renderCartPage();
  if(page==='orders')renderClientOrders();
- if(page==='adminOrders')renderAdminOrders();
+ if(page==='adminOrders'){renderAdminOrders();renderOrderOptionSettings();loadOrderOptionSettings().then(renderOrderOptionSettings)}
  if(page==='adminClients')renderClients(); if(page==='adminNotices')renderAdminNotices();
  if(page==='adminProducts'){
    if(supabaseERP && supabaseSyncReady){
@@ -1431,50 +1421,49 @@ function renderProducts(){
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1박스 기준 · 거래처 적용 단가</div></div>
  <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button type="button" class="btn primary" data-cart-add="${String(p.id)}" style="margin-left:5px;padding:9px 11px">담기</button></div></div></div>`).join('');
 }
-function addCart(id, qtyEl){
- const key=String(id);
- const input=qtyEl || document.getElementById('qty-'+key);
- const q=Number(input?.value||0);
- if(!Number.isFinite(q)||q<1){alert('수량을 1 이상 입력해 주세요.');return false}
- const p=products.find(x=>String(x.id)===key);
- if(!p){alert('제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return false}
- if(!cart || typeof cart!=='object') cart={};
- cart[key]=(Number(cart[key])||0)+q;
- saveCartV8();
- updateCart();
- renderCartPage();
+
+function getOrderOptionLists(){
+ return {box:(orderOptionSettings.box||['기본 박스']).filter(Boolean),pallet:(orderOptionSettings.pallet||['나무']).filter(Boolean)};
+}
+function openAddCartOptionModal(id,qty){
+ const p=products.find(x=>String(x.id)===String(id)); if(!p)return false;
+ const lists=getOrderOptionLists();
+ const body=document.getElementById('modalBody');
+ document.getElementById('modalTitle').textContent='장바구니에 담기';
+ body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(p.spec)} · ${won(price(p))} / 박스</span></div><div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType">${lists.box.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType">${lists.pallet.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card full"><label>도장 표기</label><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요"><div style="font-size:10px;color:#94a3b8;margin-top:5px">예: 50M / 원준테이프 50M / 수출용</div></div><div class="order-option-card full"><label>수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
+ const save=document.getElementById('modalSave'); save.style.display=''; save.textContent='장바구니에 담기';
+ save.onclick=()=>{
+   const q=Math.floor(Number(document.getElementById('addCartQty')?.value||0)); if(q<1){alert('수량을 1 이상 입력해 주세요.');return}
+   const item={key:crypto.randomUUID?crypto.randomUUID():('ci-'+Date.now()+'-'+Math.random().toString(16).slice(2)),productId:String(p.id),qty:q,boxType:document.getElementById('addCartBoxType')?.value||lists.box[0]||'기본 박스',boxStamp:document.getElementById('addCartBoxStamp')?.value?.trim()||'',palletType:document.getElementById('addCartPalletType')?.value||lists.pallet[0]||'나무'};
+   cartItems.push(item); saveCartItemsV34(); closeModal(); updateCart(); renderCartPage(); alert(`${p.name} ${q.toLocaleString()}박스가 장바구니에 담겼습니다.`);
+ };
+ document.getElementById('modalBg').classList.add('show');
  return true;
 }
+function saveCartItemsV34(){try{localStorage.setItem('wonjun_v34_cart_items',JSON.stringify(cartItems))}catch(e){console.warn('장바구니 옵션 저장 실패',e)}}
+function loadCartItemsV34(){try{const raw=localStorage.getItem('wonjun_v34_cart_items');const a=raw?JSON.parse(raw):[];if(Array.isArray(a))cartItems=a.filter(x=>x&&x.productId&&Number(x.qty)>0)}catch(e){cartItems=[]}}
+function addCart(id, qtyEl){
+ const input=qtyEl || document.getElementById('qty-'+String(id));
+ const q=Number(input?.value||0);
+ if(!Number.isFinite(q)||q<1){alert('수량을 1 이상 입력해 주세요.');return false}
+ return openAddCartOptionModal(id,q);
+}
 window.addCart=addCart;
-
-// UUID 제품에서도 인라인 onclick에 의존하지 않고 실제 버튼 클릭을 직접 처리합니다.
-document.addEventListener('click',function(e){
- const btn=e.target.closest('[data-cart-add]');
- if(!btn)return;
- e.preventDefault();
- e.stopPropagation();
- const id=btn.getAttribute('data-cart-add');
- const card=btn.closest('.product');
- const input=card?.querySelector('.qty');
- const ok=addCart(id,input);
- if(ok){
-   const p=products.find(x=>String(x.id)===String(id));
-   if(p)alert(`${p.name} ${Number(input?.value||0).toLocaleString()}박스가 장바구니에 담겼습니다.`);
- }
-});
+document.addEventListener('click',function(e){const btn=e.target.closest('[data-cart-add]');if(!btn)return;e.preventDefault();e.stopPropagation();const id=btn.getAttribute('data-cart-add');const card=btn.closest('.product');const input=card?.querySelector('.qty');addCart(id,input);});
+function editCartItemQty(key,value){const item=cartItems.find(x=>String(x.key)===String(key));if(!item)return;const q=Math.floor(Number(value));if(q<1){removeCartItemV34(key);return}item.qty=q;saveCartItemsV34();updateCart();renderCartPage()}
+function removeCartItemV34(key){cartItems=cartItems.filter(x=>String(x.key)!==String(key));saveCartItemsV34();updateCart();renderCartPage()}
+function editCartItemOption(key,field,value){const item=cartItems.find(x=>String(x.key)===String(key));if(!item)return;item[field]=value;saveCartItemsV34();renderCartPage();updateCart()}
 function renderCartPage(){
- const rows=document.getElementById('cartRows'); if(!rows)return;
- const entries=Object.entries(cart).filter(([id,q])=>Number(q)>0);
- let total=0;
- if(!entries.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
- rows.innerHTML=entries.map(([id,q])=>{
-   const p=products.find(x=>String(x.id)===String(id));
-   if(!p)return '';
-   const unit=price(p),amount=unit*Number(q);total+=amount;
-   const safeId=JSON.stringify(String(p.id));
-   return `<tr><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${q}" onchange="editCartQty(${safeId},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCart(${safeId})">삭제</button></td></tr>`
- }).join('');
+ const rows=document.getElementById('cartRows');if(!rows)return;let total=0;
+ if(!cartItems.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
+ rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);total+=amount;const safe=JSON.stringify(String(item.key));return `<tr><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div><div class="cart-item-spec">${escapeHtmlV8(p.spec)}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')}</div></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
  document.getElementById('cartPageTotal').textContent=won(total);
+}
+function updateCart(){
+ let count=0,total=0;
+ cartItems.forEach(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return;count+=Number(item.qty);total+=Number(item.qty)*price(p)});
+ document.getElementById('cartCount').textContent=count.toLocaleString();document.getElementById('cartTotal').textContent=won(total);document.getElementById('cartBar').classList.toggle('hidden',count===0);
+ const pageTotal=document.getElementById('cartPageTotal');if(pageTotal)pageTotal.textContent=won(total);if(document.getElementById('cartRows'))renderCartPage();const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
 function updateCart(){
  let count=0,total=0;
@@ -1487,14 +1476,14 @@ function updateCart(){
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
 async function checkout(){
- const entries=Object.entries(cart||{}).filter(([id,q])=>products.find(p=>String(p.id)===String(id))&&Number(q)>0);
+ const entries=(cartItems||[]).filter(x=>products.find(p=>String(p.id)===String(x.productId))&&Number(x.qty)>0);
  if(!entries.length){alert('장바구니가 비어 있습니다.');return}
  if(!supabaseERP||!supabaseSyncReady){alert('주문 서버 연결이 아직 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
  const cl=clients.find(x=>String(x.loginId)===String(currentUser));
  if(!cl){alert('거래처 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');return}
- const items=entries.map(([id,q])=>{
-   const p=products.find(x=>String(x.id)===String(id));
-   return p?{p,q:Math.floor(Number(q)),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Math.floor(Number(q))}:null;
+ const items=entries.map(x=>{
+   const p=products.find(xp=>String(xp.id)===String(x.productId));
+   return p?{p,q:Math.floor(Number(x.qty)),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Math.floor(Number(x.qty)),boxType:x.boxType||'기본 박스',boxStamp:x.boxStamp||'',palletType:x.palletType||'나무',cartKey:x.key}:null;
  }).filter(Boolean);
  if(!items.length){alert('장바구니의 제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
  const count=items.reduce((a,x)=>a+x.q,0);
@@ -1505,9 +1494,9 @@ async function checkout(){
    const orderNo='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
    const orderDate=new Date().toISOString().slice(0,10);
    const itemSummary=names[0]+(names.length>1?' 외 '+(names.length-1)+'종':'');
-   const boxType=document.getElementById('orderBoxType')?.value||'기본 박스';
-   const boxStamp=document.getElementById('orderBoxStamp')?.value?.trim()||'';
-   const palletType=document.getElementById('orderPalletType')?.value||'나무';
+   const boxType=items[0]?.boxType||'기본 박스';
+   const boxStamp=items[0]?.boxStamp||'';
+   const palletType=items[0]?.palletType||'나무';
 
    // orders 테이블에 기존 데이터가 하나도 없어도 저장되도록
    // 샘플 행에 의존하지 않고 실제 스키마 후보 중 존재하는 컬럼을 찾아 저장합니다.
@@ -1595,14 +1584,17 @@ async function checkout(){
            price:x.unit,
            total_price:x.amount,
            total_amount:x.amount,
-           amount:x.amount
+           amount:x.amount,
+           box_type:x.boxType,
+           box_stamp:x.boxStamp,
+           pallet_type:x.palletType
          };
          const cleanItem={};
          for(const [k,v] of Object.entries(itemCandidate)){
            if(Object.prototype.hasOwnProperty.call(itemSample,k)) cleanItem[k]=v;
          }
          if(!Object.keys(cleanItem).length){
-           Object.assign(cleanItem,{order_id:orderDbId,product_id:x.p.id,quantity:x.q,unit_price:x.unit,total_amount:x.amount});
+           Object.assign(cleanItem,{order_id:orderDbId,product_id:x.p.id,quantity:x.q,unit_price:x.unit,total_amount:x.amount,box_type:x.boxType,box_stamp:x.boxStamp,pallet_type:x.palletType});
          }
          const r=await supabaseERP.from('order_items').insert(cleanItem);
          if(r.error) console.warn('order_items 저장 실패(발주 자체는 성공):',r.error);
@@ -1616,7 +1608,7 @@ async function checkout(){
 
    // 저장된 주문을 즉시 다시 읽어 관리자/거래처 양쪽 화면에 반영
    await loadOrdersFromSupabase();
-   cart={};saveCartV8();
+   cart={};saveCartV8();cartItems=[];saveCartItemsV34();
    updateCart();renderCartPage();renderClientOrders();renderHome();renderAdminOrders();renderAdminDashboard();
    alert('발주가 접수되었습니다.');
    go('orders');
@@ -2109,12 +2101,49 @@ function downloadDocumentPDF(no,type,orderNo,date){
  // 브라우저에서 인쇄 기능을 통해 PDF로 저장할 수 있습니다.
  const w=window.open('','_blank','width=900,height=1000');
  if(!w){alert('팝업 차단을 해제해 주세요.');return}
- w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
+ w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${escapeHtmlV8(type)} ${escapeHtmlV8(no)}</title><style>body{font-family:Arial,'Noto Sans KR',sans-serif;padding:50px;color:#111}h1{font-size:24px;margin-bottom:8px}h2{font-size:20px;border-bottom:2px solid #111;padding-bottom:12px}p{line-height:1.8}.box{margin-top:30px;border:1px solid #ddd;padding:20px}button{padding:10px 16px;margin-top:25px}@media print{button{display:none}}
+/* V34: per-item order options + admin settings */
+.order-option-settings-card{margin-bottom:14px}.order-option-setting-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.order-option-setting-box{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff}.order-option-setting-title{font-weight:800;font-size:13px;margin-bottom:10px}.option-chip-list{display:flex;flex-wrap:wrap;gap:7px;min-height:38px}.option-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #dbe3ec;border-radius:999px;background:#f8fafc;font-size:12px}.option-chip button{border:0;background:transparent;color:#64748b;cursor:pointer;font-size:15px;line-height:1;padding:0}.option-add-row{display:flex;gap:7px;margin-top:10px}.option-add-row input{flex:1}.order-option-setting-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7;font-size:11px;color:#64748b}.cart-option-help{background:#f8fafc}.cart-option-help-title{font-size:13px;font-weight:800}.cart-option-help-text{font-size:12px;color:#64748b;margin-top:5px;line-height:1.6}.order-option-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.order-option-modal-grid .full{grid-column:1/-1}.order-option-card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff}.order-option-card label{display:block;font-size:11px;font-weight:800;margin-bottom:7px;color:#334155}.order-option-modal-product{padding:12px;border-radius:12px;background:#f8fafc;margin-bottom:14px}.order-option-modal-product b{font-size:14px}.order-option-modal-product span{display:block;font-size:11px;color:#64748b;margin-top:4px}.cart-item-options{font-size:11px;color:#64748b;line-height:1.7;margin-top:4px}.cart-item-options b{color:#334155}.cart-item-product{font-weight:800}.cart-item-spec{font-size:11px;color:#64748b;margin-top:3px}@media(max-width:800px){.order-option-setting-grid,.order-option-modal-grid{grid-template-columns:1fr}.order-option-modal-grid .full{grid-column:auto}}
+</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
 
 function showClientOrderDetail(no){const o=orders.find(x=>x.no===no&&x.id===currentUser);if(!o)return;document.getElementById('modalTitle').textContent='발주 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}박스</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:700">거래처 메모</label><textarea class="memo-client-v9" id="clientOrderMemoV9" placeholder="관리자에게 전달할 메모를 입력해 주세요.">${escapeHtmlV8(o.clientMemo||'')}</textarea><div style="font-size:10px;color:#94a3b8;margin-top:6px">관리자 화면에서 확인할 수 있습니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='메모 저장';save.onclick=()=>{o.clientMemo=document.getElementById('clientOrderMemoV9').value;saveV7Data();closeModal();renderClientOrders();alert('거래처 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
 function showOrderDetail(no){const o=orders.find(x=>x.no===no);if(!o)return;const c=clients.find(x=>x.loginId===o.id);document.getElementById('modalTitle').textContent='주문 상세';document.getElementById('modalBody').innerHTML=`<div class="info-list"><div class="key">발주번호</div><div>${o.no}</div><div class="key">거래처</div><div>${c?.name||o.client}</div><div class="key">접수일</div><div>${o.date}</div><div class="key">품목</div><div>${o.item}</div><div class="key">수량</div><div>${o.qty.toLocaleString()}박스</div><div class="key">금액</div><div>${won(o.amount)}</div><div class="key">상태</div><div>${badge(o.status)}</div><div class="key">박스 종류</div><div>${escapeHtmlV8(o.boxType||'기본 박스')}</div><div class="key">도장 표기</div><div>${escapeHtmlV8(o.boxStamp||'없음')}</div><div class="key">파렛트 종류</div><div>${escapeHtmlV8(o.palletType||'나무')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(o.clientMemo||'거래처 메모가 없습니다.')}</div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 메모를 입력하세요.">${escapeHtmlV8(o.adminMemo||'')}</textarea></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};document.getElementById('modalBg').classList.add('show')}
 let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
+async function loadOrderOptionSettings(){
+ try{
+   if(!supabaseERP||!supabaseSyncReady)return;
+   const {data,error}=await supabaseERP.from('order_option_settings').select('*').order('sort_order',{ascending:true});
+   if(error){console.warn('발주 옵션 설정 조회 실패:',error);return}
+   const next={box:[],pallet:[]};
+   (data||[]).forEach(r=>{if(r.option_type==='box')next.box.push(r.option_name);if(r.option_type==='pallet')next.pallet.push(r.option_name)});
+   if(next.box.length)orderOptionSettings.box=next.box;if(next.pallet.length)orderOptionSettings.pallet=next.pallet;
+ }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
+}
+function renderOrderOptionSettings(){
+ const draw=(id,type)=>{const el=document.getElementById(id);if(!el)return;const list=orderOptionSettings[type]||[];el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} ${list.length>1?`<button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제">×</button>`:''}</span>`).join('')};
+ draw('adminBoxTypeOptions','box');draw('adminPalletTypeOptions','pallet');
+}
+function addOrderOptionDraft(type){
+ const input=document.getElementById(type==='box'?'newBoxTypeOption':'newPalletTypeOption');const v=(input?.value||'').trim();if(!v)return;
+ if((orderOptionSettings[type]||[]).includes(v)){alert('이미 등록된 항목입니다.');return}
+ orderOptionSettings[type]=[...(orderOptionSettings[type]||[]),v];if(input)input.value='';renderOrderOptionSettings();
+}
+function removeOrderOptionDraft(type,index){
+ const list=orderOptionSettings[type]||[];if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}
+ const name=list[index];if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;list.splice(index,1);renderOrderOptionSettings();
+}
+async function saveOrderOptionSettings(){
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다.');return}
+ if(!(orderOptionSettings.box||[]).length||!(orderOptionSettings.pallet||[]).length){alert('박스 종류와 파렛트 종류는 각각 1개 이상 필요합니다.');return}
+ if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;
+ try{
+   const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet']);if(del.error)throw del.error;
+   const rows=[...(orderOptionSettings.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),...(orderOptionSettings.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i}))];
+   const ins=await supabaseERP.from('order_option_settings').insert(rows);if(ins.error)throw ins.error;
+   alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.');
+ }catch(e){alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e))}
+}
 function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
 ensureNoticePopupV9();
 renderAll();
