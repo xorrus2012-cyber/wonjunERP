@@ -1211,8 +1211,10 @@ async function loadAllERPDataFromSupabase(){
     await loadProductsFromSupabase();
     await loadOrdersFromSupabase();
     await loadNoticesFromSupabase();
+    await loadOrderOptionSettings();
     supabaseSyncReady=true;
     renderAll();
+    renderOrderOptionSettings();
     if(typeof initV6Smart==='function')setTimeout(initV6Smart,20);
   }catch(e){console.error('ERP 전체 데이터 동기화 실패',e)}
   finally{supabaseSyncBusy=false}
@@ -1366,7 +1368,7 @@ async function syncAllLocalChangesToSupabase(){
 
 function subscribeERPRealtime(){
   if(!supabaseERP || supabaseRealtimeChannel)return;
-  const tables=['clients','product_categories','products','client_prices','inventory','orders','order_items','notices','notice_files'];
+  const tables=['clients','product_categories','products','client_prices','inventory','orders','order_items','notices','notice_files','order_option_settings'];
   supabaseRealtimeChannel=supabaseERP.channel('wonjun-erp-realtime')
     .on('postgres_changes',{event:'*',schema:'public',table:'clients'},async()=>{await loadClientsFromSupabase();if(currentUser&&currentUser!=='admin'&&typeof refreshCurrentClientFromSupabase==='function')await refreshCurrentClientFromSupabase();renderAll();initV6Smart()})
     .on('postgres_changes',{event:'*',schema:'public',table:'products'},async()=>{await loadProductsFromSupabase();renderAll();initV6Smart()})
@@ -1376,6 +1378,7 @@ function subscribeERPRealtime(){
     .on('postgres_changes',{event:'*',schema:'public',table:'orders'},async()=>{await loadOrdersFromSupabase();renderAll()})
     .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},async()=>{await loadOrdersFromSupabase();renderAll()})
     .on('postgres_changes',{event:'*',schema:'public',table:'notices'},async()=>{await loadNoticesFromSupabase();renderAll()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'order_option_settings'},async()=>{await loadOrderOptionSettings();renderProducts();renderOrderOptionSettings()})
     .subscribe(status=>console.log('WONJUN ERP Realtime:',status));
 }
 
@@ -1626,7 +1629,7 @@ function go(page,btn){
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
  if(page==='products'){
    if(supabaseERP && supabaseSyncReady){
-     loadProductsFromSupabase().then(()=>renderProducts()).catch(e=>{console.error('거래처 제품 목록 DB 조회 실패:',e);renderProducts()});
+     Promise.all([loadProductsFromSupabase(),loadOrderOptionSettings()]).then(()=>renderProducts()).catch(e=>{console.error('거래처 제품/발주 옵션 DB 조회 실패:',e);renderProducts()});
    }else renderProducts();
  } if(page==='cartPage')renderCartPage();
  if(page==='orders')renderClientOrders();
