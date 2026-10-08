@@ -2178,3 +2178,173 @@ window.addEventListener('load',()=>{setTimeout(()=>forceUnifiedProductSource(),1
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
 window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
 </script>
+
+<style id="v34-cart-modal-ui">
+/* =========================================================
+   V34 - 장바구니 담기 모달 UI 전면 정리
+   ========================================================= */
+#modalBg:has(#addCartBoxType){
+  background:rgba(15,23,42,.58);
+  backdrop-filter:blur(3px);
+}
+#modalBg:has(#addCartBoxType) .modal{
+  width:min(680px,calc(100vw - 32px));
+  max-height:min(88vh,760px);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 30px 90px rgba(15,23,42,.28);
+}
+#modalBg:has(#addCartBoxType) .modal-head{
+  padding:22px 26px;
+  min-height:68px;
+  align-items:center;
+  background:#fff;
+  border-bottom:1px solid #eef2f7;
+}
+#modalBg:has(#addCartBoxType) .modal-head h3{
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:#111827;
+}
+#modalBg:has(#addCartBoxType) .close{
+  width:36px;
+  height:36px;
+  border-radius:9px;
+  background:#f8fafc;
+  color:#64748b;
+  font-size:21px;
+  line-height:36px;
+}
+#modalBg:has(#addCartBoxType) .close:hover{background:#f1f5f9;color:#1f2937}
+#modalBg:has(#addCartBoxType) .modal-body{
+  padding:26px;
+  background:#fff;
+  overflow:auto;
+}
+#modalBg:has(#addCartBoxType) .modal-foot{
+  padding:16px 26px 20px;
+  background:#fff;
+  border-top:1px solid #eef2f7;
+  gap:10px;
+}
+
+#modalBg:has(#addCartBoxType) .order-option-modal-product{
+  margin:0 0 24px;
+  padding:18px 20px;
+  border:1px solid #e5eaf0;
+  border-radius:13px;
+  background:#f8fafc;
+}
+#modalBg:has(#addCartBoxType) .order-option-modal-product b{
+  display:block;
+  font-size:16px;
+  line-height:1.4;
+  color:#111827;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+#modalBg:has(#addCartBoxType) .order-option-modal-product span{
+  margin-top:7px;
+  font-size:12px;
+  line-height:1.5;
+  color:#64748b;
+}
+
+/* 옵션은 '라벨 왼쪽 / 입력 오른쪽'으로 고정 */
+#modalBg:has(#addCartBoxType) .order-option-modal-grid{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+#modalBg:has(#addCartBoxType) .order-option-card{
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  column-gap:22px;
+  align-items:start;
+  min-width:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+#modalBg:has(#addCartBoxType) .order-option-card.full{
+  grid-column:auto;
+}
+#modalBg:has(#addCartBoxType) .order-option-card label{
+  margin:0;
+  padding-top:13px;
+  font-size:12px;
+  line-height:1.4;
+  color:#475569;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+#modalBg:has(#addCartBoxType) .order-option-card select,
+#modalBg:has(#addCartBoxType) .order-option-card input{
+  width:100%;
+  min-width:0;
+  height:46px;
+  padding:0 14px;
+  border:1px solid #d8e0e8;
+  border-radius:9px;
+  background:#fff;
+  color:#1f2937;
+  outline:none;
+  font-size:13px;
+  box-shadow:0 1px 2px rgba(15,23,42,.03);
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+#modalBg:has(#addCartBoxType) .order-option-card select{
+  appearance:auto;
+}
+#modalBg:has(#addCartBoxType) .order-option-card select:focus,
+#modalBg:has(#addCartBoxType) .order-option-card input:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.10);
+}
+#modalBg:has(#addCartBoxType) #addCartBoxStamp{
+  height:46px;
+}
+#modalBg:has(#addCartBoxType) #addCartQty{
+  max-width:100%;
+}
+#modalBg:has(#addCartBoxType) .order-option-card .option-help,
+#modalBg:has(#addCartBoxType) .order-option-card > div{
+  grid-column:2;
+}
+#modalBg:has(#addCartBoxType) .order-option-card input + div{
+  margin-top:7px !important;
+  font-size:11px !important;
+  line-height:1.5;
+  color:#94a3b8 !important;
+}
+
+#modalBg:has(#addCartBoxType) .modal-foot .btn{
+  min-width:108px;
+  height:42px;
+  padding:0 18px;
+  border-radius:9px;
+}
+#modalBg:has(#addCartBoxType) #modalSave{
+  min-width:145px;
+}
+
+@media(max-width:600px){
+  #modalBg:has(#addCartBoxType) .modal{
+    width:calc(100vw - 24px);
+    max-height:92vh;
+    border-radius:15px;
+  }
+  #modalBg:has(#addCartBoxType) .modal-head{padding:18px 20px}
+  #modalBg:has(#addCartBoxType) .modal-body{padding:20px}
+  #modalBg:has(#addCartBoxType) .modal-foot{padding:14px 20px 18px}
+  #modalBg:has(#addCartBoxType) .order-option-card{
+    grid-template-columns:1fr;
+    row-gap:7px;
+  }
+  #modalBg:has(#addCartBoxType) .order-option-card label{padding-top:0}
+  #modalBg:has(#addCartBoxType) .order-option-card .option-help,
+  #modalBg:has(#addCartBoxType) .order-option-card > div{grid-column:1}
+}
+</style>
