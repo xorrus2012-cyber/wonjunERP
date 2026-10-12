@@ -1349,34 +1349,68 @@ async function syncNoticesToSupabase(){
 
 async function syncOrdersToSupabase(){
   if(!supabaseERP||!supabaseSyncReady)return;
-  const {data:rows}=await supabaseERP.from('orders').select('*');
+  const {data:rows,error:rowsError}=await supabaseERP.from('orders').select('*');
+  if(rowsError){console.error('orders 조회 실패:',rowsError);return;}
   const sample=rows?.[0]||{};
   if(!Object.keys(sample).length)return;
+
+  // V53 핵심 수정: 주문 동기화가 item_summary의 JSON 상세를 요약 문구로 덮어쓰지 않습니다.
+  // 상세 JSON이 이미 있으면 보존하고, 메모리의 상품별 항목이 있을 때만 JSON을 새로 만듭니다.
   const orderCols={
     order_no:'no',no:'no',client_id:'clientId',client:'clientId',
-    order_date:'date',date:'date',item_summary:'item',item:'item',
+    order_date:'date',date:'date',item:'item',
     total_qty:'qty',qty:'qty',total_amount:'amount',amount:'amount',
     status:'status',client_memo:'clientMemo',admin_memo:'adminMemo'
   };
+  const uuidLike=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
   for(const o of orders){
     const clean={};
     for(const [col,prop] of Object.entries(orderCols)){
-      if(Object.prototype.hasOwnProperty.call(sample,col)){
-        let v=o[prop];
-        if(col==='client_id'||col==='client')v=clients.find(c=>c.loginId===o.id)?.id||o.clientId;
-        clean[col]=v;
+      if(!Object.prototype.hasOwnProperty.call(sample,col))continue;
+      let v=o[prop];
+      if(col==='client_id'||col==='client')v=clients.find(c=>c.loginId===o.id)?.id||o.clientId;
+      // `id`가 UUID 기본키일 때 주문번호를 id로 넣지 않습니다.
+      if(v!==undefined)clean[col]=v;
+    }
+
+    if(Object.prototype.hasOwnProperty.call(sample,'item_summary')){
+      let raw=o.itemSummaryRaw;
+      let packed=parseWJOrderItemSummary(raw);
+      let details=Array.isArray(o.items)?o.items:[];
+      if((!Array.isArray(packed)||!packed.length)&&details.length){
+        packed=details.map(x=>({
+          productId:x.productId||x.product_id||'',
+          name:x.name||x.product_name||'',
+          spec:x.spec||x.product_spec||'',
+          qty:Number(x.qty??x.quantity??0)||0,
+          unit:Number(x.unit??x.unit_price??x.price??0)||0,
+          amount:Number(x.amount??x.total_amount??x.total_price??0)||0,
+          boxType:x.boxType||x.box_type||'기본 박스',
+          boxStamp:x.boxStamp||x.box_stamp||'',
+          palletType:x.palletType||x.pallet_type||'나무'
+        }));
       }
+      if(Array.isArray(packed)&&packed.length){
+        clean.item_summary=JSON.stringify({__wjOrderItems:packed});
+      }else if(typeof raw==='string' && parseWJOrderItemSummary(raw)){
+        // 구조화 JSON 문자열이더라도 위 경로에서 배열을 못 얻으면 원문을 보존합니다.
+        clean.item_summary=raw;
+      }
+      // 중요: 상품별 데이터가 없는 오래된 주문은 item_summary를 아예 업데이트하지 않습니다.
+      // 요약 텍스트로 덮어쓰면 복구 가능한 JSON까지 영구 손실될 수 있습니다.
     }
+
     if(!Object.keys(clean).length)continue;
-    const key=firstColumn(sample,['order_no','no','id']);
-    const val=key?(key==='id'&&String(o.no).startsWith('WJ-')?o.no:o.no):null;
-    if(key&&val!==null){
-      const {data:ex}=await supabaseERP.from('orders').select('id').eq(key,val).maybeSingle();
-      const res=ex
-        ? await supabaseERP.from('orders').update(clean).eq(key,val)
-        : await supabaseERP.from('orders').insert(clean);
-      if(res.error)console.error('orders 저장 실패',res.error);
-    }
+    const key=firstColumn(sample,['order_no','no']);
+    const val=key?o.no:null;
+    if(!key||!val)continue;
+    const {data:ex,error:findError}=await supabaseERP.from('orders').select('id').eq(key,val).maybeSingle();
+    if(findError){console.error('orders 기존 행 확인 실패:',findError);continue;}
+    const res=ex
+      ? await supabaseERP.from('orders').update(clean).eq(key,val)
+      : await supabaseERP.from('orders').insert(clean);
+    if(res.error)console.error('orders 저장 실패:',res.error);
   }
 }
 
