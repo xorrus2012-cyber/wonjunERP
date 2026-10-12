@@ -1978,6 +1978,8 @@ function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);
 function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${getWJOrderSummaryText(o)}</td><td>총 ${o.qty.toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
 function renderAdminOrders(){
  const rows=document.getElementById('adminOrderRows');if(!rows)return;
+ // 3초 주기 서버 동기화로 목록이 다시 그려져도 사용자가 체크한 주문을 유지합니다.
+ const previouslyChecked=new Set([...rows.querySelectorAll('.order-check-v6:checked')].map(el=>String(el.value)));
  const clientsSel=smartGet('orderClientFilter'), productsSel=smartGet('orderProductFilter');
  const from=document.getElementById('adminOrderDateFrom')?.value||'',to=document.getElementById('adminOrderDateTo')?.value||'',st=document.getElementById('adminStatus')?.value||'전체';
  const list=orders.filter(o=>{
@@ -2017,6 +2019,8 @@ function renderAdminOrders(){
    </tr>`);
  });
  rows.innerHTML=rowsHtml.join('')||'<tr><td colspan="13" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>';
+ // 현재 조회 결과에 포함된 체크 항목만 복원합니다.
+ rows.querySelectorAll('.order-check-v6').forEach(el=>{el.checked=previouslyChecked.has(String(el.value))});
 }
 
 function openClientDetail(id){
@@ -2487,7 +2491,51 @@ function orderStatusBadgeV54(status){const map={'접수 완료':'order-st-receiv
 function ensureBulkStatusModalV54(){if(document.getElementById('bulkStatusModalV54'))return;const d=document.createElement('div');d.id='bulkStatusModalV54';d.className='bulk-status-overlay-v54';d.innerHTML=`<div class="bulk-status-dialog-v54" role="dialog" aria-modal="true" aria-labelledby="bulkStatusTitleV54"><div class="bulk-status-head-v54"><div><h3 id="bulkStatusTitleV54">선택 주문 상태 변경</h3><p id="bulkStatusCountV54">선택한 주문의 상태를 변경합니다.</p></div><button type="button" class="bulk-status-x-v54" onclick="closeBulkStatusModalV54()" aria-label="닫기">×</button></div><div class="bulk-status-options-v54" id="bulkStatusOptionsV54"></div><div class="bulk-status-foot-v54"><button type="button" class="small-btn" onclick="closeBulkStatusModalV54()">취소</button><button type="button" class="btn primary" onclick="applyBulkStatusV54()">저장</button></div></div>`;d.addEventListener('click',e=>{if(e.target===d)closeBulkStatusModalV54()});document.body.appendChild(d)}
 function bulkOrderStatus(){const ns=[...document.querySelectorAll('.order-check-v6:checked')].map(x=>x.value);if(!ns.length){alert('주문을 선택하세요.');return}ensureBulkStatusModalV54();window.bulkStatusOrderNosV54=ns;const statuses=['접수 완료','생산 중','출고 대기','출고 중','출고 완료'];const selected=new Set(ns.map(n=>orders.find(o=>String(o.no)===String(n))?.status).filter(Boolean));const same=selected.size===1?[...selected][0]:'';document.getElementById('bulkStatusCountV54').textContent=`선택한 주문 ${ns.length}건의 상태를 변경합니다.`;document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((s,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${s}" ${same===s?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(s)}</span>${same===s?'<small>현재 상태</small>':''}</label>`).join('');document.getElementById('bulkStatusModalV54').classList.add('show')}
 function closeBulkStatusModalV54(){document.getElementById('bulkStatusModalV54')?.classList.remove('show')}
-function applyBulkStatusV54(){const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');if(!choice){alert('변경할 상태를 선택해 주세요.');return}const ns=window.bulkStatusOrderNosV54||[];const confirmText=`선택한 주문 ${ns.length}건의 상태를 '${choice.value}'(으)로 변경하시겠습니까?`;if(!confirm(confirmText))return;let changed=0;ns.forEach(n=>{const o=orders.find(x=>String(x.no)===String(n));if(o){o.status=choice.value;changed++}});saveV7Data();closeBulkStatusModalV54();renderAdminOrders();renderAdminDashboard();renderClientOrders();const result=document.getElementById('orderResultV6');if(result)result.textContent=`선택 주문 ${changed}건 상태 저장 완료`;window.bulkStatusOrderNosV54=[]}
+async function applyBulkStatusV54(){
+ const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');
+ if(!choice){alert('변경할 상태를 선택해 주세요.');return}
+ const ns=[...(window.bulkStatusOrderNosV54||[])];
+ if(!ns.length){alert('변경할 주문을 다시 선택해 주세요.');return}
+ const confirmText=`선택한 주문 ${ns.length}건의 상태를 '${choice.value}'(으)로 변경하시겠습니까?`;
+ if(!confirm(confirmText))return;
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.');return}
+ const saveButton=document.querySelector('#bulkStatusModalV54 .bulk-status-foot-v54 .btn.primary');
+ if(saveButton){saveButton.disabled=true;saveButton.textContent='저장 중…'}
+ let changed=0;const failures=[];
+ try{
+   const {data:sampleRows,error:probeError}=await supabaseERP.from('orders').select('*').limit(1);
+   if(probeError)throw probeError;
+   const sample=sampleRows?.[0]||{};
+   const key=firstColumn(sample,['order_no','no']);
+   for(const n of ns){
+     const o=orders.find(x=>String(x.no)===String(n));
+     if(!o){failures.push(String(n));continue}
+     let q=supabaseERP.from('orders').update({status:choice.value});
+     if(Object.prototype.hasOwnProperty.call(sample,'id')&&o.dbId)q=q.eq('id',o.dbId);
+     else if(key)q=q.eq(key,o.no);
+     else {failures.push(String(n));continue}
+     const {data:updatedRows,error}=await q.select('*');
+     if(error||!updatedRows||updatedRows.length===0){if(error)console.error('주문 상태 서버 저장 실패:',n,error);failures.push(String(n));continue}
+     changed++;
+   }
+   if(changed>0){
+     // 서버 저장 성공 후에만 화면 상태를 확정하고, 주문 목록만 로컬 캐시에 반영합니다.
+     await loadOrdersFromSupabase();
+     try{localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders))}catch(e){console.warn('주문 캐시 저장 실패',e)}
+     closeBulkStatusModalV54();
+     renderAdminOrders();renderAdminDashboard();renderClientOrders();
+     if(typeof renderHome==='function')renderHome();
+     const result=document.getElementById('orderResultV6');
+     if(result)result.textContent=`선택 주문 ${changed}건 상태 저장 완료`;
+     window.bulkStatusOrderNosV54=[];
+     if(failures.length)alert(`${changed}건은 변경되었습니다. ${failures.length}건은 서버 저장에 실패했습니다. 실패한 주문을 다시 확인해 주세요.`);
+     else alert('변경되었습니다.');
+   }else{
+     alert('상태를 서버에 저장하지 못했습니다. 관리자 권한(RLS)과 orders 테이블 접근 권한을 확인해 주세요.');
+   }
+ }catch(e){console.error('선택 주문 상태 변경 실패:',e);alert('서버 저장 중 오류가 발생했습니다. 변경 내용은 확정되지 않았습니다.\n'+(e?.message||''));}
+ finally{if(saveButton){saveButton.disabled=false;saveButton.textContent='저장'}}
+}
 function downloadOrderCSV(){const rows=[...document.querySelectorAll('#adminOrderRows tr')];if(!rows.length)return;const csv='\ufeff'+['발주번호,거래처,접수일,품목,수량,금액,상태'].concat(rows.map(r=>[...r.children].slice(1,8).map(x=>`"${x.innerText.replace(/"/g,'""')}"`).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='원준_주문조회.csv';a.click()}
 function saveInventoryQtyV6(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(v)||0);saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows()}}
 function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=v==='public';saveV7Data();renderAdminInventory()}}
