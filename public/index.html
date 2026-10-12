@@ -316,6 +316,30 @@ html,body{overflow-x:hidden}
   #orderOptionModalBg .option-add-row-modern .btn{height:40px!important}
 }
 </style>
+
+<style id="v54-order-status-ui">
+.order-status-v54{font-size:11px;min-width:76px;justify-content:center;padding:6px 10px;border:1px solid transparent;white-space:nowrap}
+.order-st-received-v54{background:#e8f7ee;color:#167344;border-color:#b9e6c9}
+.order-st-production-v54{background:#e8f1ff;color:#245ec7;border-color:#c6d9ff}
+.order-st-wait-v54{background:#fff2d9;color:#9a5b00;border-color:#f4d59b}
+.order-st-shipping-v54{background:#f1eaff;color:#7041b5;border-color:#d9c7ff}
+.order-st-done-v54{background:#e9eef3;color:#475569;border-color:#d2dbe4}
+.bulk-status-overlay-v54{display:none;position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.48);align-items:center;justify-content:center;padding:20px}
+.bulk-status-overlay-v54.show{display:flex}
+.bulk-status-dialog-v54{width:min(460px,100%);background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(15,23,42,.28);overflow:hidden}
+.bulk-status-head-v54{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 22px 16px;border-bottom:1px solid #edf0f4}
+.bulk-status-head-v54 h3{margin:0;font-size:18px;color:#172033}.bulk-status-head-v54 p{margin:7px 0 0;color:#64748b;font-size:12px}
+.bulk-status-x-v54{border:0;background:#f1f5f9;border-radius:8px;width:32px;height:32px;font-size:22px;color:#64748b;cursor:pointer}
+.bulk-status-options-v54{display:grid;gap:8px;padding:18px 22px}
+.bulk-status-option-v54{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer;min-height:48px}
+.bulk-status-option-v54:has(input:checked){border-color:#2563eb;background:#f5f8ff;box-shadow:0 0 0 1px #2563eb inset}
+.bulk-status-option-v54 input{accent-color:#2563eb;width:16px;height:16px;margin:0}
+.bulk-status-option-label-v54{flex:1}.bulk-status-option-v54 small{font-size:10px;color:#64748b}
+.bulk-status-dot-v54{width:8px;height:8px;border-radius:50%;display:none}
+.bulk-status-foot-v54{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px 20px;border-top:1px solid #edf0f4}
+@media(max-width:520px){.bulk-status-overlay-v54{padding:12px}.bulk-status-head-v54,.bulk-status-options-v54{padding-left:16px;padding-right:16px}.bulk-status-foot-v54{padding-left:16px;padding-right:16px}}
+</style>
+
 </head>
 <body>
 
@@ -485,7 +509,7 @@ html,body{overflow-x:hidden}
 <div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" onchange="renderAdminOrders()"><span>~</span><input type="date" id="adminOrderDateTo" onchange="renderAdminOrders()"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
 <select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
 <div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
-        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>품명</th><th>규격</th><th>수량</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>금액</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th>품명</th><th>규격</th><th>수량</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>금액</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
       </section>
 
       <!-- ADMIN CLIENTS -->
@@ -1980,6 +2004,7 @@ function renderAdminOrders(){
      <td><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td>
      <td>${escapeHtmlV8(o.client)}</td>
      <td>${formatOrderDateTime(o)}</td>
+     <td>${orderStatusBadgeV54(o.status||'접수 완료')}</td>
      <td><b>${escapeHtmlV8(itemSummary)}</b></td>
      <td>${escapeHtmlV8(specSummary)}</td>
      <td>총 ${totalQty.toLocaleString()}박스</td>
@@ -1987,7 +2012,6 @@ function renderAdminOrders(){
      <td><b>${escapeHtmlV8(optionSummary.stamp)}</b></td>
      <td>${escapeHtmlV8(optionSummary.pallet)}</td>
      <td>${won(totalAmount)}</td>
-     <td><select class="status-select" onchange="setOrderStatusV6('${escapeHtmlV8(o.no)}',this.value)">${['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
      <td><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td>
    </tr>`);
  });
@@ -2458,7 +2482,11 @@ function quickOrderDate(k){const d=new Date(),f=x=>x.toISOString().slice(0,10);l
 function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});renderAdminOrders()}
 function setOrderStatusV6(no,status){const o=orders.find(x=>x.no===no);if(!o)return;o.status=status;saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
 function toggleAllOrders(btn){const a=[...document.querySelectorAll('.order-check-v6')],on=!a.every(x=>x.checked);a.forEach(x=>x.checked=on);btn.textContent=on?'선택 해제':'전체 선택'}
-function bulkOrderStatus(){const ns=[...document.querySelectorAll('.order-check-v6:checked')].map(x=>x.value);if(!ns.length)return alert('주문을 선택하세요.');const s=prompt('상태 입력: 접수 완료 / 생산 중 / 출고 대기 / 출고 중 / 출고 완료');if(!['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(s||''))return alert('유효하지 않은 상태입니다.');ns.forEach(n=>{const o=orders.find(x=>x.no===n);if(o)o.status=s});saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
+function orderStatusBadgeV54(status){const map={'접수 완료':'order-st-received-v54','생산 중':'order-st-production-v54','출고 대기':'order-st-wait-v54','출고 중':'order-st-shipping-v54','출고 완료':'order-st-done-v54'};const s=['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(status)?status:'접수 완료';return `<span class="status order-status-v54 ${map[s]}">${escapeHtmlV8(s)}</span>`}
+function ensureBulkStatusModalV54(){if(document.getElementById('bulkStatusModalV54'))return;const d=document.createElement('div');d.id='bulkStatusModalV54';d.className='bulk-status-overlay-v54';d.innerHTML=`<div class="bulk-status-dialog-v54" role="dialog" aria-modal="true" aria-labelledby="bulkStatusTitleV54"><div class="bulk-status-head-v54"><div><h3 id="bulkStatusTitleV54">선택 주문 상태 변경</h3><p id="bulkStatusCountV54">선택한 주문의 상태를 변경합니다.</p></div><button type="button" class="bulk-status-x-v54" onclick="closeBulkStatusModalV54()" aria-label="닫기">×</button></div><div class="bulk-status-options-v54" id="bulkStatusOptionsV54"></div><div class="bulk-status-foot-v54"><button type="button" class="small-btn" onclick="closeBulkStatusModalV54()">취소</button><button type="button" class="btn primary" onclick="applyBulkStatusV54()">저장</button></div></div>`;d.addEventListener('click',e=>{if(e.target===d)closeBulkStatusModalV54()});document.body.appendChild(d)}
+function bulkOrderStatus(){const ns=[...document.querySelectorAll('.order-check-v6:checked')].map(x=>x.value);if(!ns.length){alert('주문을 선택하세요.');return}ensureBulkStatusModalV54();window.bulkStatusOrderNosV54=ns;const statuses=['접수 완료','생산 중','출고 대기','출고 중','출고 완료'];const selected=new Set(ns.map(n=>orders.find(o=>String(o.no)===String(n))?.status).filter(Boolean));const same=selected.size===1?[...selected][0]:'';document.getElementById('bulkStatusCountV54').textContent=`선택한 주문 ${ns.length}건의 상태를 변경합니다.`;document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((s,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${s}" ${same===s?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(s)}</span>${same===s?'<small>현재 상태</small>':''}</label>`).join('');document.getElementById('bulkStatusModalV54').classList.add('show')}
+function closeBulkStatusModalV54(){document.getElementById('bulkStatusModalV54')?.classList.remove('show')}
+function applyBulkStatusV54(){const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');if(!choice){alert('변경할 상태를 선택해 주세요.');return}const ns=window.bulkStatusOrderNosV54||[];let changed=0;ns.forEach(n=>{const o=orders.find(x=>String(x.no)===String(n));if(o){o.status=choice.value;changed++}});saveV7Data();closeBulkStatusModalV54();renderAdminOrders();renderAdminDashboard();renderClientOrders();const result=document.getElementById('orderResultV6');if(result)result.textContent=`선택 주문 ${changed}건 상태 저장 완료`;window.bulkStatusOrderNosV54=[]}
 function downloadOrderCSV(){const rows=[...document.querySelectorAll('#adminOrderRows tr')];if(!rows.length)return;const csv='\ufeff'+['발주번호,거래처,접수일,품목,수량,금액,상태'].concat(rows.map(r=>[...r.children].slice(1,8).map(x=>`"${x.innerText.replace(/"/g,'""')}"`).join(','))).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='원준_주문조회.csv';a.click()}
 function saveInventoryQtyV6(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(v)||0);saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows()}}
 function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=v==='public';saveV7Data();renderAdminInventory()}}
