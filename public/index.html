@@ -1087,12 +1087,26 @@ async function loadProductsFromSupabase(){
 
 function parseWJOrderItemSummary(value){
   if(value==null||value==='')return null;
-  try{
-    const parsed=(typeof value==='string')?JSON.parse(value):value;
-    if(parsed && Array.isArray(parsed.__wjOrderItems)) return parsed.__wjOrderItems;
-    if(Array.isArray(parsed)) return parsed;
-  }catch(e){}
+  let parsed=value;
+  // Supabase 값이 JSON 문자열로 한 번 더 감싸져 저장된 경우까지 처리합니다.
+  for(let i=0;i<3&&typeof parsed==='string';i++){
+    try{parsed=JSON.parse(parsed)}catch(e){return null}
+  }
+  if(Array.isArray(parsed))return parsed;
+  if(parsed&&Array.isArray(parsed.__wjOrderItems))return parsed.__wjOrderItems;
+  if(parsed&&Array.isArray(parsed.items))return parsed.items;
   return null;
+}
+function getWJOrderItemRawFromRow(row){
+  if(!row)return '';
+  // item_summary가 요약 문구이고 item에 실제 JSON이 들어 있는 경우가 있어,
+  // 첫 번째로 존재하는 컬럼이 아니라 실제 품목 배열로 해석되는 값을 우선합니다.
+  const candidates=[row.item_summary,row.item,row.title];
+  for(const value of candidates){
+    const parsed=parseWJOrderItemSummary(value);
+    if(Array.isArray(parsed)&&parsed.length)return value;
+  }
+  return candidates.find(value=>value!==undefined&&value!==null&&value!=='')||'';
 }
 function getWJOrderSummaryText(order){
   const details=order?.items||[];
@@ -1122,7 +1136,7 @@ async function loadOrdersFromSupabase(){
       date:normalizeDate(firstValue(r,['order_date','date','created_at'])),
       createdAt:firstValue(r,['created_at','updated_at'], ''),
       item:firstValue(r,['item_summary','item','title'],''),
-      itemSummaryRaw:firstValue(r,['item_summary','item','title'],''),
+      itemSummaryRaw:getWJOrderItemRawFromRow(r),
       qty:Number(firstValue(r,['total_qty','qty','quantity'],0))||0,
       amount:Number(firstValue(r,['total_amount','amount'],0))||0,
       status:firstValue(r,['status'],'접수 완료'),
@@ -2492,7 +2506,7 @@ async function showOrderDetail(no){
         source={...o,
           dbId:firstValue(data,['id','order_id'],o.dbId||''),
           no:firstValue(data,['order_no','no','id'],o.no),
-          itemSummaryRaw:firstValue(data,['item_summary','item','title'],o.itemSummaryRaw||o.item||''),
+          itemSummaryRaw:getWJOrderItemRawFromRow(data)||o.itemSummaryRaw||o.item||'',
           item:firstValue(data,['item','title'],o.item||''),
           qty:Number(firstValue(data,['total_qty','qty','quantity'],o.qty||0))||0,
           amount:Number(firstValue(data,['total_amount','amount'],o.amount||0))||0,
