@@ -138,6 +138,7 @@ tr:last-child td{border-bottom:0}
 
 .client-profile-note{font-size:11px;color:#64748b;line-height:1.6}
 /* V59: 거래처 상세의 기본정보/접속정보를 데스크톱에서 좌우 배치 */
+#clientProfileLogTools{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(145px,1fr) minmax(145px,1fr) auto;gap:10px;align-items:end;margin:12px 0}#clientProfileLogTools .field{margin:0;min-width:0}#clientProfileLogTools input,#clientProfileLogTools select{width:100%;min-height:38px;box-sizing:border-box}#clientProfileLogActions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}#clientProfileLogPagination{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;margin-top:10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:12px;color:#475569}#clientProfileLogPagination .log-page-actions{display:flex;align-items:center;gap:8px}#clientProfileLogPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}#clientProfileLogPagination button:disabled{opacity:.4;cursor:not-allowed}#clientProfileLogPagination select{border:1px solid #cbd5e1;border-radius:7px;padding:7px 8px;background:#fff}#adminClientDetail .client-delete-btn{border-color:#fecaca;color:#b91c1c;background:#fff}#adminClientDetail .client-detail-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}@media(max-width:760px){#clientProfileLogTools{grid-template-columns:repeat(2,minmax(0,1fr))}#clientProfileLogTools .log-search-field{grid-column:1/-1}#clientProfileLogActions{grid-column:1/-1}}@media(max-width:460px){#clientProfileLogTools{grid-template-columns:1fr}}
 #adminClientDetail .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
 #adminClientDetail .grid-2 > .card{min-width:0}
 @media(max-width:720px){#adminClientDetail .grid-2{grid-template-columns:1fr}}
@@ -727,7 +728,7 @@ html,body{overflow-x:hidden}
             <h2>거래처 상세</h2>
             <p id="clientDetailSubtitle">거래처 기본정보와 접속 정보를 관리합니다.</p>
           </div>
-          <button class="btn light" onclick="go('adminClients')">← 거래처 목록</button>
+          <div class="client-detail-head-actions"><button class="btn light client-delete-btn" type="button" onclick="deleteCurrentClientV79()">거래처 삭제</button><button class="btn light" onclick="go('adminClients')">← 거래처 목록</button></div>
         </div>
 
         <div class="grid-2">
@@ -772,8 +773,15 @@ html,body{overflow-x:hidden}
         </div>
         <div class="card pad" style="margin-top:16px">
           <div class="section-title">거래처 정보 수정 이력</div>
-          <p class="help-text" style="margin-top:-8px;margin-bottom:12px">거래처가 본인 정보 화면에서 저장한 변경 내역입니다.</p>
+          <p class="help-text" style="margin-top:-8px;margin-bottom:12px">전체 수정 이력을 최신순으로 표시합니다. 날짜 또는 로그인 ID·변경 항목으로 검색할 수 있습니다.</p>
+          <div id="clientProfileLogTools">
+            <div class="field log-search-field"><label for="clientProfileLogQuery">검색어</label><input id="clientProfileLogQuery" type="search" placeholder="로그인 ID 또는 변경 항목 검색" onkeydown="if(event.key==='Enter')applyClientProfileLogFiltersV79()"></div>
+            <div class="field"><label for="clientProfileLogFrom">수정일 시작</label><input id="clientProfileLogFrom" type="date"></div>
+            <div class="field"><label for="clientProfileLogTo">수정일 종료</label><input id="clientProfileLogTo" type="date"></div>
+            <div id="clientProfileLogActions"><button class="small-btn" type="button" onclick="applyClientProfileLogFiltersV79()">검색</button><button class="small-btn" type="button" onclick="resetClientProfileLogFiltersV79()">초기화</button></div>
+          </div>
           <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>수정 일시</th><th>로그인 ID</th><th>변경 항목</th><th>변경 전 → 변경 후</th></tr></thead><tbody id="clientProfileLogRows"><tr><td colspan="4" class="v4-empty">거래처를 선택하면 수정 이력이 표시됩니다.</td></tr></tbody></table></div>
+          <div id="clientProfileLogPagination" aria-label="거래처 수정 이력 페이지 이동"></div>
         </div>
       </section>
 
@@ -1959,23 +1967,61 @@ function clientProfileFieldLabel(k){return ({name:'회사명',biz_no:'사업자�
 function clientProfileDisplayValue(v){return v===null||v===undefined||v===''?'(비어 있음)':String(v)}
 async function loadClientProfileChangeLogs(clientId){
  const body=document.getElementById('clientProfileLogRows');if(!body)return;
+ window.wjClientProfileLogsV79=[];window.wjClientProfileLogPageV79=1;window.wjClientProfileLogClientIdV79=String(clientId);
  if(!supabaseERP){body.innerHTML='<tr><td colspan="4" class="v4-empty">서버 연결을 확인할 수 없습니다.</td></tr>';return}
  body.innerHTML='<tr><td colspan="4" class="v4-empty">수정 이력을 불러오는 중...</td></tr>';
  try{
-   const {data,error}=await supabaseERP.from('client_profile_change_logs').select('created_at,login_id,changes').eq('client_id',String(clientId)).order('created_at',{ascending:false}).limit(100);
+   const {data,error}=await supabaseERP.from('client_profile_change_logs').select('created_at,login_id,changes').eq('client_id',String(clientId)).order('created_at',{ascending:false});
    if(error)throw error;
-   if(!data?.length){body.innerHTML='<tr><td colspan="4" class="v4-empty">기록된 수정 이력이 없습니다.</td></tr>';return}
-   body.innerHTML=data.map(log=>{
-     const date=log.created_at?new Date(log.created_at).toLocaleString('ko-KR'):'-';
-     const changes=log.changes&&typeof log.changes==='object'?log.changes:{};
-     const labels=Object.keys(changes).map(clientProfileFieldLabel).join(', ')||'-';
-     const values=Object.entries(changes).map(([key,v])=>`${clientProfileFieldLabel(key)}: ${clientProfileDisplayValue(v?.before)} → ${clientProfileDisplayValue(v?.after)}`).join('<br>')||'-';
-     return `<tr><td>${escapeHtmlV8(date)}</td><td>${escapeHtmlV8(log.login_id||'-')}</td><td>${escapeHtmlV8(labels)}</td><td style="white-space:normal;min-width:260px">${values}</td></tr>`;
-   }).join('');
+   window.wjClientProfileLogsV79=Array.isArray(data)?data:[];
+   renderClientProfileLogsV79();
  }catch(e){
    console.error('거래처 수정 이력 조회 실패:',e);
-   body.innerHTML='<tr><td colspan="4" class="v4-empty">수정 이력 테이블 또는 관리자 조회 권한이 아직 설정되지 않았습니다. V61용 Supabase SQL을 실행해 주세요.</td></tr>';
+   body.innerHTML='<tr><td colspan="4" class="v4-empty">수정 이력을 불러오지 못했습니다. 테이블 또는 관리자 조회 권한을 확인해 주세요.</td></tr>';
+   const pager=document.getElementById('clientProfileLogPagination');if(pager)pager.innerHTML='';
  }
+}
+function getFilteredClientProfileLogsV79(){
+ const q=(document.getElementById('clientProfileLogQuery')?.value||'').trim().toLowerCase();
+ const from=document.getElementById('clientProfileLogFrom')?.value||'';
+ const to=document.getElementById('clientProfileLogTo')?.value||'';
+ return (window.wjClientProfileLogsV79||[]).filter(log=>{
+   const stamp=log.created_at?new Date(log.created_at):null;
+   if(from&&(!stamp||Number.isNaN(stamp.getTime())||stamp.toISOString().slice(0,10)<from))return false;
+   if(to&&(!stamp||Number.isNaN(stamp.getTime())||stamp.toISOString().slice(0,10)>to))return false;
+   if(q){const changes=log.changes&&typeof log.changes==='object'?log.changes:{};const searchable=[log.login_id,...Object.keys(changes).map(clientProfileFieldLabel),...Object.entries(changes).flatMap(([k,v])=>[clientProfileFieldLabel(k),v?.before,v?.after])].map(v=>String(v??'')).join(' ').toLowerCase();if(!searchable.includes(q))return false;}
+   return true;
+ }).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+}
+function applyClientProfileLogFiltersV79(){window.wjClientProfileLogPageV79=1;renderClientProfileLogsV79()}
+function resetClientProfileLogFiltersV79(){['clientProfileLogQuery','clientProfileLogFrom','clientProfileLogTo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});window.wjClientProfileLogPageV79=1;renderClientProfileLogsV79()}
+function changeClientProfileLogPageV79(delta){const total=Math.max(1,Math.ceil(getFilteredClientProfileLogsV79().length/(Number(window.wjClientProfileLogPageSizeV79)||10)));window.wjClientProfileLogPageV79=Math.min(total,Math.max(1,(Number(window.wjClientProfileLogPageV79)||1)+delta));renderClientProfileLogsV79()}
+function renderClientProfileLogsV79(){
+ const body=document.getElementById('clientProfileLogRows'),pager=document.getElementById('clientProfileLogPagination');if(!body)return;
+ const list=getFilteredClientProfileLogsV79();const size=Number(window.wjClientProfileLogPageSizeV79)||10;const totalPages=Math.max(1,Math.ceil(list.length/size));let page=Number(window.wjClientProfileLogPageV79)||1;page=Math.min(totalPages,Math.max(1,page));window.wjClientProfileLogPageV79=page;
+ const start=(page-1)*size;const visible=list.slice(start,start+size);
+ if(!list.length)body.innerHTML='<tr><td colspan="4" class="v4-empty">검색 조건에 맞는 수정 이력이 없습니다.</td></tr>';
+ else body.innerHTML=visible.map(log=>{const date=log.created_at?new Date(log.created_at).toLocaleString('ko-KR'):'-';const changes=log.changes&&typeof log.changes==='object'?log.changes:{};const labels=Object.keys(changes).map(clientProfileFieldLabel).join(', ')||'-';const values=Object.entries(changes).map(([key,v])=>`${escapeHtmlV8(clientProfileFieldLabel(key))}: ${escapeHtmlV8(clientProfileDisplayValue(v?.before))} → ${escapeHtmlV8(clientProfileDisplayValue(v?.after))}`).join('<br>')||'-';return `<tr><td>${escapeHtmlV8(date)}</td><td>${escapeHtmlV8(log.login_id||'-')}</td><td>${escapeHtmlV8(labels)}</td><td style="white-space:normal;min-width:260px">${values}</td></tr>`}).join('');
+ if(pager){const fromCount=list.length?start+1:0,toCount=Math.min(start+size,list.length);pager.innerHTML=`<div>총 <b>${list.length.toLocaleString()}</b>건 중 <b>${fromCount.toLocaleString()}–${toCount.toLocaleString()}</b>건 표시</div><div class="log-page-actions"><label for="clientProfileLogPageSizeV79">페이지당</label><select id="clientProfileLogPageSizeV79" onchange="window.wjClientProfileLogPageSizeV79=Number(this.value);window.wjClientProfileLogPageV79=1;renderClientProfileLogsV79()"><option value="10" ${size===10?'selected':''}>10개</option><option value="20" ${size===20?'selected':''}>20개</option><option value="50" ${size===50?'selected':''}>50개</option><option value="100" ${size===100?'selected':''}>100개</option></select><button type="button" onclick="changeClientProfileLogPageV79(-1)" ${page<=1?'disabled':''}>이전</button><b>${page} / ${totalPages} 페이지</b><button type="button" onclick="changeClientProfileLogPageV79(1)" ${page>=totalPages?'disabled':''}>다음</button></div>`;}
+}
+async function deleteCurrentClientV79(){
+ const c=clients.find(x=>String(x.id)===String(window.currentClientId));if(!c)return;
+ const label=`${c.name||'이름 없는 거래처'} (${c.code||c.loginId||c.id})`;
+ const confirmed=confirm(`정말 이 거래처를 삭제하시겠습니까?\n\n${label}\n\n이 작업은 되돌릴 수 없습니다. 관련 주문·단가 이력이 남아 있을 수 있으며, 연결된 데이터 제약조건 때문에 삭제가 거부될 수도 있습니다.`);if(!confirmed)return;
+ if(!supabaseERP){alert('Supabase 연결이 확인되지 않아 삭제할 수 없습니다.');return;}
+ try{
+   const {data,error}=await supabaseERP.from('clients').delete().eq('id',c.id).select('id').maybeSingle();
+   if(error)throw error;
+   if(!data){throw new Error('삭제된 거래처 행을 확인하지 못했습니다. 관리자 권한 또는 RLS 정책을 확인해 주세요.');}
+   clients.splice(clients.findIndex(x=>String(x.id)===String(c.id)),1);
+   // 선택 필터에서 삭제한 거래처를 제거해 UI의 오래된 선택값이 남지 않도록 함
+   const smart=document.getElementById('clientSmartFilter');if(smart&&typeof smart._smartSet==='function')smart._smartSet([]);
+   if(typeof loadClientsFromSupabase==='function')await loadClientsFromSupabase();
+   if(typeof initV6Smart==='function')initV6Smart();
+   if(typeof renderAll==='function')renderAll();else renderClients();
+   go('adminClients');
+   alert('거래처 정보가 삭제되었습니다.\n\n참고: 이 작업은 clients 테이블의 거래처 정보만 삭제합니다. Supabase Auth 로그인 계정이나 관련 주문·단가 기록은 별도로 남아 있을 수 있습니다.');
+ }catch(e){console.error('거래처 삭제 실패:',e);alert('거래처 삭제에 실패했습니다.\n\n'+(e?.message||e)+'\n\n관련 주문/단가/수정 이력의 외래키 제약 또는 Supabase RLS 권한을 확인해 주세요.');}
 }
 
 function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
