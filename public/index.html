@@ -2807,24 +2807,23 @@ async function deleteSelectedOrdersV70(){
        if(itemProbe.error&&!isMissingColumnError(itemProbe.error))throw itemProbe.error;
        const itemSample=itemProbe.data?.[0]||{};
        const relationCols=['order_id','order_no','order','no'].filter(col=>Object.prototype.hasOwnProperty.call(itemSample,col));
-       const relationValues=[...new Set([String(order.dbId||''),String(order.no||'')].filter(Boolean))];
+       // order_id is a UUID foreign key; never compare it with a human-readable order number.
+       const uuidLike=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||''));
+       const valuesForColumn=col=>{
+         if(col==='order_id') return order.dbId && uuidLike(order.dbId) ? [String(order.dbId)] : [];
+         if(col==='order_no' || col==='no') return [String(order.no||no)].filter(Boolean);
+         if(col==='order') return order.dbId && uuidLike(order.dbId) ? [String(order.dbId)] : [String(order.no||no)].filter(Boolean);
+         return [];
+       };
        let detailDeleteError=null;
-       for(const col of relationCols){
-         for(const value of relationValues){
+       // If sample has no rows, try known relation columns, but only use UUIDs for order_id.
+       const columnsToTry=relationCols.length?relationCols:['order_id','order_no','order','no'];
+       for(const col of columnsToTry){
+         for(const value of valuesForColumn(col)){
            const d=await supabaseERP.from('order_items').delete().eq(col,value).select('*');
-           if(d.error){if(isMissingColumnError(d.error))continue;detailDeleteError=d.error;break;}
+           if(d.error){if(isMissingColumnError(d.error))continue;detailDeleteError=d.error;break}
          }
          if(detailDeleteError)break;
-       }
-       // 빈 테이블이라 샘플 행이 없으면 가능한 관계 컬럼명을 직접 시험합니다.
-       if(!itemSample||!Object.keys(itemSample).length){
-         for(const col of ['order_id','order_no','order','no']){
-           for(const value of relationValues){
-             const d=await supabaseERP.from('order_items').delete().eq(col,value).select('*');
-             if(d.error){if(isMissingColumnError(d.error))continue;detailDeleteError=d.error;break;}
-           }
-           if(detailDeleteError)break;
-         }
        }
        if(detailDeleteError)throw detailDeleteError;
      }catch(e){console.error('주문 상세 삭제 실패:',no,e);failed.push({no,reason:'주문 상세 삭제 실패: '+(e?.message||'권한 또는 연결 컬럼 확인 필요')});continue}
