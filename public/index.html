@@ -594,7 +594,7 @@ html,body{overflow-x:hidden}
           <div style="display:flex;justify-content:flex-end;align-items:center;gap:18px;margin-top:16px">
             <span style="color:#64748b;font-size:12px">총 발주금액</span>
             <strong id="cartPageTotal" style="font-size:22px">₩ 0</strong>
-            <button class="btn primary" onclick="checkout()">이 내용으로 발주하기</button>
+            <button class="btn primary" onclick="checkout(true)">선택 품목으로 발주하기</button>
           </div>
         </div>
       </section>
@@ -1997,7 +1997,7 @@ function openAddCartOptionModal(id,qty){
  save.onclick=()=>{
    const q=Math.floor(Number(document.getElementById('addCartQty')?.value||0)); if(q<1){alert('수량을 1 이상 입력해 주세요.');return}
    const item={key:crypto.randomUUID?crypto.randomUUID():('ci-'+Date.now()+'-'+Math.random().toString(16).slice(2)),productId:String(p.id),qty:q,boxType:document.getElementById('addCartBoxType')?.value||lists.box[0]||'기본 박스',boxStamp:document.getElementById('addCartBoxStamp')?.value?.trim()||'',palletType:document.getElementById('addCartPalletType')?.value||lists.pallet[0]||'나무'};
-   cartItems.push(item); selectedCartKeys.add(String(item.key)); saveCartItemsV34(); closeModal(); updateCart(); renderCartPage(); alert(`${p.name} ${q.toLocaleString()}박스가 장바구니에 담겼습니다.`);
+   cartItems.push(item); saveCartItemsV34(); closeModal(); updateCart(); renderCartPage(); alert(`${p.name} ${q.toLocaleString()}박스가 장바구니에 담겼습니다.`);
  };
  document.getElementById('modalBg').classList.add('show');
  return true;
@@ -2015,7 +2015,7 @@ document.addEventListener('click',function(e){const btn=e.target.closest('[data-
 function editCartItemQty(key,value){const item=cartItems.find(x=>String(x.key)===String(key));if(!item)return;const q=Math.floor(Number(value));if(q<1){removeCartItemV34(key);return}item.qty=q;saveCartItemsV34();updateCart();renderCartPage()}
 function removeCartItemV34(key){selectedCartKeys.delete(String(key));cartItems=cartItems.filter(x=>String(x.key)!==String(key));saveCartItemsV34();updateCart();renderCartPage()}
 function editCartItemOption(key,field,value){const item=cartItems.find(x=>String(x.key)===String(key));if(!item)return;item[field]=value;saveCartItemsV34();renderCartPage();updateCart()}
-function toggleCartItemSelection(key,checked){if(checked)selectedCartKeys.add(String(key));else selectedCartKeys.delete(String(key));updateCartSelectionUI()}
+function toggleCartItemSelection(key,checked){if(checked)selectedCartKeys.add(String(key));else selectedCartKeys.delete(String(key));renderCartPage()}
 function toggleCartSelectAll(checked){selectedCartKeys=new Set(checked?cartItems.map(x=>String(x.key)):[]);renderCartPage()}
 function updateCartSelectionUI(){
  const valid=new Set(cartItems.map(x=>String(x.key)));selectedCartKeys=new Set([...selectedCartKeys].filter(k=>valid.has(k)));
@@ -2028,10 +2028,10 @@ function deleteSelectedCartItems(){
  cartItems=cartItems.filter(x=>!keys.has(String(x.key)));selectedCartKeys.clear();saveCartItemsV34();updateCart();renderCartPage();
 }
 function renderCartPage(){
- const rows=document.getElementById('cartRows');if(!rows)return;let total=0;
+ const rows=document.getElementById('cartRows');if(!rows)return;let selectedTotal=0;
  if(!cartItems.length){rows.innerHTML='<tr><td colspan="7" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);updateCartSelectionUI();return}
- rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);total+=amount;const safe=JSON.stringify(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(${safe},this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
- document.getElementById('cartPageTotal').textContent=won(total);updateCartSelectionUI();
+ rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);if(selectedCartKeys.has(String(item.key)))selectedTotal+=amount;const safe=JSON.stringify(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(${safe},this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
+ document.getElementById('cartPageTotal').textContent=won(selectedTotal);updateCartSelectionUI();
 }
 function updateCart(){
  let count=0,total=0;
