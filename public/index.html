@@ -788,23 +788,23 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN STATS -->
       <section id="adminStats" class="page">
-        <div class="page-head"><div><h2>매출/통계</h2><p>수주 및 발주 현황을 기준으로 주요 지표를 확인합니다.</p></div></div>
+        <div class="page-head"><div><h2>매출/통계</h2><p>서버에 저장된 실제 주문 데이터를 기준으로 월별 집계합니다.</p></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><label for="adminStatsMonth" style="font-size:13px;font-weight:700;color:#475569">조회 월</label><input id="adminStatsMonth" type="month" class="input" style="width:170px;min-height:40px" onchange="renderAdminStats()"></div>
+        </div>
         <div class="kpi-grid">
-          <div class="kpi"><div class="label">9월 누적 수주</div><div class="num">₩48.2M</div></div>
-          <div class="kpi"><div class="label">누적 발주</div><div class="num">86건</div><div class="note">거래처 24곳</div></div>
-          <div class="kpi"><div class="label">평균 발주금액</div><div class="num">₩560K</div></div>
-          <div class="kpi"><div class="label">출고 완료율</div><div class="num">93%</div></div>
+          <div class="kpi"><div class="label" id="statsSalesLabel">월 수주액</div><div class="num" id="statsSales">₩ 0</div></div>
+          <div class="kpi"><div class="label">월간 발주</div><div class="num" id="statsOrderCount">0건</div><div class="note" id="statsClientCount">거래처 0곳</div></div>
+          <div class="kpi"><div class="label">평균 발주금액</div><div class="num" id="statsAverage">₩ 0</div></div>
+          <div class="kpi"><div class="label">출고 완료율</div><div class="num" id="statsCompleteRate">0%</div></div>
         </div>
         <div class="card pad">
           <h3 class="section-title">월별 수주 추이</h3>
-          <div style="height:230px;display:flex;align-items:end;gap:18px;padding:25px 20px 10px">
-            <div style="height:42%;flex:1;background:#dbeafe;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">4월</span></div>
-            <div style="height:55%;flex:1;background:#bfdbfe;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">5월</span></div>
-            <div style="height:48%;flex:1;background:#93c5fd;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">6월</span></div>
-            <div style="height:67%;flex:1;background:#60a5fa;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">7월</span></div>
-            <div style="height:75%;flex:1;background:#3b82f6;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">8월</span></div>
-            <div style="height:91%;flex:1;background:#2563eb;border-radius:6px 6px 0 0;position:relative"><span style="position:absolute;bottom:-22px;width:100%;text-align:center;font-size:10px">9월</span></div>
-          </div>
+          <p style="font-size:12px;color:#64748b;margin:-4px 0 12px">선택한 달을 기준으로 최근 6개월의 실제 수주액을 표시합니다.</p>
+          <div id="adminStatsChart" style="height:250px;display:flex;align-items:end;gap:14px;padding:20px 12px 30px;overflow-x:auto"></div>
+        </div>
+        <div class="card table-wrap" style="margin-top:16px">
+          <div class="pad" style="padding-bottom:8px"><h3 class="section-title">선택 월 주문 내역</h3></div>
+          <table><thead><tr><th>주문일</th><th>주문번호</th><th>거래처</th><th>수량</th><th>수주액</th><th>상태</th></tr></thead><tbody id="adminStatsRows"></tbody></table>
         </div>
       </section>
 
@@ -1953,6 +1953,7 @@ function go(page,btn){
  if(btn)btn.classList.add('active');
  const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',inventory:'재고 현황',documents:'거래 문서',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminInventory:'재고/창고 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
+ if(page==='adminStats'){renderAdminStats();if(supabaseERP&&supabaseSyncReady)loadOrdersFromSupabase().then(renderAdminStats).catch(e=>console.error('월별 통계 주문 조회 실패:',e));}
  if(page==='products'){
    if(supabaseERP && supabaseSyncReady){
      Promise.all([loadProductsFromSupabase(),loadOrderOptionSettings()]).then(()=>renderProducts()).catch(e=>{console.error('거래처 제품/발주 옵션 DB 조회 실패:',e);renderProducts()});
@@ -3037,7 +3038,36 @@ async function saveOrderOptionSettings(){
 document.getElementById('orderOptionModalBg')?.addEventListener('click',function(e){if(e.target===this)closeOrderOptionModal()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeOrderOptionModal()});
 
-function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();updateCart()}
+function renderAdminStats(){
+ const monthInput=document.getElementById('adminStatsMonth');
+ if(!monthInput)return;
+ const now=new Date();
+ if(!monthInput.value)monthInput.value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+ const selected=monthInput.value;
+ const monthOrders=(orders||[]).filter(o=>String(o.date||'').slice(0,7)===selected);
+ const total=monthOrders.reduce((sum,o)=>sum+Number(o.amount||0),0);
+ const avg=monthOrders.length?Math.round(total/monthOrders.length):0;
+ const completed=monthOrders.filter(o=>o.status==='출고 완료').length;
+ const clientCount=new Set(monthOrders.map(o=>String(o.clientId||o.id||o.client||'' )).filter(Boolean)).size;
+ const fmt=n=>Number(n||0).toLocaleString('ko-KR');
+ const money=n=>'₩ '+fmt(n);
+ const label=document.getElementById('statsSalesLabel');if(label)label.textContent=`${Number(selected.slice(5,7))}월 누적 수주`;
+ document.getElementById('statsSales').textContent=money(total);
+ document.getElementById('statsOrderCount').textContent=fmt(monthOrders.length)+'건';
+ document.getElementById('statsClientCount').textContent=`거래처 ${fmt(clientCount)}곳`;
+ document.getElementById('statsAverage').textContent=money(avg);
+ document.getElementById('statsCompleteRate').textContent=(monthOrders.length?Math.round(completed/monthOrders.length*100):0)+'%';
+ const start=new Date(Number(selected.slice(0,4)),Number(selected.slice(5,7))-6,1);
+ const chartMonths=[];
+ for(let i=0;i<6;i++){const d=new Date(start.getFullYear(),start.getMonth()+i,1);chartMonths.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
+ const sums=chartMonths.map(m=>({month:m,total:(orders||[]).filter(o=>String(o.date||'').slice(0,7)===m).reduce((a,o)=>a+Number(o.amount||0),0)}));
+ const max=Math.max(1,...sums.map(x=>x.total));
+ document.getElementById('adminStatsChart').innerHTML=sums.map(x=>{const h=Math.max(x.total?3:1,Math.round(x.total/max*100));return `<div title="${x.month}: ${money(x.total)}" style="min-width:54px;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px"><div style="font-size:10px;color:#475569;text-align:center;white-space:nowrap">${money(x.total)}</div><div style="height:${h}%;width:70%;min-height:2px;background:${x.month===selected?'#2563eb':'#bfdbfe'};border-radius:5px 5px 0 0"></div><div style="font-size:11px;color:#475569;white-space:nowrap">${Number(x.month.slice(5,7))}월</div></div>`}).join('');
+ const sorted=[...monthOrders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ document.getElementById('adminStatsRows').innerHTML=sorted.map(o=>`<tr><td>${escapeHtmlV8(o.date||'-')}</td><td><b>${escapeHtmlV8(o.no||'-')}</b></td><td>${escapeHtmlV8(o.client||'-')}</td><td>${fmt(o.qty||0)}박스</td><td>${money(o.amount||0)}</td><td>${badge(o.status||'접수 완료')}</td></tr>`).join('')||'<tr><td colspan="6" class="v4-empty">선택한 월의 주문 내역이 없습니다.</td></tr>';
+}
+
+function renderAll(){renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();renderAdminStats();updateCart()}
 ensureNoticePopupV9();
 renderAll();
 
