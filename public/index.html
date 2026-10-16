@@ -142,14 +142,20 @@ tr:last-child td{border-bottom:0}
 #adminClientDetail .grid-2 > .card{min-width:0}
 @media(max-width:720px){#adminClientDetail .grid-2{grid-template-columns:1fr}}
 
-/* V62: 거래처 정보는 기본 읽기 전용, 수정 버튼으로 편집 모드 전환 */
-.account-view-value{display:block;min-height:42px;padding:11px 12px;border:1px solid #e5e7eb;border-radius:9px;background:#f8fafc;color:#1f2937;font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
-.account-editing .account-view-value{display:none}
-.account-view .account-edit-input{display:none}
-.account-editing .account-edit-input{display:block}
-.account-editing .account-view-value{display:none}
-.cart-select-cell{width:44px;text-align:center}
-.cart-select-cell input{width:16px;height:16px;cursor:pointer;accent-color:#2563eb}
+/* V64: V60 거래처 정보의 정보목록형 화면을 복원하고 수정 버튼으로 편집 */
+.account-info-list{grid-template-columns:130px minmax(0,1fr);margin-top:8px}
+.account-info-list .account-info-value{min-width:0;display:flex;align-items:center;min-height:44px;overflow-wrap:anywhere;white-space:pre-wrap}
+.account-info-list .account-view-value{display:block;width:100%;line-height:1.5}
+.account-info-list .account-edit-input{display:none;width:100%;min-width:0;padding:10px 11px;border:1px solid #d9dee8;border-radius:8px;background:#fff;color:#1f2937;font:inherit;font-size:13px}
+.account-view .action-row .account-edit-input{display:none}
+.account-editing .action-row .account-edit-input{display:inline-flex}
+.account-info-list .account-edit-input[type=email],.account-info-list .account-edit-input[type=tel]{width:100%}
+.account-editing .account-info-list .account-view-value{display:none}
+.account-editing .account-info-list .account-edit-input{display:block}
+.account-editing .account-info-list .account-info-value{padding:7px 12px}
+@media(max-width:520px){.account-info-list{grid-template-columns:100px minmax(0,1fr)}.account-info-list .account-info-value{padding:10px 8px}}
+.cart-select-cell{width:44px;min-width:44px;text-align:center;vertical-align:middle;padding-left:0!important;padding-right:0!important}
+.cart-select-cell input{display:block;width:16px;height:16px;margin:0 auto;cursor:pointer;accent-color:#2563eb}
 .cart-bulk-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:13px 15px;border-bottom:1px solid #e5e7eb;background:#f8fafc}
 .cart-bulk-left,.cart-bulk-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cart-selection-count{font-size:12px;color:#64748b}
@@ -580,11 +586,11 @@ html,body{overflow-x:hidden}
         </div>
         <div class="card table-wrap">
           <div class="cart-bulk-toolbar">
-            <div class="cart-bulk-left"><label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><input id="cartSelectAll" type="checkbox" onchange="toggleCartSelectAll(this.checked)" style="width:16px;height:16px;accent-color:#2563eb"> 전체 선택</label><span id="cartSelectionCount" class="cart-selection-count">선택 0개</span></div>
+            <div class="cart-bulk-left"><span id="cartSelectionCount" class="cart-selection-count">선택 0개</span></div>
             <div class="cart-bulk-right"><button class="btn light" onclick="deleteSelectedCartItems()">선택 삭제</button><button class="btn primary" onclick="checkout(true)">선택 주문</button><button class="btn primary" onclick="checkout(false)">전체 주문</button></div>
           </div>
           <table>
-            <thead><tr><th class="cart-select-cell">선택</th><th>제품명</th><th>규격 / 발주 옵션</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
+            <thead><tr><th class="cart-select-cell"><input id="cartSelectAll" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleCartSelectAll(this.checked)"></th><th>제품명</th><th>규격 / 발주 옵션</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
             <tbody id="cartRows"></tbody>
           </table>
         </div>
@@ -632,13 +638,14 @@ html,body{overflow-x:hidden}
         <div class="card pad account-view" id="clientAccountCard">
           <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;gap:12px">거래처 기본 정보 <span style="font-size:11px;font-weight:400;color:#64748b">등록 정보 확인</span></div>
           <p class="help-text" id="accountEditHelp" style="margin-top:-8px;margin-bottom:14px">등록된 정보를 확인할 수 있습니다. 변경이 필요하면 ‘정보 수정’을 눌러 주세요.</p>
-          <div class="form-grid">
-            <div class="field"><label>회사명</label><span class="account-view-value" id="accountViewName">-</span><input class="account-edit-input" id="accountEditName" autocomplete="organization" required></div>
-            <div class="field"><label>사업자번호</label><span class="account-view-value" id="accountViewBizNo">-</span><input class="account-edit-input" id="accountEditBizNo" inputmode="numeric" autocomplete="off"></div>
-            <div class="field"><label>담당자</label><span class="account-view-value" id="accountViewManager">-</span><input class="account-edit-input" id="accountEditManager" autocomplete="name"></div>
-            <div class="field"><label>전화번호</label><span class="account-view-value" id="accountViewPhone">-</span><input class="account-edit-input" id="accountEditPhone" type="tel" autocomplete="tel"></div>
-            <div class="field"><label>이메일</label><span class="account-view-value" id="accountViewEmail">-</span><input class="account-edit-input" id="accountEditEmail" type="email" autocomplete="email"></div>
-            <div class="field full"><label>주소</label><span class="account-view-value" id="accountViewAddress">-</span><input class="account-edit-input" id="accountEditAddress" autocomplete="street-address"></div>
+          <div class="info-list account-info-list">
+            <div class="key">회사명</div><div class="account-info-value"><span class="account-view-value" id="accountViewName">-</span><input class="account-edit-input" id="accountEditName" autocomplete="organization" required></div>
+            <div class="key">거래처 코드</div><div class="account-info-value"><span id="accountViewCode">-</span></div>
+            <div class="key">사업자번호</div><div class="account-info-value"><span class="account-view-value" id="accountViewBizNo">-</span><input class="account-edit-input" id="accountEditBizNo" inputmode="numeric" autocomplete="off"></div>
+            <div class="key">담당자</div><div class="account-info-value"><span class="account-view-value" id="accountViewManager">-</span><input class="account-edit-input" id="accountEditManager" autocomplete="name"></div>
+            <div class="key">전화번호</div><div class="account-info-value"><span class="account-view-value" id="accountViewPhone">-</span><input class="account-edit-input" id="accountEditPhone" type="tel" autocomplete="tel"></div>
+            <div class="key">이메일</div><div class="account-info-value"><span class="account-view-value" id="accountViewEmail">-</span><input class="account-edit-input" id="accountEditEmail" type="email" autocomplete="email"></div>
+            <div class="key">주소</div><div class="account-info-value"><span class="account-view-value" id="accountViewAddress">-</span><input class="account-edit-input" id="accountEditAddress" autocomplete="street-address"></div>
           </div>
           <div class="action-row" style="justify-content:flex-end;margin-top:14px;gap:8px">
             <button class="btn light" id="editMyClientProfileBtn" onclick="setClientProfileEditMode(true)">정보 수정</button>
@@ -1878,6 +1885,7 @@ function renderClientAccount(){
  const views={accountViewName:fields.accountEditName,accountViewBizNo:fields.accountEditBizNo,accountViewManager:fields.accountEditManager,accountViewPhone:fields.accountEditPhone,accountViewEmail:fields.accountEditEmail,accountViewAddress:fields.accountEditAddress};
  Object.entries(fields).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value});
  Object.entries(views).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=value||'-'});
+ const codeEl=document.getElementById('accountViewCode');if(codeEl)codeEl.textContent=c.code||'-';
  setClientProfileEditMode(false);
 }
 function setClientProfileEditMode(editing){
