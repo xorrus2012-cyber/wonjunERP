@@ -166,7 +166,8 @@ tr:last-child td{border-bottom:0}
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff}.search-input{min-width:260px}.category-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9dee8;border-radius:999px;background:#fff;margin:4px}.inventory-qty{width:110px;padding:8px;border:1px solid #d9dee8;border-radius:7px}.status-select{padding:8px 10px;border:1px solid #d9dee8;border-radius:7px;background:#fff}.v4-empty{text-align:center;padding:28px;color:#8a93a3}
 </style>
 <style id="ecount-v6-css">
-.smartbox{position:relative;min-width:250px}.smartinput{width:100%;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:9px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:5px}.smartbox.open .smartdrop{display:block}.smartopt{display:flex;gap:8px;align-items:center;padding:9px;border-radius:6px;cursor:pointer}.smartopt:hover{background:#f8fafc}.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}.date-range-v6{display:flex;gap:7px;align-items:center}.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.result-v6{margin-left:auto;color:#64748b;font-size:12px}.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}.detail-link{cursor:pointer;color:#2563eb;font-weight:700}.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
+.smartbox{position:relative;min-width:250px}.smartinput{width:100%;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:9px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:5px}.smartbox.open .smartdrop{display:block}.smartopt{display:flex;gap:8px;align-items:center;padding:9px;border-radius:6px;cursor:pointer}.smartopt:hover{background:#f8fafc}.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}.date-range-v6{display:flex;gap:7px;align-items:center}.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.result-v6{margin-left:auto;color:#64748b;font-size:12px}.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}
+#adminOrders .bulk-v6>button.small-btn{box-sizing:border-box;width:104px;min-width:104px;height:32px;min-height:32px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;line-height:1;font-size:11px}.detail-link{cursor:pointer;color:#2563eb;font-weight:700}.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
 </style>
 <style id="v8-fix-css">
 /* V8 ECOUNT-style usability */
@@ -2801,23 +2802,24 @@ async function deleteSelectedOrdersV70(){
      const order=orders.find(o=>String(o.no)===String(no));
      if(!order){failed.push({no,reason:'화면에서 주문 정보를 찾지 못했습니다.'});continue}
      try{
-       // 주문 상세는 order_id / order_no / order / no 중 실제 연결된 컬럼을 통해 정리합니다.
+       // 주문 상세는 order_id / order_no / no 중 실제 연결된 컬럼을 통해 정리합니다.
+       // `order`는 PostgREST 예약 파라미터와 충돌할 수 있으므로 필터 컬럼으로 사용하지 않습니다.
        // 컬럼이 둘 이상인 테이블에서 order_no가 존재하지만 연결값은 order_id인 경우도 처리합니다.
        let itemProbe=await supabaseERP.from('order_items').select('*').limit(1);
        if(itemProbe.error&&!isMissingColumnError(itemProbe.error))throw itemProbe.error;
        const itemSample=itemProbe.data?.[0]||{};
-       const relationCols=['order_id','order_no','order','no'].filter(col=>Object.prototype.hasOwnProperty.call(itemSample,col));
+       const relationCols=['order_id','order_no','no'].filter(col=>Object.prototype.hasOwnProperty.call(itemSample,col));
        // order_id is a UUID foreign key; never compare it with a human-readable order number.
        const uuidLike=v=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(v||''));
        const valuesForColumn=col=>{
          if(col==='order_id') return order.dbId && uuidLike(order.dbId) ? [String(order.dbId)] : [];
          if(col==='order_no' || col==='no') return [String(order.no||no)].filter(Boolean);
-         if(col==='order') return order.dbId && uuidLike(order.dbId) ? [String(order.dbId)] : [String(order.no||no)].filter(Boolean);
+         
          return [];
        };
        let detailDeleteError=null;
        // If sample has no rows, try known relation columns, but only use UUIDs for order_id.
-       const columnsToTry=relationCols.length?relationCols:['order_id','order_no','order','no'];
+       const columnsToTry=relationCols.length?relationCols:['order_id','order_no','no'];
        for(const col of columnsToTry){
          for(const value of valuesForColumn(col)){
            const d=await supabaseERP.from('order_items').delete().eq(col,value).select('*');
