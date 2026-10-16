@@ -149,7 +149,7 @@ tr:last-child td{border-bottom:0}
 #adminClientDetail #clientProfileLogActions .log-search-btn:hover{background:#1d4ed8}
 #adminClientDetail #clientProfileLogActions .log-reset-btn{background:#fff;border:1px solid #cbd5e1;color:#475569}
 #adminClientDetail #clientProfileLogActions .log-reset-btn:hover{background:#f1f5f9}
-#clientProfileLogPagination{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;margin-top:10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:12px;color:#475569}#clientProfileLogPagination .log-page-actions{display:flex;align-items:center;gap:8px}#clientProfileLogPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}#clientProfileLogPagination button:disabled{opacity:.4;cursor:not-allowed}#clientProfileLogPagination select{border:1px solid #cbd5e1;border-radius:7px;padding:7px 8px;background:#fff}#adminClientDetail .client-delete-btn{border-color:#fecaca;color:#b91c1c;background:#fff}#adminClientDetail .client-detail-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#clientProfileLogPagination{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;margin-top:10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:12px;color:#475569}#clientProfileLogPagination .log-page-actions{display:flex;align-items:center;gap:8px}#clientProfileLogPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}#clientProfileLogPagination button:disabled{opacity:.4;cursor:not-allowed}#clientProfileLogPagination select{border:1px solid #cbd5e1;border-radius:7px;padding:7px 8px;background:#fff}#adminClientDetail .client-delete-btn{border-color:#fecaca;color:#b91c1c;background:#fff}#adminClientDetail .client-danger-zone .client-delete-btn{min-width:130px;justify-content:center}#adminClientDetail .client-danger-zone .client-delete-btn:hover{background:#fef2f2}#adminClientDetail .client-detail-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 @media(max-width:900px){#adminClientDetail #clientProfileLogTools{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:13px}#adminClientDetail #clientProfileLogTools .log-search-field{grid-column:1/-1}#adminClientDetail #clientProfileLogActions{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:520px){#adminClientDetail #clientProfileLogTools{grid-template-columns:minmax(0,1fr);gap:12px}#adminClientDetail #clientProfileLogTools .log-search-field,#adminClientDetail #clientProfileLogActions{grid-column:1/-1}#adminClientDetail #clientProfileLogActions{display:grid;grid-template-columns:1fr 1fr}#adminClientDetail #clientProfileLogActions .small-btn{width:100%;padding:0 10px}}
 #adminClientDetail .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
@@ -741,7 +741,7 @@ html,body{overflow-x:hidden}
             <h2>거래처 상세</h2>
             <p id="clientDetailSubtitle">거래처 기본정보와 접속 정보를 관리합니다.</p>
           </div>
-          <div class="client-detail-head-actions"><button class="btn light client-delete-btn" type="button" onclick="deleteCurrentClientV79()">거래처 삭제</button><button class="btn light" onclick="go('adminClients')">← 거래처 목록</button></div>
+          <div class="client-detail-head-actions"><button class="btn light" onclick="go('adminClients')">← 거래처 목록</button></div>
         </div>
 
         <div class="grid-2">
@@ -757,7 +757,7 @@ html,body{overflow-x:hidden}
             <div class="field"><label>거래 상태</label>
               <select id="detailClientStatus">
                 <option value="정상">정상</option>
-                <option value="중지">중지</option>
+                <option value="거래중지">거래중지</option>
               </select>
             </div>
             <button class="btn primary" onclick="saveClientDetail()">기본정보 저장</button>
@@ -795,6 +795,12 @@ html,body{overflow-x:hidden}
           </div>
           <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>수정 일시</th><th>로그인 ID</th><th>변경 항목</th><th>변경 전 → 변경 후</th></tr></thead><tbody id="clientProfileLogRows"><tr><td colspan="4" class="v4-empty">거래처를 선택하면 수정 이력이 표시됩니다.</td></tr></tbody></table></div>
           <div id="clientProfileLogPagination" aria-label="거래처 수정 이력 페이지 이동"></div>
+        </div>
+        <div class="card pad client-danger-zone" style="margin-top:16px;border:1px solid #fecaca;background:#fffafa">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div><div class="section-title" style="color:#991b1b;margin-bottom:5px">거래처 삭제</div><p class="help-text" style="margin:0">주문 이력이 있는 거래처는 주문 기록 보존을 위해 거래중지 처리됩니다. 주문 이력이 없으면 거래처 정보를 삭제합니다.</p></div>
+            <button class="btn light client-delete-btn" type="button" onclick="deleteCurrentClientV79()">거래처 삭제</button>
+          </div>
         </div>
       </section>
 
@@ -2020,21 +2026,39 @@ function renderClientProfileLogsV79(){
 async function deleteCurrentClientV79(){
  const c=clients.find(x=>String(x.id)===String(window.currentClientId));if(!c)return;
  const label=`${c.name||'이름 없는 거래처'} (${c.code||c.loginId||c.id})`;
- const confirmed=confirm(`정말 이 거래처를 삭제하시겠습니까?\n\n${label}\n\n이 작업은 되돌릴 수 없습니다. 관련 주문·단가 이력이 남아 있을 수 있으며, 연결된 데이터 제약조건 때문에 삭제가 거부될 수도 있습니다.`);if(!confirmed)return;
- if(!supabaseERP){alert('Supabase 연결이 확인되지 않아 삭제할 수 없습니다.');return;}
+ if(!supabaseERP){alert('Supabase 연결이 확인되지 않아 처리할 수 없습니다.');return;}
+ const confirmed=confirm(`거래처 삭제를 진행할까요?\n\n${label}\n\n연결된 주문이 있으면 주문 기록을 보존하기 위해 거래처 상태를 '거래중지'로 변경합니다. 주문이 없으면 거래처 정보를 삭제합니다.`);if(!confirmed)return;
  try{
+   // 주문 이력이 연결되어 있는지 먼저 확인합니다. 주문은 임의로 삭제하지 않습니다.
+   const probe=await supabaseERP.from('orders').select('client_id',{count:'exact',head:true}).eq('client_id',c.id);
+   if(probe.error)throw new Error('연결된 주문 확인에 실패했습니다. 거래처를 변경하지 않았습니다.\n'+probe.error.message);
+   const linkedOrders=Number(probe.count||0)>0;
+   if(linkedOrders){
+     const {data,error}=await supabaseERP.from('clients').update({status:'거래중지'}).eq('id',c.id).select('id,status').maybeSingle();
+     if(error)throw error;
+     if(!data)throw new Error('거래처 상태 변경 결과를 확인하지 못했습니다. 관리자 권한 또는 RLS 정책을 확인해 주세요.');
+     c.status='거래중지';
+     if(typeof loadClientsFromSupabase==='function')await loadClientsFromSupabase();
+     if(typeof initV6Smart==='function')initV6Smart();
+     if(typeof renderAll==='function')renderAll();else renderClients();
+     go('adminClients');
+     alert(`거래처에 연결된 주문 ${Number(probe.count).toLocaleString()}건이 있어 실제 삭제 대신 거래중지 처리했습니다.\n\n주문 내역은 보존되며 해당 거래처의 로그인은 차단됩니다.`);
+     return;
+   }
    const {data,error}=await supabaseERP.from('clients').delete().eq('id',c.id).select('id').maybeSingle();
    if(error)throw error;
-   if(!data){throw new Error('삭제된 거래처 행을 확인하지 못했습니다. 관리자 권한 또는 RLS 정책을 확인해 주세요.');}
+   if(!data)throw new Error('삭제된 거래처 행을 확인하지 못했습니다. 관리자 권한 또는 RLS 정책을 확인해 주세요.');
    clients.splice(clients.findIndex(x=>String(x.id)===String(c.id)),1);
-   // 선택 필터에서 삭제한 거래처를 제거해 UI의 오래된 선택값이 남지 않도록 함
    const smart=document.getElementById('clientSmartFilter');if(smart&&typeof smart._smartSet==='function')smart._smartSet([]);
    if(typeof loadClientsFromSupabase==='function')await loadClientsFromSupabase();
    if(typeof initV6Smart==='function')initV6Smart();
    if(typeof renderAll==='function')renderAll();else renderClients();
    go('adminClients');
-   alert('거래처 정보가 삭제되었습니다.\n\n참고: 이 작업은 clients 테이블의 거래처 정보만 삭제합니다. Supabase Auth 로그인 계정이나 관련 주문·단가 기록은 별도로 남아 있을 수 있습니다.');
- }catch(e){console.error('거래처 삭제 실패:',e);alert('거래처 삭제에 실패했습니다.\n\n'+(e?.message||e)+'\n\n관련 주문/단가/수정 이력의 외래키 제약 또는 Supabase RLS 권한을 확인해 주세요.');}
+   alert('거래처 정보가 삭제되었습니다.');
+ }catch(e){
+   console.error('거래처 삭제 실패:',e);
+   alert('거래처 삭제/중지 처리에 실패했습니다.\n\n'+(e?.message||e)+'\n\n데이터는 삭제하지 않았습니다. Supabase RLS 권한과 연결된 테이블을 확인해 주세요.');
+ }
 }
 
 function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
