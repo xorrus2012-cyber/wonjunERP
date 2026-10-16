@@ -149,7 +149,7 @@ tr:last-child td{border-bottom:0}
 #adminClientDetail #clientProfileLogActions .log-search-btn:hover{background:#1d4ed8}
 #adminClientDetail #clientProfileLogActions .log-reset-btn{background:#fff;border:1px solid #cbd5e1;color:#475569}
 #adminClientDetail #clientProfileLogActions .log-reset-btn:hover{background:#f1f5f9}
-#clientProfileLogPagination{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;margin-top:10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:12px;color:#475569}#clientProfileLogPagination .log-page-actions{display:flex;align-items:center;gap:8px}#clientProfileLogPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}#clientProfileLogPagination button:disabled{opacity:.4;cursor:not-allowed}#clientProfileLogPagination select{border:1px solid #cbd5e1;border-radius:7px;padding:7px 8px;background:#fff}#adminClientDetail .client-delete-btn{border-color:#fecaca;color:#b91c1c;background:#fff}#adminClientDetail .client-danger-zone .client-delete-btn{min-width:130px;justify-content:center}#adminClientDetail .client-danger-zone .client-delete-btn:hover{background:#fef2f2}#adminClientDetail .client-detail-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#clientProfileLogPagination{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;margin-top:10px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;font-size:12px;color:#475569}#clientProfileLogPagination .log-page-actions{display:flex;align-items:center;gap:8px}#clientProfileLogPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 10px;cursor:pointer}#clientProfileLogPagination button:disabled{opacity:.4;cursor:not-allowed}#clientProfileLogPagination select{border:1px solid #cbd5e1;border-radius:7px;padding:7px 8px;background:#fff}#adminClientDetail .client-delete-btn{border-color:#fecaca;color:#b91c1c;background:#fff}#adminClientDetail .client-danger-zone .client-delete-btn{min-width:112px;min-height:34px;padding:7px 16px;font-size:12px;justify-content:center;flex:0 0 auto}#adminClientDetail .client-danger-zone{margin:28px auto 34px!important;max-width:620px;padding:18px 20px!important}#adminClientDetail .client-danger-zone>div{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;gap:12px!important}#adminClientDetail .client-danger-zone .section-title{font-size:13px!important}#adminClientDetail .client-danger-zone .help-text{max-width:500px}#adminClientDetail .client-danger-zone .client-delete-btn:hover{background:#fef2f2}#adminClientDetail .client-detail-head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 @media(max-width:900px){#adminClientDetail #clientProfileLogTools{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:13px}#adminClientDetail #clientProfileLogTools .log-search-field{grid-column:1/-1}#adminClientDetail #clientProfileLogActions{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:520px){#adminClientDetail #clientProfileLogTools{grid-template-columns:minmax(0,1fr);gap:12px}#adminClientDetail #clientProfileLogTools .log-search-field,#adminClientDetail #clientProfileLogActions{grid-column:1/-1}#adminClientDetail #clientProfileLogActions{display:grid;grid-template-columns:1fr 1fr}#adminClientDetail #clientProfileLogActions .small-btn{width:100%;padding:0 10px}}
 #adminClientDetail .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
@@ -796,8 +796,8 @@ html,body{overflow-x:hidden}
           <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>수정 일시</th><th>로그인 ID</th><th>변경 항목</th><th>변경 전 → 변경 후</th></tr></thead><tbody id="clientProfileLogRows"><tr><td colspan="4" class="v4-empty">거래처를 선택하면 수정 이력이 표시됩니다.</td></tr></tbody></table></div>
           <div id="clientProfileLogPagination" aria-label="거래처 수정 이력 페이지 이동"></div>
         </div>
-        <div class="card pad client-danger-zone" style="margin-top:16px;border:1px solid #fecaca;background:#fffafa">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div class="card pad client-danger-zone" style="margin:28px auto 34px;border:1px solid #fecaca;background:#fffafa">
+          <div>
             <div><div class="section-title" style="color:#991b1b;margin-bottom:5px">거래처 삭제</div><p class="help-text" style="margin:0">주문 이력이 있는 거래처는 주문 기록 보존을 위해 거래중지 처리됩니다. 주문 이력이 없으면 거래처 정보를 삭제합니다.</p></div>
             <button class="btn light client-delete-btn" type="button" onclick="deleteCurrentClientV79()">거래처 삭제</button>
           </div>
@@ -2763,7 +2763,7 @@ function openProductEdit(i){
  };
  document.getElementById('modalBg').classList.add('show');
 }
-function renderAdminInventory(){document.getElementById('adminInventoryRows').innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" type="number" min="0" value="${p.stock}" onchange="saveInventoryQtyV6(${p.id},this.value)"></td><td>${p.safety.toLocaleString()}</td><td>${p.warehouse}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" onchange="saveInventoryVisibilityV6(${p.id},this.value)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
+function renderAdminInventory(){const rows=document.getElementById('adminInventoryRows');if(!rows)return;rows.innerHTML=products.map(p=>`<tr><td>${p.code}</td><td>${p.name}</td><td>${p.spec}</td><td><input class="inventory-qty" aria-label="${p.name} 현재 재고 수량" type="number" min="0" value="${Number(p.stock)||0}" onchange="saveInventoryQtyV82('${p.id}',this.value,this)"></td><td><input class="inventory-qty" aria-label="${p.name} 안전재고 수량" type="number" min="0" value="${Number(p.safety)||0}" onchange="saveInventorySafetyV82('${p.id}',this.value,this)"></td><td>${p.warehouse||'-'}</td><td>${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" aria-label="${p.name} 재고 공개 설정" onchange="saveInventoryVisibilityV82('${p.id}',this.value,this)"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')}
 function editCartQty(id,value){
  const q=Math.floor(Number(value));
  if(q<1){removeCart(id);return}
@@ -3036,8 +3036,43 @@ function downloadOrderExcelV71(selectedOnly=false){
  const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table></body></html>';
  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=selectedOnly?'원준_선택주문.xls':'원준_조회결과.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function saveInventoryQtyV6(id,v){const p=products.find(x=>x.id===id);if(p){p.stock=Math.max(0,Number(v)||0);saveV7Data();renderAdminInventory();renderAdminDashboard();renderInventoryRows()}}
-function saveInventoryVisibilityV6(id,v){const p=products.find(x=>x.id===id);if(p){p.inventoryPublic=v==='public';saveV7Data();renderAdminInventory()}}
+async function persistInventoryV82(p,changes){
+ if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+ const lookup=await supabaseERP.from('inventory').select('*').eq('product_id',p.id).maybeSingle();
+ if(lookup.error)throw lookup.error;
+ const aliases={quantity:['quantity','stock','qty'],safety:['safety_stock','safety'],warehouse:['warehouse','warehouse_name'],inventoryPublic:['is_public','public','inventory_public']};
+ const dbValues={quantity:changes.stock!==undefined?changes.stock:p.stock,safety_stock:changes.safety!==undefined?changes.safety:p.safety,warehouse:changes.warehouse!==undefined?changes.warehouse:p.warehouse,is_public:changes.inventoryPublic!==undefined?changes.inventoryPublic:p.inventoryPublic,inventory_public:changes.inventoryPublic!==undefined?changes.inventoryPublic:p.inventoryPublic};
+ if(lookup.data){
+   const row=lookup.data, payload={};
+   for(const [key,aliasesForKey] of Object.entries(aliases)){const val=key==='quantity'?dbValues.quantity:key==='safety'?dbValues.safety_stock:key==='warehouse'?dbValues.warehouse:dbValues.is_public;const col=aliasesForKey.find(k=>Object.prototype.hasOwnProperty.call(row,k));if(col)payload[col]=val;}
+   if(!Object.keys(payload).length)throw new Error('inventory 테이블의 수량/안전재고/공개 설정 컬럼을 찾지 못했습니다.');
+   const saved=await supabaseERP.from('inventory').update(payload).eq('product_id',p.id);if(saved.error)throw saved.error;
+ }else{
+   const candidates=[
+    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,warehouse:dbValues.warehouse,is_public:dbValues.is_public},
+    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,warehouse:dbValues.warehouse,inventory_public:dbValues.inventory_public},
+    {product_id:p.id,stock:dbValues.quantity,safety:dbValues.safety_stock,warehouse:dbValues.warehouse,public:dbValues.is_public},
+    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,is_public:dbValues.is_public},
+    {product_id:p.id,quantity:dbValues.quantity,is_public:dbValues.is_public}
+   ];let lastError=null,done=false;
+   for(const payload of candidates){const ins=await supabaseERP.from('inventory').insert(payload);if(!ins.error){done=true;break}lastError=ins.error;if(!/column .* does not exist|could not find the .* column|schema cache/i.test(ins.error.message||''))break;}
+   if(!done)throw lastError||new Error('재고 행을 저장하지 못했습니다.');
+ }
+}
+async function saveInventoryChangeV82(id,changes,input){
+ const p=products.find(x=>String(x.id)===String(id));if(!p)return;
+ const previous={stock:p.stock,safety:p.safety,inventoryPublic:p.inventoryPublic};
+ Object.assign(p,changes);if(input){input.disabled=true;input.dataset.saving='1'}
+ try{
+   await persistInventoryV82(p,changes);
+   try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
+   await loadProductsFromSupabase();renderAdminInventory();renderAdminProducts();renderAdminDashboard();renderInventoryRows();renderProducts();
+ }catch(err){Object.assign(p,previous);if(input)input.value=String(input.getAttribute('aria-label')?.includes('안전재고')?previous.safety:input.getAttribute('aria-label')?.includes('공개')?(previous.inventoryPublic===false?'private':'public'):previous.stock);alert('재고 설정 저장에 실패했습니다.\n\n'+(err?.message||err)+'\n\nSupabase inventory 테이블 권한(RLS)과 컬럼 구성을 확인해 주세요.');await loadProductsFromSupabase();renderAdminInventory();}
+ finally{if(input){input.disabled=false;delete input.dataset.saving}}
+}
+function saveInventoryQtyV82(id,v,input){const n=Number(v);if(!Number.isFinite(n)||n<0){alert('현재 재고는 0 이상의 숫자로 입력해 주세요.');renderAdminInventory();return}return saveInventoryChangeV82(id,{stock:n},input)}
+function saveInventorySafetyV82(id,v,input){const n=Number(v);if(!Number.isFinite(n)||n<0){alert('안전재고는 0 이상의 숫자로 입력해 주세요.');renderAdminInventory();return}return saveInventoryChangeV82(id,{safety:n},input)}
+function saveInventoryVisibilityV82(id,v,input){return saveInventoryChangeV82(id,{inventoryPublic:v==='public'},input)}
 function downloadDocumentPDF(no,type,orderNo,date){
  const c=clients.find(x=>x.loginId===currentUser);
  const company=c?.name||'원준테이프';
