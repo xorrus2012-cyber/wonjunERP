@@ -169,6 +169,33 @@ tr:last-child td{border-bottom:0}
 .smartbox{position:relative;min-width:250px}.smartinput{width:100%;padding:10px 12px;border:1px solid #dbe1e8;border-radius:8px;background:#fff}.smartdrop{display:none;position:absolute;z-index:200;left:0;right:0;top:calc(100% + 4px);max-height:260px;overflow:auto;background:#fff;border:1px solid #dbe1e8;border-radius:9px;box-shadow:0 12px 28px rgba(15,23,42,.13);padding:5px}.smartbox.open .smartdrop{display:block}.smartopt{display:flex;gap:8px;align-items:center;padding:9px;border-radius:6px;cursor:pointer}.smartopt:hover{background:#f8fafc}.smarttags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.smarttag{display:inline-flex;gap:5px;align-items:center;padding:5px 8px;background:#eff6ff;color:#1d4ed8;border-radius:99px;font-size:11px}.smarttag button{border:0;background:none;color:inherit;padding:0;cursor:pointer}.date-range-v6{display:flex;gap:7px;align-items:center}.date-range-v6 input{padding:10px;border:1px solid #dbe1e8;border-radius:8px}.quick-v6{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.quick-v6 button{border:1px solid #dbe1e8;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px}.result-v6{margin-left:auto;color:#64748b;font-size:12px}.bulk-v6{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:10px 0}
 #adminOrders .bulk-v6>button.small-btn{box-sizing:border-box;width:104px;min-width:104px;height:32px;min-height:32px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;line-height:1;font-size:11px}#adminOrderPagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-top:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#475569;font-size:12px}#adminOrderPagination .pagination-left,#adminOrderPagination .pagination-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#adminOrderPagination button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 11px;font-size:12px;cursor:pointer}#adminOrderPagination button:disabled{opacity:.4;cursor:not-allowed}#adminOrderPagination select{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 8px}#adminOrderPagination .page-current{font-weight:700;color:#1d4ed8;min-width:75px;text-align:center}.detail-link{cursor:pointer;color:#2563eb;font-weight:700}.memo-v6{width:100%;min-height:75px;padding:10px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical}
 </style>
+
+<style id="v77-order-filter-layout">
+/* 주문/수주 관리의 검색 영역만 정돈합니다. 검색·필터 동작은 기존 함수를 그대로 사용합니다. */
+#adminOrders .order-filter-panel{margin:0 0 12px;padding:15px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;}
+#adminOrders .order-filter-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:14px;row-gap:13px;align-items:end;}
+#adminOrders .order-filter-field{min-width:0;}
+#adminOrders .order-filter-client,#adminOrders .order-filter-product,#adminOrders .order-filter-status{grid-column:span 4;}
+#adminOrders .order-filter-date{grid-column:span 8;}
+#adminOrders .order-filter-actions{grid-column:span 4;display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;}
+#adminOrders .order-filter-label{display:block;margin:0 0 6px;color:#475569;font-size:12px;font-weight:700;line-height:1.2;}
+#adminOrders .order-filter-field .smartbox{width:100%;min-width:0;max-width:none;}
+#adminOrders .order-filter-field .smartinput{box-sizing:border-box;width:100%;height:40px;min-height:40px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;}
+#adminOrders .order-filter-status select{box-sizing:border-box;display:block;width:100%;height:40px;min-height:40px;padding:0 11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;}
+#adminOrders .date-range-v6{display:flex;align-items:center;gap:8px;width:100%;}
+#adminOrders .date-range-v6 input{box-sizing:border-box;flex:1 1 0;min-width:0;width:0;height:40px;min-height:40px;padding:0 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;}
+#adminOrders .date-range-v6 span{color:#64748b;font-size:12px;flex:0 0 auto;}
+#adminOrders .quick-v6{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+#adminOrders .quick-v6 button{padding:4px 9px;min-height:26px;border:1px solid #dbe3ed;border-radius:7px;background:#fff;color:#475569;font-size:11px;line-height:1.2;cursor:pointer;}
+#adminOrders .quick-v6 button:hover{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;}
+#adminOrders .order-filter-actions .small-btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:40px;min-height:40px;padding:0 20px;border-radius:8px;white-space:nowrap;font-size:13px;}
+#adminOrders .order-filter-search{background:#2563eb;border-color:#2563eb;color:#fff;}
+#adminOrders .order-filter-search:hover{background:#1d4ed8;}
+#adminOrders .order-filter-reset{background:#fff;border:1px solid #cbd5e1;color:#475569;}
+#adminOrders .order-filter-reset:hover{background:#f1f5f9;}
+@media(max-width:900px){#adminOrders .order-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}#adminOrders .order-filter-client,#adminOrders .order-filter-product,#adminOrders .order-filter-status,#adminOrders .order-filter-date,#adminOrders .order-filter-actions{grid-column:span 1;}#adminOrders .order-filter-date{grid-column:1/-1;}#adminOrders .order-filter-actions{grid-column:1/-1;justify-content:flex-end;}#adminOrders .order-filter-panel{padding:13px;}}
+@media(max-width:520px){#adminOrders .order-filter-grid{grid-template-columns:minmax(0,1fr);gap:12px;}#adminOrders .order-filter-client,#adminOrders .order-filter-product,#adminOrders .order-filter-status,#adminOrders .order-filter-date,#adminOrders .order-filter-actions{grid-column:1/-1;}#adminOrders .order-filter-actions{display:grid;grid-template-columns:1fr 1fr;}#adminOrders .order-filter-actions .small-btn{width:100%;padding:0 10px;}#adminOrders .date-range-v6{gap:5px;}#adminOrders .date-range-v6 input{font-size:12px;padding:0 6px;}#adminOrders .quick-v6{gap:4px;}#adminOrders .quick-v6 button{padding:4px 7px;}}
+</style>
 <style id="v8-fix-css">
 /* V8 ECOUNT-style usability */
 html,body{overflow-x:hidden}
@@ -671,11 +698,15 @@ html,body{overflow-x:hidden}
       <!-- ADMIN ORDERS -->
       <section id="adminOrders" class="page">
         <div class="page-head"><div><h2>주문/수주 관리</h2><p>거래처에서 들어온 발주를 접수·생산·출고 상태로 관리합니다.</p></div><button class="btn light order-option-manage-btn" type="button" onclick="openOrderOptionModal();return false;">발주 옵션 관리</button></div>
-        <div class="toolbar" style="align-items:flex-start">
-<div class="smartbox" id="orderClientFilter"></div>
-<div class="smartbox" id="orderProductFilter"></div>
-<div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" aria-label="조회 시작일"><span>~</span><input type="date" id="adminOrderDateTo" aria-label="조회 종료일"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
-<button class="small-btn" onclick="applyOrderFiltersV76()">검색</button><select id="adminStatus" onchange="window.wjOrderPageV76=1;renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option><option>취소</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
+        <div class="order-filter-panel" aria-label="주문 검색 및 필터">
+          <div class="order-filter-grid">
+            <div class="order-filter-field order-filter-client"><label class="order-filter-label">거래처</label><div class="smartbox" id="orderClientFilter"></div></div>
+            <div class="order-filter-field order-filter-product"><label class="order-filter-label">제품</label><div class="smartbox" id="orderProductFilter"></div></div>
+            <div class="order-filter-field order-filter-status"><label class="order-filter-label" for="adminStatus">주문 상태</label><select id="adminStatus" onchange="window.wjOrderPageV76=1;renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option><option>취소</option></select></div>
+            <div class="order-filter-field order-filter-date"><label class="order-filter-label">접수일 기간</label><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" aria-label="조회 시작일"><span>~</span><input type="date" id="adminOrderDateTo" aria-label="조회 종료일"></div><div class="quick-v6"><button type="button" onclick="quickOrderDate('today')">오늘</button><button type="button" onclick="quickOrderDate('week')">이번 주</button><button type="button" onclick="quickOrderDate('lastweek')">지난 주</button><button type="button" onclick="quickOrderDate('month')">이번 달</button><button type="button" onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
+            <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyOrderFiltersV76()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="clearOrderFilters()">필터 초기화</button></div>
+          </div>
+        </div>
 <div class="bulk-v6"><button class="small-btn" onclick="bulkOrderStatus()">상태 변경</button><button class="small-btn" style="border-color:#fecaca;color:#b91c1c" onclick="deleteSelectedOrdersV70()">주문 삭제</button><button class="small-btn" onclick="downloadOrderExcelV71(false)">EXCEL</button><span id="orderResultV6" class="result-v6"></span></div>
         <div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminOrderSelectAll" class="order-check-v6" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleAllOrders(this.checked)"></th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th>품명</th><th>규격</th><th>수량</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>금액</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
 <div id="adminOrderPagination" aria-label="주문 목록 페이지 이동"></div>
