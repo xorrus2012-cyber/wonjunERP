@@ -136,6 +136,7 @@ tr:last-child td{border-bottom:0}
 .account-warning p{margin:6px 0 0;font-size:11px;color:#64748b;line-height:1.6}
 .section-title{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:18px}
 
+.client-profile-note{font-size:11px;color:#64748b;line-height:1.6}
 /* V59: 거래처 상세의 기본정보/접속정보를 데스크톱에서 좌우 배치 */
 #adminClientDetail .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
 #adminClientDetail .grid-2 > .card{min-width:0}
@@ -565,7 +566,7 @@ html,body{overflow-x:hidden}
         </div>
         <div class="card table-wrap">
           <table>
-            <thead><tr><th>제품</th><th>규격</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
+            <thead><tr><th>제품명</th><th>규격 / 발주 옵션</th><th>적용 단가</th><th>수량</th><th>금액</th><th>관리</th></tr></thead>
             <tbody id="cartRows"></tbody>
           </table>
         </div>
@@ -610,13 +611,20 @@ html,body{overflow-x:hidden}
       <!-- CLIENT ACCOUNT -->
       <section id="account" class="page">
         <div class="page-head"><div><h2>거래처 정보</h2><p>등록된 거래처 및 담당자 정보를 확인합니다.</p></div></div>
-        <div class="card pad"><div class="info-list">
-          <div class="key">회사명</div><div id="accountCompany">거래처 A</div>
-          <div class="key">거래처 코드</div><div>WJ-C001</div>
-          <div class="key">담당자</div><div>홍길동</div>
-          <div class="key">전화번호</div><div>010-0000-0000</div>
-          <div class="key">이메일</div><div>contact@example.com</div>
-        </div></div>
+        <div class="card pad">
+          <div class="section-title">거래처 기본 정보</div>
+          <p class="help-text" style="margin-top:-8px;margin-bottom:14px">회사명·사업자번호·담당자 연락처를 확인하고 필요한 정보를 수정할 수 있습니다. 수정 내역은 관리자에게 기록됩니다.</p>
+          <div class="form-grid">
+            <div class="field"><label for="accountEditName">회사명</label><input id="accountEditName" autocomplete="organization" required></div>
+            <div class="field"><label for="accountEditBizNo">사업자번호</label><input id="accountEditBizNo" inputmode="numeric" autocomplete="off"></div>
+            <div class="field"><label for="accountEditManager">담당자</label><input id="accountEditManager" autocomplete="name"></div>
+            <div class="field"><label for="accountEditPhone">전화번호</label><input id="accountEditPhone" type="tel" autocomplete="tel"></div>
+            <div class="field"><label for="accountEditEmail">이메일</label><input id="accountEditEmail" type="email" autocomplete="email"></div>
+            <div class="field full"><label for="accountEditAddress">주소</label><input id="accountEditAddress" autocomplete="street-address"></div>
+          </div>
+          <div class="action-row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="saveMyClientProfileBtn" onclick="saveMyClientProfile()">정보 수정 저장</button></div>
+          <div class="help-text">거래처 코드, 로그인 ID, 거래 상태는 관리자에게 요청해 주세요.</div>
+        </div>
       </section>
 
       <!-- ADMIN DASH -->
@@ -703,6 +711,11 @@ html,body{overflow-x:hidden}
               <p>거래처의 로그인 정보는 관리자 화면에서만 관리합니다. 거래처는 다른 업체의 계정 정보를 볼 수 없습니다.</p>
             </div>
           </div>
+        </div>
+        <div class="card pad" style="margin-top:16px">
+          <div class="section-title">거래처 정보 수정 이력</div>
+          <p class="help-text" style="margin-top:-8px;margin-bottom:12px">거래처가 본인 정보 화면에서 저장한 변경 내역입니다.</p>
+          <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>수정 일시</th><th>로그인 ID</th><th>변경 항목</th><th>변경 전 → 변경 후</th></tr></thead><tbody id="clientProfileLogRows"><tr><td colspan="4" class="v4-empty">거래처를 선택하면 수정 이력이 표시됩니다.</td></tr></tbody></table></div>
         </div>
       </section>
 
@@ -1828,12 +1841,70 @@ function applyLoggedInUI(){
  else {
    document.getElementById('welcomeName').textContent=client.name;
    document.getElementById('accountCompany').textContent=client.name;
+   renderClientAccount();
    go('home');
  }
  renderAll();
  loadOrderOptionSettings().then(()=>{renderOrderOptionSettings();renderProducts()});
  setTimeout(initV6Smart,20);
 }
+function renderClientAccount(){
+ const c=clients.find(x=>String(x.loginId)===String(currentUser));
+ if(!c)return;
+ const fields={accountEditName:c.name||c.company||'',accountEditBizNo:c.bizNo||'',accountEditManager:c.manager||'',accountEditPhone:c.phone||'',accountEditEmail:c.email||'',accountEditAddress:c.address||''};
+ Object.entries(fields).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.value=value});
+}
+async function saveMyClientProfile(){
+ if(!supabaseERP){alert('서버 연결이 확인되지 않습니다. 다시 로그인해 주세요.');return}
+ const c=clients.find(x=>String(x.loginId)===String(currentUser));
+ if(!c||currentUser==='admin'){alert('거래처 계정을 확인할 수 없습니다.');return}
+ const next={name:document.getElementById('accountEditName').value.trim(),biz_no:document.getElementById('accountEditBizNo').value.trim(),manager:document.getElementById('accountEditManager').value.trim(),phone:document.getElementById('accountEditPhone').value.trim(),email:document.getElementById('accountEditEmail').value.trim(),address:document.getElementById('accountEditAddress').value.trim()};
+ if(!next.name){alert('회사명을 입력해 주세요.');return}
+ const btn=document.getElementById('saveMyClientProfileBtn');if(btn){btn.disabled=true;btn.textContent='저장 중...'}
+ try{
+   const {data,error}=await supabaseERP.rpc('update_my_client_profile',{
+     p_name:next.name,p_biz_no:next.biz_no,p_manager:next.manager,p_phone:next.phone,p_email:next.email,p_address:next.address
+   });
+   if(error)throw error;
+   if(data?.error)throw new Error(data.error);
+   await refreshCurrentClientFromSupabase();
+   const refreshed=clients.find(x=>String(x.loginId)===String(currentUser));
+   if(refreshed){document.getElementById('welcomeName').textContent=refreshed.name;document.getElementById('sideUser').textContent=refreshed.name;document.getElementById('clientChip').textContent=refreshed.name;}
+   renderClientAccount();
+   alert('거래처 정보가 저장되었습니다. 수정 내역은 관리자 페이지에 기록되었습니다.');
+ }catch(e){
+   console.error('거래처 본인 정보 수정 실패:',e);
+   const msg=String(e?.message||e);
+   if(msg.includes('update_my_client_profile')||msg.includes('schema cache')||msg.includes('Could not find the function')){
+     alert('거래처 정보 수정 기능의 서버 설정이 아직 적용되지 않았습니다. 제공된 V61용 Supabase SQL 설정을 먼저 실행해 주세요.');
+   }else if(msg.includes('permission denied')||msg.includes('row-level security')){
+     alert('서버 권한 설정으로 저장이 거부되었습니다. 관리자에게 Supabase 권한 설정 확인을 요청해 주세요.');
+   }else alert('거래처 정보 저장에 실패했습니다.\n\n'+msg);
+ }finally{if(btn){btn.disabled=false;btn.textContent='정보 수정 저장'}}
+}
+function clientProfileFieldLabel(k){return ({name:'회사명',biz_no:'사업자번호',manager:'담당자',phone:'전화번호',email:'이메일',address:'주소'})[k]||k}
+function clientProfileDisplayValue(v){return v===null||v===undefined||v===''?'(비어 있음)':String(v)}
+async function loadClientProfileChangeLogs(clientId){
+ const body=document.getElementById('clientProfileLogRows');if(!body)return;
+ if(!supabaseERP){body.innerHTML='<tr><td colspan="4" class="v4-empty">서버 연결을 확인할 수 없습니다.</td></tr>';return}
+ body.innerHTML='<tr><td colspan="4" class="v4-empty">수정 이력을 불러오는 중...</td></tr>';
+ try{
+   const {data,error}=await supabaseERP.from('client_profile_change_logs').select('created_at,login_id,changes').eq('client_id',String(clientId)).order('created_at',{ascending:false}).limit(100);
+   if(error)throw error;
+   if(!data?.length){body.innerHTML='<tr><td colspan="4" class="v4-empty">기록된 수정 이력이 없습니다.</td></tr>';return}
+   body.innerHTML=data.map(log=>{
+     const date=log.created_at?new Date(log.created_at).toLocaleString('ko-KR'):'-';
+     const changes=log.changes&&typeof log.changes==='object'?log.changes:{};
+     const labels=Object.keys(changes).map(clientProfileFieldLabel).join(', ')||'-';
+     const values=Object.entries(changes).map(([key,v])=>`${clientProfileFieldLabel(key)}: ${clientProfileDisplayValue(v?.before)} → ${clientProfileDisplayValue(v?.after)}`).join('<br>')||'-';
+     return `<tr><td>${escapeHtmlV8(date)}</td><td>${escapeHtmlV8(log.login_id||'-')}</td><td>${escapeHtmlV8(labels)}</td><td style="white-space:normal;min-width:260px">${values}</td></tr>`;
+   }).join('');
+ }catch(e){
+   console.error('거래처 수정 이력 조회 실패:',e);
+   body.innerHTML='<tr><td colspan="4" class="v4-empty">수정 이력 테이블 또는 관리자 조회 권한이 아직 설정되지 않았습니다. V61용 Supabase SQL을 실행해 주세요.</td></tr>';
+ }
+}
+
 function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
 
 async function logout(){
@@ -1851,7 +1922,7 @@ function go(page,btn){
    if(supabaseERP && supabaseSyncReady){
      Promise.all([loadProductsFromSupabase(),loadOrderOptionSettings()]).then(()=>renderProducts()).catch(e=>{console.error('거래처 제품/발주 옵션 DB 조회 실패:',e);renderProducts()});
    }else renderProducts();
- } if(page==='cartPage')renderCartPage();
+ } if(page==='account')renderClientAccount(); if(page==='cartPage')renderCartPage();
  if(page==='orders')renderClientOrders();
  if(page==='adminOrders'){renderAdminOrders();renderOrderOptionSettings();loadOrderOptionSettings().then(renderOrderOptionSettings)}
  if(page==='adminClients')renderClients(); if(page==='adminNotices')renderAdminNotices();
@@ -1914,7 +1985,7 @@ function editCartItemOption(key,field,value){const item=cartItems.find(x=>String
 function renderCartPage(){
  const rows=document.getElementById('cartRows');if(!rows)return;let total=0;
  if(!cartItems.length){rows.innerHTML='<tr><td colspan="6" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';document.getElementById('cartPageTotal').textContent=won(0);return}
- rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);total+=amount;const safe=JSON.stringify(String(item.key));return `<tr><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div><div class="cart-item-spec">${escapeHtmlV8(p.spec)}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')}</div></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
+ rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);total+=amount;const safe=JSON.stringify(String(item.key));return `<tr><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
  document.getElementById('cartPageTotal').textContent=won(total);
 }
 function updateCart(){
@@ -2189,6 +2260,7 @@ function openClientDetail(id){
  document.querySelector('#adminClientDetail .password-row .small-btn').textContent='보기';
  document.getElementById('clientDetailSubtitle').textContent=`${c.name||''} · ${c.code||''} 거래처의 기본정보와 접속 정보를 관리합니다.`;
  go('adminClientDetail');
+ loadClientProfileChangeLogs(c.id);
 }
 
 async function saveClientDetail(){
