@@ -661,6 +661,15 @@ html,body{overflow-x:hidden}
           <div class="kpi"><div class="label">재고 주의 품목</div><div class="num" id="adminKpiStock">0개</div><div class="note">안전재고 이하</div></div>
           <div class="kpi"><div class="label">전체 발주</div><div class="num" id="adminKpiOrders">0건</div><div class="note">저장 데이터 기준</div></div>
         </div>
+        <div class="page-head" style="margin-top:14px;margin-bottom:8px">
+          <h3 class="section-title">월별 발주 금액 현황</h3>
+          <div style="display:flex;align-items:center;gap:8px"><label for="dashStatsMonthV70" style="font-size:12px;color:#64748b">조회 월</label><input id="dashStatsMonthV70" type="month" class="input" style="width:165px;min-height:38px" onchange="renderAdminDashboard()"></div>
+        </div>
+        <div class="kpi-grid" id="dashStatusKpisV70">
+          <div class="kpi"><div class="label">진행 중 발주 금액</div><div class="num" id="dashProgressAmountV70">₩ 0</div><div class="note" id="dashProgressCountV70">0건</div></div>
+          <div class="kpi"><div class="label">출고 완료 발주 금액</div><div class="num" id="dashCompletedAmountV70">₩ 0</div><div class="note" id="dashCompletedCountV70">0건</div></div>
+          <div class="kpi"><div class="label">취소 발주 금액</div><div class="num" id="dashCancelledAmountV70">₩ 0</div><div class="note" id="dashCancelledCountV70">0건</div></div>
+        </div>
         <div class="grid2">
           <div class="card pad"><div class="page-head"><h3 class="section-title">최근 수주</h3><button class="small-btn" onclick="go('adminOrders')">전체보기</button></div><div class="table-wrap"><table><thead><tr><th>선택</th><th>발주번호</th><th>거래처</th><th>품목</th><th>수량</th><th>상태</th></tr></thead><tbody id="adminDashOrders"></tbody></table></div></div>
           <div class="card"><div class="pad"><h3 class="section-title">재고 주의 품목</h3></div><div id="stockWarnings"></div></div>
@@ -674,8 +683,8 @@ html,body{overflow-x:hidden}
 <div class="smartbox" id="orderClientFilter"></div>
 <div class="smartbox" id="orderProductFilter"></div>
 <div><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" onchange="renderAdminOrders()"><span>~</span><input type="date" id="adminOrderDateTo" onchange="renderAdminOrders()"></div><div class="quick-v6"><button onclick="quickOrderDate('today')">오늘</button><button onclick="quickOrderDate('week')">이번 주</button><button onclick="quickOrderDate('lastweek')">지난 주</button><button onclick="quickOrderDate('month')">이번 달</button><button onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
-<select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
-<div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
+<select id="adminStatus" onchange="renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option><option>취소</option></select><button class="small-btn" onclick="clearOrderFilters()">필터 초기화</button></div>
+<div class="bulk-v6"><button class="small-btn" onclick="toggleAllOrders(this)">전체 선택</button><button class="small-btn" onclick="bulkOrderStatus()">선택 상태 변경</button><button class="small-btn" onclick="bulkCancelOrdersV70()">선택 취소 처리</button><button class="small-btn" style="border-color:#fecaca;color:#b91c1c" onclick="deleteSelectedOrdersV70()">선택 삭제</button><button class="small-btn" onclick="downloadOrderCSV()">조회 결과 CSV</button><span id="orderResultV6" class="result-v6"></span></div>
         <div class="card table-wrap"><table><thead><tr><th class="order-head-check">선택</th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th>품명</th><th>규격</th><th>수량</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>금액</th><th>관리</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
       </section>
 
@@ -796,6 +805,11 @@ html,body{overflow-x:hidden}
           <div class="kpi"><div class="label">월간 발주</div><div class="num" id="statsOrderCount">0건</div><div class="note" id="statsClientCount">거래처 0곳</div></div>
           <div class="kpi"><div class="label">평균 발주금액</div><div class="num" id="statsAverage">₩ 0</div></div>
           <div class="kpi"><div class="label">출고 완료율</div><div class="num" id="statsCompleteRate">0%</div></div>
+        </div>
+        <div class="kpi-grid" style="margin-top:14px">
+          <div class="kpi"><div class="label">진행 중 발주 금액</div><div class="num" id="statsProgressAmount">₩ 0</div><div class="note" id="statsProgressCount">0건</div></div>
+          <div class="kpi"><div class="label">출고 완료 발주 금액</div><div class="num" id="statsCompletedAmount">₩ 0</div><div class="note" id="statsCompletedCount">0건</div></div>
+          <div class="kpi"><div class="label">취소 발주 금액</div><div class="num" id="statsCancelledAmount">₩ 0</div><div class="note" id="statsCancelledCount">0건 · 수주액에서 별도 구분</div></div>
         </div>
         <div class="card pad">
           <h3 class="section-title">월별 수주 추이</h3>
@@ -2198,7 +2212,7 @@ async function checkout(selectedOnly=false){
    alert('발주 저장에 실패했습니다.\n\n'+(e?.message||e));
  }
 }
-function badge(s){const cls=s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
+function badge(s){const cls=s==='취소'?'s-red':s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
 function getWJOrderOptionSummary(details){
   const list=Array.isArray(details)?details:[];
   if(list.length<=1){
@@ -2229,7 +2243,23 @@ function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))retur
 function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
 function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
 function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'박스';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
-function renderAdminDashboard(){const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${o.no}</b></td><td>${o.client}</td><td>${getWJOrderSummaryText(o)}</td><td>총 ${o.qty.toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${p.name}</b><span>${p.stock.toLocaleString()} / 안전 ${p.safety.toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건'}
+function renderAdminDashboard(){
+ const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='접수 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));
+ document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${escapeHtmlV8(o.client)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';
+ document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${escapeHtmlV8(p.name)}</b><span>${Number(p.stock||0).toLocaleString()} / 안전 ${Number(p.safety||0).toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';
+ document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건';
+ const monthEl=document.getElementById('dashStatsMonthV70');if(monthEl&&!monthEl.value){const statsMonth=document.getElementById('adminStatsMonth')?.value;monthEl.value=statsMonth||`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`}
+ const month=monthEl?.value||new Date().toISOString().slice(0,7);
+ const arr=(orders||[]).filter(o=>String(o.date||'').slice(0,7)===month);
+ const cancelled=o=>String(o.status||'').trim()==='취소'||String(o.status||'').includes('취소');
+ const completed=o=>String(o.status||'').trim()==='출고 완료';
+ const progress=arr.filter(o=>!cancelled(o)&&!completed(o)),done=arr.filter(completed),cancel=arr.filter(cancelled);
+ const fmt=n=>'₩ '+Number(n||0).toLocaleString('ko-KR');
+ const put=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ put('dashProgressAmountV70',fmt(progress.reduce((a,o)=>a+Number(o.amount||0),0)));put('dashProgressCountV70',progress.length.toLocaleString()+'건');
+ put('dashCompletedAmountV70',fmt(done.reduce((a,o)=>a+Number(o.amount||0),0)));put('dashCompletedCountV70',done.length.toLocaleString()+'건');
+ put('dashCancelledAmountV70',fmt(cancel.reduce((a,o)=>a+Number(o.amount||0),0)));put('dashCancelledCountV70',cancel.length.toLocaleString()+'건');
+}
 // 체크 상태는 테이블 DOM이 아니라 별도 Set에 보관합니다.
 // 3초 폴링/Realtime으로 주문 표가 다시 그려져도 선택이 유지됩니다.
 window.wjSelectedOrderNosV58 = window.wjSelectedOrderNosV58 instanceof Set ? window.wjSelectedOrderNosV58 : new Set();
@@ -2756,9 +2786,60 @@ function quickOrderDate(k){const d=new Date(),f=x=>x.toISOString().slice(0,10);l
 function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});renderAdminOrders()}
 function setOrderStatusV6(no,status){const o=orders.find(x=>x.no===no);if(!o)return;o.status=status;saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
 function toggleAllOrders(btn){const a=[...document.querySelectorAll('.order-check-v6')],on=!a.every(x=>x.checked);a.forEach(x=>{x.checked=on;const no=String(x.value);if(on)window.wjSelectedOrderNosV58.add(no);else window.wjSelectedOrderNosV58.delete(no)});btn.textContent=on?'선택 해제':'전체 선택'}
-function orderStatusBadgeV54(status){const map={'접수 완료':'order-st-received-v54','생산 중':'order-st-production-v54','출고 대기':'order-st-wait-v54','출고 중':'order-st-shipping-v54','출고 완료':'order-st-done-v54'};const s=['접수 완료','생산 중','출고 대기','출고 중','출고 완료'].includes(status)?status:'접수 완료';return `<span class="status order-status-v54 ${map[s]}">${escapeHtmlV8(s)}</span>`}
+function orderStatusBadgeV54(status){const map={'접수 완료':'order-st-received-v54','생산 중':'order-st-production-v54','출고 대기':'order-st-wait-v54','출고 중':'order-st-shipping-v54','출고 완료':'order-st-done-v54','취소':'order-st-cancelled-v54'};const s=['접수 완료','생산 중','출고 대기','출고 중','출고 완료','취소'].includes(status)?status:'접수 완료';return `<span class="status order-status-v54 ${map[s]||'order-st-cancelled-v54'}">${escapeHtmlV8(s)}</span>`}
 function ensureBulkStatusModalV54(){if(document.getElementById('bulkStatusModalV54'))return;const d=document.createElement('div');d.id='bulkStatusModalV54';d.className='bulk-status-overlay-v54';d.innerHTML=`<div class="bulk-status-dialog-v54" role="dialog" aria-modal="true" aria-labelledby="bulkStatusTitleV54"><div class="bulk-status-head-v54"><div><h3 id="bulkStatusTitleV54">선택 주문 상태 변경</h3><p id="bulkStatusCountV54">선택한 주문의 상태를 변경합니다.</p></div><button type="button" class="bulk-status-x-v54" onclick="closeBulkStatusModalV54()" aria-label="닫기">×</button></div><div class="bulk-status-options-v54" id="bulkStatusOptionsV54"></div><div class="bulk-status-foot-v54"><button type="button" class="small-btn" onclick="closeBulkStatusModalV54()">취소</button><button type="button" class="btn primary" onclick="applyBulkStatusV54()">저장</button></div></div>`;d.addEventListener('click',e=>{if(e.target===d)closeBulkStatusModalV54()});document.body.appendChild(d)}
-function bulkOrderStatus(){document.querySelectorAll('.order-check-v6:checked').forEach(x=>window.wjSelectedOrderNosV58.add(String(x.value)));const ns=[...window.wjSelectedOrderNosV58];if(!ns.length){alert('주문을 선택하세요.');return}ensureBulkStatusModalV54();window.bulkStatusOrderNosV54=ns;const statuses=['접수 완료','생산 중','출고 대기','출고 중','출고 완료'];const selected=new Set(ns.map(n=>orders.find(o=>String(o.no)===String(n))?.status).filter(Boolean));const same=selected.size===1?[...selected][0]:'';document.getElementById('bulkStatusCountV54').textContent=`선택한 주문 ${ns.length}건의 상태를 변경합니다.`;document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((s,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${s}" ${same===s?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(s)}</span>${same===s?'<small>현재 상태</small>':''}</label>`).join('');document.getElementById('bulkStatusModalV54').classList.add('show')}
+function bulkOrderStatus(){document.querySelectorAll('.order-check-v6:checked').forEach(x=>window.wjSelectedOrderNosV58.add(String(x.value)));const ns=[...window.wjSelectedOrderNosV58];if(!ns.length){alert('주문을 선택하세요.');return}ensureBulkStatusModalV54();window.bulkStatusOrderNosV54=ns;const statuses=['접수 완료','생산 중','출고 대기','출고 중','출고 완료','취소'];const selected=new Set(ns.map(n=>orders.find(o=>String(o.no)===String(n))?.status).filter(Boolean));const same=selected.size===1?[...selected][0]:'';document.getElementById('bulkStatusCountV54').textContent=`선택한 주문 ${ns.length}건의 상태를 변경합니다.`;document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((s,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${s}" ${same===s?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(s)}</span>${same===s?'<small>현재 상태</small>':''}</label>`).join('');document.getElementById('bulkStatusModalV54').classList.add('show')}
+function bulkCancelOrdersV70(){
+ bulkOrderStatus();
+ const cancelChoice=document.querySelector('input[name="bulkStatusChoiceV54"][value="취소"]');
+ if(cancelChoice)cancelChoice.checked=true;
+}
+async function deleteSelectedOrdersV70(){
+ document.querySelectorAll('.order-check-v6:checked').forEach(el=>window.wjSelectedOrderNosV58.add(String(el.value)));
+ const nos=[...window.wjSelectedOrderNosV58];
+ if(!nos.length){alert('삭제할 주문을 선택해 주세요.');return}
+ if(!confirm(`선택한 주문 ${nos.length}건을 서버에서 영구 삭제합니다. 주문 이력 복구가 어려울 수 있습니다. 테스트 주문인지 확인하셨습니까?`))return;
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 삭제할 수 없습니다.');return}
+ let removed=0;const failed=[];
+ try{
+   const probe=await supabaseERP.from('orders').select('*').limit(1);
+   if(probe.error)throw probe.error;
+   const sample=probe.data?.[0]||{};
+   const orderKey=firstColumn(sample,['order_no','no']);
+   const idCol=Object.prototype.hasOwnProperty.call(sample,'id')?'id':(Object.prototype.hasOwnProperty.call(sample,'order_id')?'order_id':'');
+   for(const no of nos){
+     const order=orders.find(o=>String(o.no)===String(no));
+     if(!order){failed.push(no);continue}
+     // 상세 품목은 스키마에 있는 연결 컬럼으로 먼저 삭제 시도합니다.
+     try{
+       const ip=await supabaseERP.from('order_items').select('*').limit(1);
+       if(!ip.error&&ip.data?.[0]){
+         const ir=ip.data[0];
+         const itemOrderNo=firstColumn(ir,['order_no','no']);
+         const itemOrderId=firstColumn(ir,['order_id','order']);
+         if(itemOrderNo){
+           const d=await supabaseERP.from('order_items').delete().eq(itemOrderNo,no);
+           if(d.error)throw d.error;
+         }else if(itemOrderId&&(order.dbId||order.no)){
+           const d=await supabaseERP.from('order_items').delete().eq(itemOrderId,order.dbId||order.no);
+           if(d.error)throw d.error;
+         }
+       }
+     }catch(e){console.warn('주문 상세 삭제 실패:',no,e);failed.push(no);continue}
+     let q=supabaseERP.from('orders').delete();
+     if(idCol&&order.dbId)q=q.eq(idCol,order.dbId);
+     else if(orderKey)q=q.eq(orderKey,no);
+     else {failed.push(no);continue}
+     const {data,error}=await q.select('*');
+     if(error||!data||!data.length){if(error)console.error('주문 삭제 실패:',no,error);failed.push(no);continue}
+     removed++;
+   }
+   if(removed){await loadOrdersFromSupabase();window.wjSelectedOrderNosV58=new Set();try{localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders))}catch(e){}renderAdminOrders();renderAdminDashboard();renderClientOrders();renderHome();renderAdminStats()}
+   const result=document.getElementById('orderResultV6');if(result)result.textContent=`영구 삭제 ${removed}건`;
+   if(failed.length)alert(`${removed}건 삭제했습니다. ${failed.length}건은 삭제되지 않았습니다. 서버 권한 또는 연결된 주문 상세를 확인해 주세요.`);
+   else alert(`${removed}건을 서버에서 영구 삭제했습니다.`);
+ }catch(e){console.error('선택 주문 삭제 실패:',e);alert('주문 삭제에 실패했습니다.\n'+(e?.message||e))}
+}
 function closeBulkStatusModalV54(){document.getElementById('bulkStatusModalV54')?.classList.remove('show')}
 async function applyBulkStatusV54(){
  const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');
@@ -2792,7 +2873,7 @@ async function applyBulkStatusV54(){
      await loadOrdersFromSupabase();
      try{localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders))}catch(e){console.warn('주문 캐시 저장 실패',e)}
      closeBulkStatusModalV54();
-     renderAdminOrders();renderAdminDashboard();renderClientOrders();
+     renderAdminOrders();renderAdminDashboard();renderClientOrders();if(typeof renderAdminStats==='function')renderAdminStats();
      if(typeof renderHome==='function')renderHome();
      const result=document.getElementById('orderResultV6');
      if(result)result.textContent=`선택 주문 ${changed}건 상태 저장 완료`;
@@ -3045,24 +3126,37 @@ function renderAdminStats(){
  if(!monthInput.value)monthInput.value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
  const selected=monthInput.value;
  const monthOrders=(orders||[]).filter(o=>String(o.date||'').slice(0,7)===selected);
- const total=monthOrders.reduce((sum,o)=>sum+Number(o.amount||0),0);
+ const amount=o=>Number(o.amount||0);
+ const isCancelled=o=>String(o.status||'').trim()==='취소'||String(o.status||'').includes('취소');
+ const isCompleted=o=>String(o.status||'').trim()==='출고 완료';
+ const cancelled=monthOrders.filter(isCancelled);
+ const completed=monthOrders.filter(isCompleted);
+ const progress=monthOrders.filter(o=>!isCancelled(o)&&!isCompleted(o));
+ const total=monthOrders.reduce((sum,o)=>sum+amount(o),0);
+ const progressTotal=progress.reduce((sum,o)=>sum+amount(o),0);
+ const completedTotal=completed.reduce((sum,o)=>sum+amount(o),0);
+ const cancelledTotal=cancelled.reduce((sum,o)=>sum+amount(o),0);
  const avg=monthOrders.length?Math.round(total/monthOrders.length):0;
- const completed=monthOrders.filter(o=>o.status==='출고 완료').length;
- const clientCount=new Set(monthOrders.map(o=>String(o.clientId||o.id||o.client||'' )).filter(Boolean)).size;
+ const clientCount=new Set(monthOrders.map(o=>String(o.clientId||o.id||o.client||'')).filter(Boolean)).size;
  const fmt=n=>Number(n||0).toLocaleString('ko-KR');
  const money=n=>'₩ '+fmt(n);
- const label=document.getElementById('statsSalesLabel');if(label)label.textContent=`${Number(selected.slice(5,7))}월 누적 수주`;
+ const label=document.getElementById('statsSalesLabel');if(label)label.textContent=`${Number(selected.slice(5,7))}월 전체 수주액(취소 포함)`;
  document.getElementById('statsSales').textContent=money(total);
  document.getElementById('statsOrderCount').textContent=fmt(monthOrders.length)+'건';
  document.getElementById('statsClientCount').textContent=`거래처 ${fmt(clientCount)}곳`;
  document.getElementById('statsAverage').textContent=money(avg);
- document.getElementById('statsCompleteRate').textContent=(monthOrders.length?Math.round(completed/monthOrders.length*100):0)+'%';
+ const validOrders=monthOrders.filter(o=>!isCancelled(o));
+ document.getElementById('statsCompleteRate').textContent=(validOrders.length?Math.round(completed.length/validOrders.length*100):0)+'%';
+ const setText=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ setText('statsProgressAmount',money(progressTotal));setText('statsProgressCount',fmt(progress.length)+'건');
+ setText('statsCompletedAmount',money(completedTotal));setText('statsCompletedCount',fmt(completed.length)+'건');
+ setText('statsCancelledAmount',money(cancelledTotal));setText('statsCancelledCount',fmt(cancelled.length)+'건 · 전체 수주액에 포함, 별도 구분');
  const start=new Date(Number(selected.slice(0,4)),Number(selected.slice(5,7))-6,1);
  const chartMonths=[];
  for(let i=0;i<6;i++){const d=new Date(start.getFullYear(),start.getMonth()+i,1);chartMonths.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}
- const sums=chartMonths.map(m=>({month:m,total:(orders||[]).filter(o=>String(o.date||'').slice(0,7)===m).reduce((a,o)=>a+Number(o.amount||0),0)}));
+ const sums=chartMonths.map(m=>({month:m,total:(orders||[]).filter(o=>String(o.date||'').slice(0,7)===m).reduce((a,o)=>a+amount(o),0)}));
  const max=Math.max(1,...sums.map(x=>x.total));
- document.getElementById('adminStatsChart').innerHTML=sums.map(x=>{const h=Math.max(x.total?3:1,Math.round(x.total/max*100));return `<div title="${x.month}: ${money(x.total)}" style="min-width:54px;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px"><div style="font-size:10px;color:#475569;text-align:center;white-space:nowrap">${money(x.total)}</div><div style="height:${h}%;width:70%;min-height:2px;background:${x.month===selected?'#2563eb':'#bfdbfe'};border-radius:5px 5px 0 0"></div><div style="font-size:11px;color:#475569;white-space:nowrap">${Number(x.month.slice(5,7))}월</div></div>`}).join('');
+ document.getElementById('adminStatsChart').innerHTML=sums.map(x=>{const h=Math.max(x.total?3:1,Math.round(x.total/max*100));return `<div title="${x.month}: ${money(x.total)} (취소 포함)" style="min-width:54px;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px"><div style="font-size:10px;color:#475569;text-align:center;white-space:nowrap">${money(x.total)}</div><div style="height:${h}%;width:70%;min-height:2px;background:${x.month===selected?'#2563eb':'#bfdbfe'};border-radius:5px 5px 0 0"></div><div style="font-size:11px;color:#475569;white-space:nowrap">${Number(x.month.slice(5,7))}월</div></div>`}).join('');
  const sorted=[...monthOrders].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
  document.getElementById('adminStatsRows').innerHTML=sorted.map(o=>`<tr><td>${escapeHtmlV8(o.date||'-')}</td><td><b>${escapeHtmlV8(o.no||'-')}</b></td><td>${escapeHtmlV8(o.client||'-')}</td><td>${fmt(o.qty||0)}박스</td><td>${money(o.amount||0)}</td><td>${badge(o.status||'접수 완료')}</td></tr>`).join('')||'<tr><td colspan="6" class="v4-empty">선택한 월의 주문 내역이 없습니다.</td></tr>';
 }
@@ -3270,4 +3364,8 @@ window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllER
   #modalBg:has(#addCartBoxType) .order-option-card .option-help,
   #modalBg:has(#addCartBoxType) .order-option-card > div{grid-column:1}
 }
+
+.order-st-cancelled-v54{background:#fee2e2!important;color:#991b1b!important;border-color:#fecaca!important}
+
+.s-red{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fecaca!important}
 </style>
