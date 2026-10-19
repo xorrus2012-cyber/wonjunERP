@@ -1745,7 +1745,7 @@ function subscribeERPRealtime(){
 
 /* 3초 폴링은 Realtime publication이 아직 켜지지 않은 환경에서도 즉시성에 가깝게 동작하게 하는 안전망입니다. */
 setInterval(async()=>{
-  if(supabaseERP && supabaseSyncReady && !document.hidden) await loadAllERPDataFromSupabase();
+  if(supabaseERP && supabaseSyncReady && !document.hidden && !document.getElementById('modalBg')?.classList.contains('show') && !(document.activeElement && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName) && (document.activeElement.closest('#adminInventory') || document.activeElement.closest('#adminPrices') || document.activeElement.closest('#modalBg')))) await loadAllERPDataFromSupabase();
 },3000);
 
 /* V28: 제품 목록은 관리자/거래처 모두 동일한 Supabase products만 사용 */
@@ -2826,7 +2826,7 @@ async function saveInventoryRowV83(id,button){
    await loadProductsFromSupabase();
    renderAdminInventory();renderAdminProducts();renderAdminDashboard();renderInventoryRows();renderProducts();
    const currentRow=[...document.querySelectorAll('#adminInventoryRows tr')].find(r=>r.getAttribute('data-inventory-product')===String(id));
-   const currentStatus=currentRow?.querySelector('.inventory-row-status-v83');if(currentStatus)currentStatus.textContent='저장 완료';
+   alert('재고/창고 설정이 저장되었습니다.');
  }catch(err){Object.assign(p,previous);if(status)status.textContent='저장 실패';console.error('재고 저장 실패:',err);alert('재고 설정 저장에 실패했습니다.\n\n'+(err?.message||err)+'\n\n저장 실패 시 입력값은 임의로 0으로 덮어쓰지 않습니다. 실제 inventory 테이블 컬럼과 RLS 권한을 확인해 주세요.');await loadProductsFromSupabase();renderAdminInventory()}
  finally{const currentRow=[...document.querySelectorAll('#adminInventoryRows tr')].find(r=>r.getAttribute('data-inventory-product')===String(id));const b=currentRow?.querySelector('.inventory-row-save-v83');if(b){b.disabled=false;b.textContent='저장'}}
 }
@@ -2934,9 +2934,11 @@ function deleteCategory(i){if(productCategories.length<=1){alert('최소 1개의
 function smartGet(id){const e=document.getElementById(id);return e&&e._smartGet?e._smartGet():[]}
 function smartBuild(id,items,placeholder,cb){
  const root=document.getElementById(id);if(!root)return;
+ // Realtime/polling refresh rebuilds these controls; retain selected values so the chosen customer remains visibly selected.
+ const priorSelection=typeof root._smartGet==='function'?root._smartGet():[];
  root.className='smartbox';
  root.innerHTML=`<input class="smartinput" placeholder="${placeholder}" autocomplete="off"><div class="smartdrop"></div><div class="smarttags"></div>`;
- const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags'),sel=[];
+ const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags'),sel=priorSelection.map(String).filter(v=>items.some(x=>String(x.value)===v));
  let focusIndex=-1;
  root._smartGet=()=>sel.slice();
  root._smartSet=a=>{sel.splice(0,sel.length,...(a||[]).map(String));focusIndex=-1;draw()};
@@ -3099,7 +3101,28 @@ function downloadOrderExcelV71(selectedOnly=false){
  const headers=['발주번호','거래처','접수일','상태','품명','규격','수량','박스 종류','도장 표기','파렛트','금액'];
  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
  const tableRows=rows.map(r=>{const cells=[...r.children].slice(1,12).map(td=>td.innerText.trim());return '<tr>'+cells.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>'}).join('');
- const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table></body></html>';
+ const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table>
+<script id="v85-protect-editing-inputs">
+(function(){
+  if(typeof renderAll==='function'&&!window.__wjRenderAllProtectV85){
+    window.__wjRenderAllProtectV85=true;
+    const originalRenderAll=renderAll;
+    renderAll=function(){
+      const active=document.activeElement;
+      const isEditable=!!(active&&['INPUT','SELECT','TEXTAREA'].includes(active.tagName));
+      const protectInventory=isEditable&&!!active.closest('#adminInventory');
+      const protectPrices=isEditable&&!!active.closest('#adminPrices');
+      const originalInventory=renderAdminInventory;
+      const originalPrices=renderPriceManagement;
+      if(protectInventory)renderAdminInventory=function(){};
+      if(protectPrices)renderPriceManagement=function(){};
+      try{return originalRenderAll.apply(this,arguments)}
+      finally{renderAdminInventory=originalInventory;renderPriceManagement=originalPrices}
+    };
+  }
+})();
+</script>
+</body></html>';
  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=selectedOnly?'원준_선택주문.xls':'원준_조회결과.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function persistInventoryV82(p,changes){
