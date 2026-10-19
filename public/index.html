@@ -860,13 +860,13 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN PRODUCTS -->
       <section id="adminProducts" class="page">
-        <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn light" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
+        <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn category-manage-trigger-v89" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
         <div class="order-filter-panel admin-search-panel" aria-label="제품 검색 및 필터"><div class="order-filter-grid admin-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명</label><div class="smartbox" id="productAdminSmart"></div></div>
           <div class="order-filter-field"><label class="order-filter-label" for="productAdminCat">제품 분류</label><select id="productAdminCat" onchange="renderAdminProducts()"><option>전체</option></select></div>
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
+        <div class="bulk-v6 product-status-toolbar-v89"><label class="product-select-all-v89"><input id="adminProductSelectAllV89" type="checkbox" onchange="toggleAllAdminProductsV89(this.checked)"> 현재 검색 결과 전체 선택</label><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span><button type="button" class="small-btn order-filter-search" onclick="openBulkProductStatusV89()">상태 변경</button></div><div class="card table-wrap"><table><thead><tr><th>선택</th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
       </section>
 
       <!-- ADMIN PRICES -->
@@ -1349,6 +1349,7 @@ async function loadProductsFromSupabase(){
       code:firstValue(r,['code','product_code'],''),
       cat:firstValue(r,['category','cat'],catMap.get(String(catId))||'기타'),
       name:firstValue(r,['name','product_name'],''),
+      status:firstValue(r,['sale_status','product_status','status'],'판매중'),
       spec:firstValue(r,['spec','specification'],''),
       base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
       stock:Number(firstValue(r,['stock','quantity','qty'],0))||0,
@@ -2173,7 +2174,7 @@ function price(p){
 }
 function renderProducts(){
  const q=(document.getElementById('productSearch').value||'').toLowerCase(),c=document.getElementById('productCat').value;
- document.getElementById('productGrid').innerHTML=products.filter(p=>(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
+ document.getElementById('productGrid').innerHTML=products.filter(p=>(!p.status||String(p.status)==='판매중')&&(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
  <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1박스 기준 · 거래처 적용 단가</div></div>
  <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button type="button" class="btn primary" data-cart-add="${String(p.id)}" style="margin-left:5px;padding:9px 11px">담기</button></div></div></div>`).join('');
@@ -2739,7 +2740,7 @@ function renderClients(){
  </tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
 }
 
-function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p);return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td>${p.stock.toLocaleString()}</td><td>${badge(p.stock<=p.safety?'재고 주의':'판매중')}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>'}
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td><span class="product-sale-status-v89 ${stCls}">${st}</span></td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=list.length>0&&list.every(p=>selected.has(String(p.id)));master.indeterminate=list.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`}
 function renderPriceClients(){
  const sel=document.getElementById('priceClientSelect');
  if(!sel)return;
@@ -2969,11 +2970,14 @@ function closeModal(){document.getElementById('modalBg').classList.remove('show'
 function renderCategories(){const sel=document.getElementById('productAdminCat');if(sel){const v=sel.value;sel.innerHTML='<option>전체</option>'+productCategories.map(c=>`<option>${c}</option>`).join('');if(productCategories.includes(v))sel.value=v;}}
 function renderCategoryModalList(){
  const box=document.getElementById('categoryManageList');if(!box)return;
- box.innerHTML=productCategories.map((c,i)=>`<div class="category-manage-row"><span>${escapeHtmlV8(c)}</span><button type="button" class="small-btn" onclick="deleteCategory(${i},true)" aria-label="${escapeHtmlV8(c)} 분류 삭제">삭제</button></div>`).join('');
+ const query=(document.getElementById('categoryManageSearch')?.value||'').trim().toLowerCase();
+ const found=productCategories.map((name,index)=>({name,index})).filter(x=>x.name.toLowerCase().includes(query));
+ box.innerHTML=found.map(x=>`<div class="category-manage-row"><span>${escapeHtmlV8(x.name)}</span><button type="button" class="small-btn" onclick="deleteCategory(${x.index},true)" aria-label="${escapeHtmlV8(x.name)} 분류 삭제">삭제</button></div>`).join('')||'<div class="category-manage-empty-v89">검색 결과가 없습니다.</div>';
+ const count=document.getElementById('categoryManageCount');if(count)count.textContent=`총 ${productCategories.length}개 분류`;
 }
 function openCategoryModal(){
  document.getElementById('modalTitle').textContent='분류 관리';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><label for="newCategoryName">새 분류명</label><input id="newCategoryName" type="text" maxlength="60" placeholder="예: OPP 테이프" autocomplete="off"><div style="font-size:12px;color:#64748b;margin-top:6px">분류를 추가하거나 기존 분류를 삭제할 수 있습니다.</div></div><div class="field full"><label>등록된 분류</label><div id="categoryManageList" class="category-manage-list"></div></div></div>`;
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><label for="newCategoryName">새 분류명</label><input id="newCategoryName" type="text" maxlength="60" placeholder="예: OPP 테이프" autocomplete="off"><div style="font-size:12px;color:#64748b;margin-top:6px">분류를 추가하거나 기존 분류를 검색·삭제할 수 있습니다.</div></div><div class="field full"><div class="category-list-heading-v89"><label for="categoryManageSearch">등록된 분류 검색</label><span id="categoryManageCount"></span></div><input id="categoryManageSearch" type="search" placeholder="분류명 검색" autocomplete="off" oninput="renderCategoryModalList()"><div id="categoryManageList" class="category-manage-list"></div></div></div>`;
  const save=document.getElementById('modalSave');save.style.display='';save.textContent='분류 추가';
  save.onclick=()=>{
   const input=document.getElementById('newCategoryName');const v=String(input?.value||'').trim();
@@ -3159,7 +3163,10 @@ function downloadOrderExcelV71(selectedOnly=false){
  const headers=['발주번호','거래처','접수일','상태','품명','규격','수량','박스 종류','도장 표기','파렛트','금액'];
  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
  const tableRows=rows.map(r=>{const cells=[...r.children].slice(1,12).map(td=>td.innerText.trim());return '<tr>'+cells.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>'}).join('');
- const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table></body></html>';
+ const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table>
+
+
+</body></html>';
  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=selectedOnly?'원준_선택주문.xls':'원준_조회결과.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function persistInventoryV82(p,changes){
@@ -3251,7 +3258,10 @@ function downloadDocumentPDF(no,type,orderNo,date){
 
 /* V34: per-item order options + admin settings */
 .order-option-settings-card{margin-bottom:14px}.order-option-setting-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.order-option-setting-box{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff}.order-option-setting-title{font-weight:800;font-size:13px;margin-bottom:10px}.option-chip-list{display:flex;flex-wrap:wrap;gap:7px;min-height:38px}.option-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #dbe3ec;border-radius:999px;background:#f8fafc;font-size:12px}.option-chip button{border:0;background:transparent;color:#64748b;cursor:pointer;font-size:15px;line-height:1;padding:0}.option-add-row{display:flex;gap:7px;margin-top:10px}.option-add-row input{flex:1}.order-option-setting-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7;font-size:11px;color:#64748b}.cart-option-help{background:#f8fafc}.cart-option-help-title{font-size:13px;font-weight:800}.cart-option-help-text{font-size:12px;color:#64748b;margin-top:5px;line-height:1.6}.order-option-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.order-option-modal-grid .full{grid-column:1/-1}.order-option-card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff}.order-option-card label{display:block;font-size:11px;font-weight:800;margin-bottom:7px;color:#334155}.order-option-modal-product{padding:12px;border-radius:12px;background:#f8fafc;margin-bottom:14px}.order-option-modal-product b{font-size:14px}.order-option-modal-product span{display:block;font-size:11px;color:#64748b;margin-top:4px}.cart-item-options{font-size:11px;color:#64748b;line-height:1.7;margin-top:4px}.cart-item-options b{color:#334155}.cart-item-product{font-weight:800}.cart-item-spec{font-size:11px;color:#64748b;margin-top:3px}@media(max-width:800px){.order-option-setting-grid,.order-option-modal-grid{grid-template-columns:1fr}.order-option-modal-grid .full{grid-column:auto}}
-</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
+</style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script>
+
+
+</body></html>`);w.document.close();
 }
 
 function getWJOrderDetailItems(order){
@@ -3524,6 +3534,30 @@ window.addEventListener('load',()=>{setTimeout(()=>forceUnifiedProductSource(),1
 </script>
 <script id="v83-inventory-search-events">
 document.addEventListener('DOMContentLoaded',()=>{for(const id of ['inventorySpecThickness','inventorySpecWidth','inventorySpecLength','inventorySpecBoxQty']){const el=document.getElementById(id);if(el){el.addEventListener('input',()=>applyInventoryFiltersV83());el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyInventoryFiltersV83()}})}}});
+</script>
+
+
+
+<style id="v89-product-category-status">
+.product-head-actions .category-manage-trigger-v89,.product-head-actions .btn.primary{height:42px;min-height:42px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:9px;font-weight:700;white-space:nowrap}
+.product-head-actions .category-manage-trigger-v89{background:#e2e8f0!important;color:#1e293b!important;border:1px solid #94a3b8!important;box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.product-head-actions .category-manage-trigger-v89:hover{background:#cbd5e1!important;border-color:#64748b!important}
+.category-list-heading-v89{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.category-list-heading-v89 label{font-weight:700;font-size:13px}.category-list-heading-v89 span{font-size:11px;color:#64748b}
+.category-manage-list{max-height:280px;overflow:auto;margin-top:10px;border:1px solid #e2e8f0;border-radius:10px;padding:6px}.category-manage-empty-v89{padding:18px;text-align:center;color:#94a3b8;font-size:13px}
+.product-status-toolbar-v89{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}.product-select-all-v89{display:flex;align-items:center;gap:7px;font-size:12px;color:#475569}.product-check-v89,#adminProductSelectAllV89{width:16px;height:16px;accent-color:#2563eb;cursor:pointer}.product-status-toolbar-v89 .order-filter-search{margin-left:auto;min-height:36px}
+.product-sale-status-v89{display:inline-flex;align-items:center;justify-content:center;min-width:74px;padding:5px 9px;border-radius:999px;border:1px solid;font-size:11px;font-weight:700;white-space:nowrap}.product-sale-active-v89{background:#e8f7ee;color:#167344;border-color:#b9e6c9}.product-sale-paused-v89{background:#fff2d9;color:#9a5b00;border-color:#f4d59b}.product-sale-oos-v89{background:#fff1f2;color:#be123c;border-color:#fecdd3}.product-sale-discontinued-v89{background:#e9eef3;color:#475569;border-color:#d2dbe4}
+@media(max-width:600px){.product-head-actions .category-manage-trigger-v89,.product-head-actions .btn.primary{padding:0 11px;font-size:12px}.product-status-toolbar-v89 .order-filter-search{margin-left:0}}
+</style>
+<script id="v89-product-status-logic">
+window.wjSelectedProductIdsV89=window.wjSelectedProductIdsV89||new Set();
+function normalizeProductSaleStatusV89(s){return ['판매중','판매중단','품절','단종'].includes(String(s||''))?String(s):'판매중'}
+function productSaleStatusBadgeV89(s){const st=normalizeProductSaleStatusV89(s),cls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<span class="product-sale-status-v89 ${cls}">${st}</span>`}
+function updateProductSelectionV89(sync=true,totalOverride){const boxes=[...document.querySelectorAll('#adminProductRows .product-check-v89')];if(sync){boxes.forEach(x=>{if(x.checked)window.wjSelectedProductIdsV89.add(String(x.value));else window.wjSelectedProductIdsV89.delete(String(x.value))})}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${window.wjSelectedProductIdsV89.size}개 선택`;const master=document.getElementById('adminProductSelectAllV89');if(master){const n=boxes.filter(x=>window.wjSelectedProductIdsV89.has(String(x.value))).length;master.checked=boxes.length>0&&n===boxes.length;master.indeterminate=n>0&&n<boxes.length}}
+function toggleAllAdminProductsV89(checked){const q=smartGet('productAdminSmart'),c=document.getElementById('productAdminCat')?.value||'전체';products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c)).forEach(p=>checked?window.wjSelectedProductIdsV89.add(String(p.id)):window.wjSelectedProductIdsV89.delete(String(p.id)));renderAdminProducts()}
+function ensureProductStatusModalV89(){if(document.getElementById('productStatusModalV89'))return;const d=document.createElement('div');d.id='productStatusModalV89';d.className='bulk-status-overlay-v54';d.innerHTML=`<div class="bulk-status-dialog-v54" role="dialog" aria-modal="true" aria-labelledby="productStatusTitleV89"><div class="bulk-status-head-v54"><div><h3 id="productStatusTitleV89">선택 제품 상태 변경</h3><p id="productStatusCountV89">선택한 제품의 판매 상태를 변경합니다.</p></div><button type="button" class="bulk-status-x-v54" onclick="closeProductStatusModalV89()" aria-label="닫기">×</button></div><div class="bulk-status-options-v54" id="productStatusOptionsV89"></div><div class="bulk-status-foot-v54"><button type="button" class="small-btn" onclick="closeProductStatusModalV89()">취소</button><button type="button" class="btn primary" onclick="applyProductStatusV89()">저장</button></div></div>`;d.addEventListener('click',e=>{if(e.target===d)closeProductStatusModalV89()});document.body.appendChild(d)}
+function openBulkProductStatusV89(){const ids=[...window.wjSelectedProductIdsV89];if(!ids.length){alert('상태를 변경할 제품을 먼저 선택해 주세요.');return}ensureProductStatusModalV89();const list=products.filter(p=>ids.includes(String(p.id)));const statuses=['판매중','판매중단','품절','단종'];const distinct=new Set(list.map(p=>normalizeProductSaleStatusV89(p.status)));const same=distinct.size===1?[...distinct][0]:'';document.getElementById('productStatusCountV89').textContent=`선택한 제품 ${list.length}개의 판매 상태를 변경합니다.`;document.getElementById('productStatusOptionsV89').innerHTML=statuses.map((st,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="productStatusChoiceV89" value="${st}" ${same===st?'checked':''}><span class="bulk-status-dot-v54"></span><span class="bulk-status-option-label-v54">${productSaleStatusBadgeV89(st)}</span>${same===st?'<small>현재 상태</small>':''}</label>`).join('');document.getElementById('productStatusModalV89').classList.add('show')}
+function closeProductStatusModalV89(){document.getElementById('productStatusModalV89')?.classList.remove('show')}
+async function applyProductStatusV89(){const choice=document.querySelector('input[name="productStatusChoiceV89"]:checked');if(!choice){alert('변경할 판매 상태를 선택해 주세요.');return}const ids=[...window.wjSelectedProductIdsV89],targets=products.filter(p=>ids.includes(String(p.id)));if(!targets.length){closeProductStatusModalV89();return}const btn=document.querySelector('#productStatusModalV89 .bulk-status-foot-v54 .btn.primary');btn.disabled=true;btn.textContent='저장 중...';try{if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');for(const p of targets){const probe=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();if(probe.error)throw probe.error;if(!probe.data)throw new Error(`${p.name}: Supabase 제품 정보를 찾을 수 없습니다.`);const row=probe.data,payload={};const key=['sale_status','product_status','status'].find(k=>Object.prototype.hasOwnProperty.call(row,k));if(!key)throw new Error('제품 테이블에 판매 상태를 저장할 컬럼이 없습니다. Supabase products 테이블에 sale_status (text) 컬럼을 추가한 뒤 다시 시도해 주세요.');payload[key]=choice.value;const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);if(error)throw error}targets.forEach(p=>p.status=choice.value);await loadProductsFromSupabase();closeProductStatusModalV89();renderAdminProducts();renderProducts();renderPriceManagement();renderAdminInventory();alert(`${targets.length}개 제품의 판매 상태를 ‘${choice.value}’로 변경했습니다.`)}catch(err){console.error('제품 판매 상태 변경 실패',err);alert('제품 판매 상태를 저장하지 못했습니다.\n\n'+(err?.message||err))}finally{btn.disabled=false;btn.textContent='저장'}}
 </script>
 </body>
 </html>
