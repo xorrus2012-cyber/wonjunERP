@@ -237,11 +237,20 @@ html,body{overflow-x:hidden}
 @media(max-width:900px){.smartbox{min-width:220px;max-width:100%}.toolbar .smartbox{width:100%}.date-range-v6{flex-wrap:wrap}}
 </style>
 
-<style id="v83-inventory-layout-css">
-#adminInventory .inventory-filter-panel{margin-bottom:14px}
-#adminInventory .inventory-filter-grid{grid-template-columns:minmax(220px,1.2fr) minmax(220px,1fr) auto;align-items:end}
-#adminInventory .inventory-filter-grid input{width:100%;min-width:0;height:40px;padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff;box-sizing:border-box}
-#adminInventory .inventory-filter-grid .order-filter-actions{display:flex;gap:8px;align-items:center;padding-bottom:1px}
+<style id="v84-inventory-layout-css">
+/* 재고관리 검색 패널은 주문/수주 관리와 동일한 패널·입력·버튼 디자인을 사용하고 날짜 대신 규격 검색 */
+#adminInventory .inventory-filter-panel{margin:0 0 12px;padding:15px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;}
+#adminInventory .inventory-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:14px;row-gap:14px;align-items:start;}
+#adminInventory .inventory-filter-grid .order-filter-field{min-width:0;width:100%;}
+#adminInventory .inventory-filter-grid .order-filter-label{display:block;margin:0 0 6px;color:#475569;font-size:12px;font-weight:700;line-height:1.2;}
+#adminInventory .inventory-filter-grid input{display:block;box-sizing:border-box;width:100%;min-width:0;height:40px;min-height:40px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px;}
+#adminInventory .inventory-filter-grid input:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
+#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:3;align-self:end;display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;min-width:0;padding-bottom:0;}
+#adminInventory .inventory-filter-grid .order-filter-actions .small-btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:40px;min-height:40px;padding:0 18px;border-radius:8px;white-space:nowrap;font-size:13px;}
+#adminInventory .inventory-filter-grid .order-filter-search{background:#2563eb;border:1px solid #2563eb;color:#fff}
+#adminInventory .inventory-filter-grid .order-filter-search:hover{background:#1d4ed8}
+#adminInventory .inventory-filter-grid .order-filter-reset{background:#fff;border:1px solid #cbd5e1;color:#475569}
+#adminInventory .inventory-filter-grid .order-filter-reset:hover{background:#f1f5f9}
 #adminInventory .inventory-toolbar-v83{justify-content:space-between;align-items:center;margin:8px 0 10px}
 #adminInventory .inventory-save-hint-v83{font-size:12px;color:#64748b}
 #adminInventory .inventory-table-v83{min-width:1080px}
@@ -250,8 +259,8 @@ html,body{overflow-x:hidden}
 #adminInventory .inventory-table-v83 .inventory-row-save-v83{padding:7px 12px;min-width:58px;border:1px solid #1d4ed8;background:#2563eb;color:white;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
 #adminInventory .inventory-table-v83 .inventory-row-save-v83:disabled{opacity:.6;cursor:wait}
 #adminInventory .inventory-table-v83 .inventory-row-status-v83{display:block;margin-top:4px;font-size:10px;color:#64748b;white-space:nowrap}
-@media(max-width:900px){#adminInventory .inventory-filter-grid{grid-template-columns:1fr 1fr}#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:1/-1}#adminInventory .inventory-toolbar-v83{align-items:flex-start;flex-direction:column;gap:5px}}
-@media(max-width:560px){#adminInventory .inventory-filter-grid{grid-template-columns:1fr}}
+@media(max-width:900px){#adminInventory .inventory-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:1/-1;justify-content:flex-end}#adminInventory .inventory-toolbar-v83{align-items:flex-start;flex-direction:column;gap:5px}}
+@media(max-width:520px){#adminInventory .inventory-filter-grid{grid-template-columns:minmax(0,1fr);gap:12px}#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}#adminInventory .inventory-filter-grid .order-filter-actions .small-btn{width:100%;padding:0 10px}}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -847,8 +856,8 @@ html,body{overflow-x:hidden}
         <div class="page-head"><div><h2>재고/창고 관리</h2><p>제품 코드·제품명·규격으로 검색한 뒤 재고, 안전재고, 거래처 공개 여부를 수정하고 저장합니다.</p></div></div>
         <div class="order-filter-panel inventory-filter-panel" aria-label="재고 검색 및 필터">
           <div class="order-filter-grid inventory-filter-grid">
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySearchCodeName">제품 코드 / 제품명</label><input id="inventorySearchCodeName" type="search" placeholder="코드 또는 제품명 입력" autocomplete="off"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySearchSpec">규격 검색</label><input id="inventorySearchSpec" type="search" placeholder="예: 48mm × 40m" autocomplete="off"></div>
+            <div class="order-filter-field"><label class="order-filter-label" for="inventorySearchCodeName">제품 코드 / 제품명</label><input id="inventorySearchCodeName" type="search" placeholder="코드 또는 제품명 입력" autocomplete="off" onkeydown="if(event.key==='Enter')applyInventoryFiltersV83()"></div>
+            <div class="order-filter-field"><label class="order-filter-label" for="inventorySearchSpec">규격 검색</label><input id="inventorySearchSpec" type="search" placeholder="예: 48mm × 40m" autocomplete="off" onkeydown="if(event.key==='Enter')applyInventoryFiltersV83()"></div>
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyInventoryFiltersV83()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="clearInventoryFiltersV83()">초기화</button></div>
           </div>
         </div>
@@ -1310,23 +1319,25 @@ async function loadProductsFromSupabase(){
       name:firstValue(r,['name','product_name'],''),
       spec:firstValue(r,['spec','specification'],''),
       base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
-      stock:0,
-      safety:0,
+      stock:Number(firstValue(r,['stock','quantity','qty'],0))||0,
+      safety:Number(firstValue(r,['safety_stock','safety'],0))||0,
       warehouse:firstValue(r,['warehouse','warehouse_name'],''),
       prices:{},
-      inventoryPublic:true
+      inventoryPublic:firstValue(r,['is_public','public','inventory_public'],true)!==false
     };
   });
   // inventory is separated from products in the production schema.
-  const inv=(await supabaseERP.from('inventory').select('*')).data||[];
+  const invResult=await supabaseERP.from('inventory').select('*');
+  const inv=invResult.data||[];
+  if(invResult.error) console.error('재고 테이블 조회 실패(제품 테이블의 재고 값은 유지):',invResult.error);
   const byProduct=new Map(inv.map(r=>[String(firstValue(r,['product_id','product'],'') ),r]));
   mapped.forEach(p=>{
     const r=byProduct.get(String(p.id));
     if(r){
-      p.stock=Number(firstValue(r,['quantity','stock','qty'],0))||0;
-      p.safety=Number(firstValue(r,['safety_stock','safety'],0))||0;
+      p.stock=Number(firstValue(r,['quantity','stock','qty'],p.stock))||0;
+      p.safety=Number(firstValue(r,['safety_stock','safety'],p.safety))||0;
       p.warehouse=firstValue(r,['warehouse','warehouse_name'],p.warehouse);
-      p.inventoryPublic=firstValue(r,['is_public','public','inventory_public'],true)!==false;
+      p.inventoryPublic=firstValue(r,['is_public','public','inventory_public'],p.inventoryPublic)!==false;
     }
   });
   // 단가는 관리자 전체 단가가 아니라 현재 로그인 거래처의 DB 단가를
@@ -2816,7 +2827,7 @@ async function saveInventoryRowV83(id,button){
    renderAdminInventory();renderAdminProducts();renderAdminDashboard();renderInventoryRows();renderProducts();
    const currentRow=[...document.querySelectorAll('#adminInventoryRows tr')].find(r=>r.getAttribute('data-inventory-product')===String(id));
    const currentStatus=currentRow?.querySelector('.inventory-row-status-v83');if(currentStatus)currentStatus.textContent='저장 완료';
- }catch(err){Object.assign(p,previous);if(status)status.textContent='저장 실패';console.error('재고 저장 실패:',err);alert('재고 설정 저장에 실패했습니다.\n\n'+(err?.message||err)+'\n\nSupabase SQL Editor에서 V83 재고 권한 SQL을 실행한 뒤 다시 저장해 주세요.');await loadProductsFromSupabase();renderAdminInventory()}
+ }catch(err){Object.assign(p,previous);if(status)status.textContent='저장 실패';console.error('재고 저장 실패:',err);alert('재고 설정 저장에 실패했습니다.\n\n'+(err?.message||err)+'\n\n저장 실패 시 입력값은 임의로 0으로 덮어쓰지 않습니다. 실제 inventory 테이블 컬럼과 RLS 권한을 확인해 주세요.');await loadProductsFromSupabase();renderAdminInventory()}
  finally{const currentRow=[...document.querySelectorAll('#adminInventoryRows tr')].find(r=>r.getAttribute('data-inventory-product')===String(id));const b=currentRow?.querySelector('.inventory-row-save-v83');if(b){b.disabled=false;b.textContent='저장'}}
 }
 function editCartQty(id,value){
@@ -3095,24 +3106,48 @@ async function persistInventoryV82(p,changes){
  if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
  const lookup=await supabaseERP.from('inventory').select('*').eq('product_id',p.id).maybeSingle();
  if(lookup.error)throw lookup.error;
- const aliases={quantity:['quantity','stock','qty'],safety:['safety_stock','safety'],warehouse:['warehouse','warehouse_name'],inventoryPublic:['is_public','public','inventory_public']};
- const dbValues={quantity:changes.stock!==undefined?changes.stock:p.stock,safety_stock:changes.safety!==undefined?changes.safety:p.safety,warehouse:changes.warehouse!==undefined?changes.warehouse:p.warehouse,is_public:changes.inventoryPublic!==undefined?changes.inventoryPublic:p.inventoryPublic,inventory_public:changes.inventoryPublic!==undefined?changes.inventoryPublic:p.inventoryPublic};
+ const quantity=changes.stock!==undefined?changes.stock:p.stock;
+ const safety=changes.safety!==undefined?changes.safety:p.safety;
+ const warehouse=changes.warehouse!==undefined?changes.warehouse:p.warehouse;
+ const isPublic=changes.inventoryPublic!==undefined?changes.inventoryPublic:p.inventoryPublic;
+ const aliases={stock:['stock','quantity','qty','current_stock','inventory_qty','on_hand'],safety:['safety_stock','safety','min_stock','minimum_stock','reorder_level'],warehouse:['warehouse','warehouse_name'],visibility:['is_public','public','inventory_public','is_visible']};
  if(lookup.data){
-   const row=lookup.data, payload={};
-   for(const [key,aliasesForKey] of Object.entries(aliases)){const val=key==='quantity'?dbValues.quantity:key==='safety'?dbValues.safety_stock:key==='warehouse'?dbValues.warehouse:dbValues.is_public;const col=aliasesForKey.find(k=>Object.prototype.hasOwnProperty.call(row,k));if(col)payload[col]=val;}
-   if(!Object.keys(payload).length)throw new Error('inventory 테이블의 수량/안전재고/공개 설정 컬럼을 찾지 못했습니다.');
-   const saved=await supabaseERP.from('inventory').update(payload).eq('product_id',p.id);if(saved.error)throw saved.error;
- }else{
-   const candidates=[
-    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,warehouse:dbValues.warehouse,is_public:dbValues.is_public},
-    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,warehouse:dbValues.warehouse,inventory_public:dbValues.inventory_public},
-    {product_id:p.id,stock:dbValues.quantity,safety:dbValues.safety_stock,warehouse:dbValues.warehouse,public:dbValues.is_public},
-    {product_id:p.id,quantity:dbValues.quantity,safety_stock:dbValues.safety_stock,is_public:dbValues.is_public},
-    {product_id:p.id,quantity:dbValues.quantity,is_public:dbValues.is_public}
-   ];let lastError=null,done=false;
-   for(const payload of candidates){const ins=await supabaseERP.from('inventory').insert(payload);if(!ins.error){done=true;break}lastError=ins.error;if(!/column .* does not exist|could not find the .* column|schema cache/i.test(ins.error.message||''))break;}
-   if(!done)throw lastError||new Error('재고 행을 저장하지 못했습니다.');
+   const row=lookup.data,payload={};
+   for(const [kind,names] of Object.entries(aliases)){
+     const col=names.find(k=>Object.prototype.hasOwnProperty.call(row,k));
+     if(!col)continue;
+     payload[col]=kind==='stock'?quantity:kind==='safety'?safety:kind==='warehouse'?warehouse:isPublic;
+   }
+   if(!Object.keys(payload).length)throw new Error('inventory 테이블에서 수정 가능한 재고 컬럼을 찾지 못했습니다. 현재 컬럼: '+Object.keys(row).join(', '));
+   const saved=await supabaseERP.from('inventory').update(payload).eq('product_id',p.id).select('*').maybeSingle();
+   if(saved.error)throw saved.error;
+   if(!saved.data)throw new Error('재고 행이 업데이트되지 않았습니다. inventory 테이블의 RLS UPDATE 정책과 product_id 값을 확인해 주세요.');
+   return saved.data;
  }
+ // 테이블마다 수량 컬럼명이 다를 수 있으므로 schema cache 오류가 나면 다른 후보를 시도합니다.
+ const candidates=[
+  {product_id:p.id,stock:quantity,safety_stock:safety,warehouse, is_public:isPublic},
+  {product_id:p.id,stock:quantity,safety:safety,warehouse,public:isPublic},
+  {product_id:p.id,stock:quantity,safety_stock:safety,warehouse,inventory_public:isPublic},
+  {product_id:p.id,quantity:quantity,safety_stock:safety,warehouse,is_public:isPublic},
+  {product_id:p.id,quantity:quantity,safety_stock:safety,warehouse,inventory_public:isPublic},
+  {product_id:p.id,quantity:quantity,safety_stock:safety,warehouse},
+  {product_id:p.id,qty:quantity,safety_stock:safety,warehouse,is_public:isPublic},
+  {product_id:p.id,stock:quantity,safety:safety,warehouse},
+  {product_id:p.id,quantity:quantity},
+  {product_id:p.id,stock:quantity}
+ ];
+ let lastError=null;
+ for(const payload of candidates){
+   const ins=await supabaseERP.from('inventory').insert(payload).select('*').maybeSingle();
+   if(!ins.error){if(!ins.data)throw new Error('재고 행이 저장되었지만 저장 결과를 확인할 수 없습니다.');return ins.data;}
+   lastError=ins.error;
+   const msg=String(ins.error.message||'');
+   if(/permission denied|row-level security|violates row-level security|not allowed/i.test(msg))throw ins.error;
+   if(!/column .* does not exist|could not find the .* column|schema cache|unknown field/i.test(msg))throw ins.error;
+   // 컬럼명 차이인 경우에만 다음 후보로 이동
+ }
+ throw lastError||new Error('현재 inventory 테이블 컬럼 구성과 일치하는 저장 방법을 찾지 못했습니다.');
 }
 async function saveInventoryChangeV82(id,changes,input){
  const p=products.find(x=>String(x.id)===String(id));if(!p)return;
