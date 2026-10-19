@@ -860,13 +860,12 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN PRODUCTS -->
       <section id="adminProducts" class="page">
-        <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><button class="btn primary" onclick="openProductModal()">+ 제품 등록</button></div>
+        <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn light" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
         <div class="order-filter-panel admin-search-panel" aria-label="제품 검색 및 필터"><div class="order-filter-grid admin-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명</label><div class="smartbox" id="productAdminSmart"></div></div>
           <div class="order-filter-field"><label class="order-filter-label" for="productAdminCat">제품 분류</label><select id="productAdminCat" onchange="renderAdminProducts()"><option>전체</option></select></div>
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="card pad" style="margin-bottom:14px"><div class="page-head"><strong>제품 분류</strong><button class="btn light" onclick="openCategoryModal()">+ 분류 추가</button></div><div id="productCategories"></div></div>
         <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
       </section>
 
@@ -2966,10 +2965,30 @@ function openProductModal(){
  };
  document.getElementById('modalBg').classList.add('show');
 }
-function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('modalSave').style.display='';const cancelBtn=document.getElementById('modalCancel');if(cancelBtn)cancelBtn.textContent='취소';}
-function renderCategories(){const box=document.getElementById('productCategories');if(box)box.innerHTML=productCategories.map((c,i)=>`<span class="category-chip">${c} <button class="small-btn" onclick="deleteCategory(${i})">×</button></span>`).join('');const sel=document.getElementById('productAdminCat');if(sel){const v=sel.value;sel.innerHTML='<option>전체</option>'+productCategories.map(c=>`<option>${c}</option>`).join('');if(productCategories.includes(v))sel.value=v;}}
-function openCategoryModal(){const name=prompt('추가할 제품 분류명을 입력하세요.');if(!name)return;const v=name.trim();if(!v)return;if(productCategories.includes(v)){alert('이미 존재하는 분류입니다.');return}productCategories.push(v);saveV7Data();renderCategories();renderAdminProducts()}
-function deleteCategory(i){if(productCategories.length<=1){alert('최소 1개의 분류는 남겨두어야 합니다.');return}if(!confirm('"'+productCategories[i]+'" 분류를 삭제할까요?'))return;productCategories.splice(i,1);saveV7Data();renderCategories();renderAdminProducts()}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');const saveBtn=document.getElementById('modalSave');if(saveBtn){saveBtn.style.display='';saveBtn.textContent='저장';}const cancelBtn=document.getElementById('modalCancel');if(cancelBtn)cancelBtn.textContent='취소';}
+function renderCategories(){const sel=document.getElementById('productAdminCat');if(sel){const v=sel.value;sel.innerHTML='<option>전체</option>'+productCategories.map(c=>`<option>${c}</option>`).join('');if(productCategories.includes(v))sel.value=v;}}
+function renderCategoryModalList(){
+ const box=document.getElementById('categoryManageList');if(!box)return;
+ box.innerHTML=productCategories.map((c,i)=>`<div class="category-manage-row"><span>${escapeHtmlV8(c)}</span><button type="button" class="small-btn" onclick="deleteCategory(${i},true)" aria-label="${escapeHtmlV8(c)} 분류 삭제">삭제</button></div>`).join('');
+}
+function openCategoryModal(){
+ document.getElementById('modalTitle').textContent='분류 관리';
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><label for="newCategoryName">새 분류명</label><input id="newCategoryName" type="text" maxlength="60" placeholder="예: OPP 테이프" autocomplete="off"><div style="font-size:12px;color:#64748b;margin-top:6px">분류를 추가하거나 기존 분류를 삭제할 수 있습니다.</div></div><div class="field full"><label>등록된 분류</label><div id="categoryManageList" class="category-manage-list"></div></div></div>`;
+ const save=document.getElementById('modalSave');save.style.display='';save.textContent='분류 추가';
+ save.onclick=()=>{
+  const input=document.getElementById('newCategoryName');const v=String(input?.value||'').trim();
+  if(!v){alert('추가할 분류명을 입력해 주세요.');input?.focus();return}
+  if(productCategories.some(c=>String(c).toLowerCase()===v.toLowerCase())){alert('이미 존재하는 분류입니다.');input?.focus();return}
+  productCategories.push(v);saveV7Data();renderCategories();renderAdminProducts();renderCategoryModalList();input.value='';input.placeholder='분류가 추가되었습니다. 다른 분류도 입력할 수 있습니다.';input.focus();
+ };
+ document.getElementById('modalCancel').textContent='닫기';
+ document.getElementById('modalBg').classList.add('show');renderCategoryModalList();
+}
+function deleteCategory(i,fromModal=false){
+ if(productCategories.length<=1){alert('최소 1개의 분류는 남겨두어야 합니다.');return}
+ const name=productCategories[i];if(!confirm('"'+name+'" 분류를 삭제할까요?'))return;
+ productCategories.splice(i,1);saveV7Data();renderCategories();renderAdminProducts();if(fromModal)renderCategoryModalList();
+}
 
 function smartGet(id){const e=document.getElementById(id);return e&&e._smartGet?e._smartGet():[]}
 function smartBuild(id,items,placeholder,cb){
@@ -3686,4 +3705,10 @@ window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllER
 .order-st-cancelled-v54{background:#fee2e2!important;color:#991b1b!important;border-color:#fecaca!important}
 
 .s-red{background:#fee2e2!important;color:#991b1b!important;border:1px solid #fecaca!important}
+
+/* V88: compact product category management modal */
+.category-manage-list{display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto;padding:2px 1px}
+.category-manage-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;color:#334155;font-size:13px}
+.category-manage-row .small-btn{flex-shrink:0;background:#fff;border:1px solid #d8dee8;color:#64748b}
+.product-head-actions .btn{white-space:nowrap}
 </style>
