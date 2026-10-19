@@ -587,6 +587,17 @@ html,body{overflow-x:hidden}
 }
 </style>
 
+
+<style id="v91-admin-list-pagination-css">
+#adminClientPaginationV91,#adminProductPaginationV91,#adminPricePaginationV91,#adminInventoryPaginationV91{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-top:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#475569;font-size:12px}
+#adminClientPaginationV91 .pagination-left,#adminClientPaginationV91 .pagination-right,#adminProductPaginationV91 .pagination-left,#adminProductPaginationV91 .pagination-right,#adminPricePaginationV91 .pagination-left,#adminPricePaginationV91 .pagination-right,#adminInventoryPaginationV91 .pagination-left,#adminInventoryPaginationV91 .pagination-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#adminClientPaginationV91 button,#adminProductPaginationV91 button,#adminPricePaginationV91 button,#adminInventoryPaginationV91 button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 11px;font-size:12px;cursor:pointer}
+#adminClientPaginationV91 button:disabled,#adminProductPaginationV91 button:disabled,#adminPricePaginationV91 button:disabled,#adminInventoryPaginationV91 button:disabled{opacity:.4;cursor:not-allowed}
+#adminClientPaginationV91 select,#adminProductPaginationV91 select,#adminPricePaginationV91 select,#adminInventoryPaginationV91 select{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 8px}
+#adminClientPaginationV91 .page-current,#adminProductPaginationV91 .page-current,#adminPricePaginationV91 .page-current,#adminInventoryPaginationV91 .page-current{font-weight:700;color:#1d4ed8;min-width:75px;text-align:center}
+.product-status-toolbar-v90{margin:0!important;padding:10px 0!important}
+</style>
+
 </head>
 <body>
 
@@ -781,10 +792,10 @@ html,body{overflow-x:hidden}
         <div class="page-head"><div><h2>거래처 관리</h2><p>거래처 기본정보, 로그인 계정, 담당자 정보를 관리합니다. 단가는 이 메뉴에서 관리하지 않습니다.</p></div><button class="btn primary" onclick="openClientCreateModal()">+ 거래처 등록</button></div>
         <div class="order-filter-panel admin-search-panel" aria-label="거래처 검색 및 필터"><div class="order-filter-grid admin-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">거래처 검색</label><div class="smartbox" id="clientSmartFilter"></div></div>
-          <div class="order-filter-field"><label class="order-filter-label" for="clientStatusFilter">거래 상태</label><select id="clientStatusFilter" onchange="renderClients()"><option>전체</option><option>정상</option><option>거래중지</option></select></div>
-          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="renderClients()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminClientFiltersV87()">초기화</button></div>
+          <div class="order-filter-field"><label class="order-filter-label" for="clientStatusFilter">거래 상태</label><select id="clientStatusFilter" onchange="window.wjAdminClientPageV91=1;renderClients()"><option>전체</option><option>정상</option><option>거래중지</option></select></div>
+          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminClientPageV91=1;renderClients()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminClientFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="card table-wrap"><table><thead><tr><th>거래처 코드</th><th>회사명</th><th>아이디</th><th>담당자</th><th>전화번호</th><th>상태</th><th>관리</th></tr></thead><tbody id="clientRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th>거래처 코드</th><th>회사명</th><th>아이디</th><th>담당자</th><th>전화번호</th><th>상태</th><th>관리</th></tr></thead><tbody id="clientRows"></tbody></table></div><div id="adminClientPaginationV91" aria-label="거래처 목록 페이지 이동"></div>
       </section>
 
 
@@ -863,10 +874,10 @@ html,body{overflow-x:hidden}
         <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn category-manage-trigger-v89" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
         <div class="order-filter-panel admin-search-panel" aria-label="제품 검색 및 필터"><div class="order-filter-grid admin-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명</label><div class="smartbox" id="productAdminSmart"></div></div>
-          <div class="order-filter-field"><label class="order-filter-label" for="productAdminCat">제품 분류</label><select id="productAdminCat" onchange="renderAdminProducts()"><option>전체</option></select></div>
-          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
+          <div class="order-filter-field"><label class="order-filter-label" for="productAdminCat">제품 분류</label><select id="productAdminCat" onchange="window.wjAdminProductPageV91=1;renderAdminProducts()"><option>전체</option></select></div>
+          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminProductPageV91=1;renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="bulk-v6 product-status-toolbar-v90"><button type="button" class="small-btn" onclick="openBulkProductStatusV89()">상태 변경</button><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span></div><div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminProductSelectAllV89" class="product-check-v89" type="checkbox" aria-label="현재 검색 결과 전체 선택" title="현재 검색 결과 전체 선택" onchange="toggleAllAdminProductsV89(this.checked)"></th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div>
+        <div class="bulk-v6 product-status-toolbar-v90"><button type="button" class="small-btn" onclick="openBulkProductStatusV89()">상태 변경</button><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span></div><div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminProductSelectAllV89" class="product-check-v89" type="checkbox" aria-label="현재 검색 결과 전체 선택" title="현재 검색 결과 전체 선택" onchange="toggleAllAdminProductsV89(this.checked)"></th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div><div id="adminProductPaginationV91" aria-label="제품 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN PRICES -->
@@ -875,9 +886,9 @@ html,body{overflow-x:hidden}
         <div class="order-filter-panel admin-search-panel" aria-label="단가 검색 및 필터"><div class="order-filter-grid admin-search-grid admin-price-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">거래처 선택 · 여러 개 가능</label><div class="smartbox" id="priceClientSmart"></div></div>
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명 · 여러 개 가능</label><div class="smartbox" id="priceProductSmart"></div></div>
-          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="renderPriceManagement()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminPriceFiltersV87()">초기화</button></div>
+          <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminPricePageV91=1;renderPriceManagement()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminPriceFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>현재 적용 단가</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div>
+        <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>현재 적용 단가</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div><div id="adminPricePaginationV91" aria-label="단가 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN INVENTORY -->
@@ -894,7 +905,7 @@ html,body{overflow-x:hidden}
           </div>
         </div>
         <div class="bulk-v6 inventory-toolbar-v83"><span id="inventoryResultV83" class="result-v6"></span><span class="inventory-save-hint-v83">수정 후 각 제품 행의 <b>저장</b> 버튼을 눌러야 반영됩니다.</span></div>
-        <div class="card table-wrap"><table class="inventory-table-v83"><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재 재고</th><th>안전재고 기준</th><th>창고</th><th>거래처 공개</th><th>공개 설정</th><th>관리</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div>
+        <div class="card table-wrap"><table class="inventory-table-v83"><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재 재고</th><th>안전재고 기준</th><th>창고</th><th>거래처 공개</th><th>공개 설정</th><th>관리</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div><div id="adminInventoryPaginationV91" aria-label="재고 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN PRODUCTION -->
@@ -2724,23 +2735,25 @@ function openClientCreateModal(){
  document.getElementById('modalBg').classList.add('show');
 }
 
+function renderAdminListPagerV91(id,count,start,size,page,total,sizeVar,pageVar,renderFn,changeFn){const el=document.getElementById(id);if(!el)return;const from=count?start+1:0,to=Math.min(start+size,count);el.innerHTML=`<div class="pagination-left"><span>총 <b>${count.toLocaleString()}</b>건 중 <b>${from.toLocaleString()}–${to.toLocaleString()}</b>건 표시</span><label for="${id}Size">페이지당</label><select id="${id}Size" onchange="window.${sizeVar}=Number(this.value);window.${pageVar}=1;${renderFn}()"><option value="10" ${size===10?'selected':''}>10개</option><option value="20" ${size===20?'selected':''}>20개</option><option value="30" ${size===30?'selected':''}>30개</option><option value="50" ${size===50?'selected':''}>50개</option></select></div><div class="pagination-right"><button type="button" onclick="${changeFn}(-1)" ${page<=1?'disabled':''}>이전</button><span class="page-current">${page} / ${total} 페이지</span><button type="button" onclick="${changeFn}(1)" ${page>=total?'disabled':''}>다음</button></div>`}
+function changeAdminClientPageV91(d){window.wjAdminClientPageV91=Math.max(1,Number(window.wjAdminClientPageV91||1)+Number(d||0));renderClients();document.getElementById('adminClients')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function changeAdminProductPageV91(d){window.wjAdminProductPageV91=Math.max(1,Number(window.wjAdminProductPageV91||1)+Number(d||0));renderAdminProducts();document.getElementById('adminProducts')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function changeAdminPricePageV91(d){window.wjAdminPricePageV91=Math.max(1,Number(window.wjAdminPricePageV91||1)+Number(d||0));renderPriceManagement();document.getElementById('adminPrices')?.scrollIntoView({behavior:'smooth',block:'start'})}
+function changeAdminInventoryPageV91(d){window.wjAdminInventoryPageV91=Math.max(1,Number(window.wjAdminInventoryPageV91||1)+Number(d||0));renderAdminInventory();document.getElementById('adminInventory')?.scrollIntoView({behavior:'smooth',block:'start'})}
 function renderClients(){
  const rows=document.getElementById('clientRows');if(!rows)return;
  const selected=smartGet('clientSmartFilter');
  const status=document.getElementById('clientStatusFilter')?.value||'전체';
  const list=clients.filter(c=>(!selected.length||selected.includes(String(c.id)))&&(status==='전체'||c.status===status));
- rows.innerHTML=list.map(c=>`<tr>
-   <td><b>${c.code||'-'}</b></td>
-   <td><b>${c.name||'-'}</b></td>
-   <td>${c.loginId||'-'}</td>
-   <td>${c.manager||'-'}</td>
-   <td>${c.phone||'-'}</td>
-   <td>${badge(c.status||'정상')}</td>
-   <td><div class="action-row"><button class="small-btn" onclick="openClientDetail('${c.id}')">상세/계정</button></div></td>
- </tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
+ const size=Math.max(1,Number(window.wjAdminClientPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));
+ window.wjAdminClientPageV91=Math.min(total,Math.max(1,Number(window.wjAdminClientPageV91||1)));
+ const page=window.wjAdminClientPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);
+ rows.innerHTML=pageList.map(c=>`<tr><td><b>${escapeHtmlV8(c.code||'-')}</b></td><td><b>${escapeHtmlV8(c.name||'-')}</b></td><td>${escapeHtmlV8(c.loginId||'-')}</td><td>${escapeHtmlV8(c.manager||'-')}</td><td>${escapeHtmlV8(c.phone||'-')}</td><td>${badge(c.status||'정상')}</td><td><div class="action-row"><button class="small-btn" onclick="openClientDetail('${String(c.id).replace(/'/g, "\'")}')">상세/계정</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 거래처가 없습니다.</td></tr>';
+ renderAdminListPagerV91('adminClientPaginationV91',list.length,start,size,page,total,'wjAdminClientPageSizeV91','wjAdminClientPageV91','renderClients','changeAdminClientPageV91');
 }
 
-function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=list.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td><span class="product-sale-status-v89 ${stCls}">${st}</span></td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=list.length>0&&list.every(p=>selected.has(String(p.id)));master.indeterminate=list.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`}
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const size=Math.max(1,Number(window.wjAdminProductPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminProductPageV91=Math.min(total,Math.max(1,Number(window.wjAdminProductPageV91||1)));const page=window.wjAdminProductPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=pageList.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td><span class="product-sale-status-v89 ${stCls}">${st}</span></td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`;renderAdminListPagerV91('adminProductPaginationV91',list.length,start,size,page,total,'wjAdminProductPageSizeV91','wjAdminProductPageV91','renderAdminProducts','changeAdminProductPageV91')}
+
 function renderPriceClients(){
  const sel=document.getElementById('priceClientSelect');
  if(!sel)return;
@@ -2748,7 +2761,8 @@ function renderPriceClients(){
  sel.innerHTML=clients.map(c=>`<option value="${c.id}">${c.company} · ${c.code}</option>`).join('');
  if(clients.some(c=>c.id===prev))sel.value=prev;
 }
-function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));if(!cs.length){box.innerHTML=list.map(p=>`<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`).join('')||'<tr><td colspan="8" class="v4-empty">제품이 없습니다.</td></tr>';return}const selectedClients=clients.filter(c=>cs.includes(String(c.id)));box.innerHTML=selectedClients.flatMap(c=>list.map(p=>{const key=c.loginId;const val=p.prices[key]??p.base;const custom=p.prices[key]!==undefined;return `<tr><td>${p.code}</td><td>${p.cat}</td><td><b>${p.name}</b></td><td>${p.spec}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" onclick="openSinglePriceModal('${c.id}',${p.id})">단가 수정</button></td></tr>`})).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>'}
+function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));let entries=[];if(!cs.length){entries=list.map(p=>({p,c:null}))}else{const selectedClients=clients.filter(c=>cs.includes(String(c.id)));entries=selectedClients.flatMap(c=>list.map(p=>({p,c})))}const size=Math.max(1,Number(window.wjAdminPricePageSizeV91||20)),total=Math.max(1,Math.ceil(entries.length/size));window.wjAdminPricePageV91=Math.min(total,Math.max(1,Number(window.wjAdminPricePageV91||1)));const page=window.wjAdminPricePageV91,start=(page-1)*size,pageEntries=entries.slice(start,start+size);box.innerHTML=pageEntries.map(({p,c})=>{if(!c)return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`;const key=c.loginId,val=p.prices?.[key]??p.base,custom=p.prices?.[key]!==undefined;return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" onclick="openSinglePriceModal('${String(c.id).replace(/'/g,"\'")}',${JSON.stringify(p.id)})">단가 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>';renderAdminListPagerV91('adminPricePaginationV91',entries.length,start,size,page,total,'wjAdminPricePageSizeV91','wjAdminPricePageV91','renderPriceManagement','changeAdminPricePageV91')}
+
 function openSinglePriceModal(clientId,productId){
  const c=clients.find(x=>x.id===clientId),p=products.find(x=>x.id===productId);
  document.getElementById('modalTitle').textContent='거래처 단가 수정';
@@ -2842,15 +2856,18 @@ function renderAdminInventory(){
  const sw=(document.getElementById('inventorySpecWidth')?.value||'').trim().toLowerCase();
  const sl=(document.getElementById('inventorySpecLength')?.value||'').trim().toLowerCase();
  const sq=(document.getElementById('inventorySpecBoxQty')?.value||'').trim().toLowerCase();
- const filtered=products.filter(p=>{const spec=parseWJProductSpec(p.spec);return (!selectedIds.length||selectedIds.includes(String(p.id)))&&(!st||String(spec.thickness).toLowerCase().includes(st))&&(!sw||String(spec.width).toLowerCase().includes(sw))&&(!sl||String(spec.length).toLowerCase().includes(sl))&&(!sq||String(spec.boxQty).toLowerCase().includes(sq))});
- rows.innerHTML=filtered.map(p=>`<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td class="inventory-public-label-v83">${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" data-field="visibility" aria-label="${escapeHtmlV8(p.name)} 재고 공개 설정"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td><td><button type="button" class="inventory-row-save-v83" onclick="saveInventoryRowV83('${String(p.id).replace(/'/g,"\'")}',this)">저장</button><span class="inventory-row-status-v83" aria-live="polite"></span></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
+ const filtered=products.filter(p=>{const spec=parseWJProductSpec(p.spec);return (!selectedIds.length||selectedIds.includes(String(p.id)) )&&(!st||String(spec.thickness).toLowerCase().includes(st))&&(!sw||String(spec.width).toLowerCase().includes(sw))&&(!sl||String(spec.length).toLowerCase().includes(sl))&&(!sq||String(spec.boxQty).toLowerCase().includes(sq))});
+ const size=Math.max(1,Number(window.wjAdminInventoryPageSizeV91||20)),total=Math.max(1,Math.ceil(filtered.length/size));window.wjAdminInventoryPageV91=Math.min(total,Math.max(1,Number(window.wjAdminInventoryPageV91||1)));const page=window.wjAdminInventoryPageV91,start=(page-1)*size,pageList=filtered.slice(start,start+size);
+ rows.innerHTML=pageList.map(p=>`<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td class="inventory-public-label-v83">${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" data-field="visibility" aria-label="${escapeHtmlV8(p.name)} 재고 공개 설정"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td><td><button type="button" class="inventory-row-save-v83" onclick="saveInventoryRowV83('${String(p.id).replace(/'/g,"\'")}',this)">저장</button><span class="inventory-row-status-v83" aria-live="polite"></span></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
  const result=document.getElementById('inventoryResultV83');if(result)result.textContent=`${filtered.length.toLocaleString()}개 제품`;
+ renderAdminListPagerV91('adminInventoryPaginationV91',filtered.length,start,size,page,total,'wjAdminInventoryPageSizeV91','wjAdminInventoryPageV91','renderAdminInventory','changeAdminInventoryPageV91');
 }
-function applyInventoryFiltersV83(){renderAdminInventory()}
-function clearInventoryFiltersV83(){const root=document.getElementById('inventorySearchSmart');if(root&&root._smartSet)root._smartSet([]);['inventorySpecThickness','inventorySpecWidth','inventorySpecLength','inventorySpecBoxQty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});renderAdminInventory()}
-function resetAdminClientFiltersV87(){const root=document.getElementById('clientSmartFilter');if(root&&root._smartSet)root._smartSet([]);const status=document.getElementById('clientStatusFilter');if(status)status.value='전체';renderClients()}
-function resetAdminProductFiltersV87(){const root=document.getElementById('productAdminSmart');if(root&&root._smartSet)root._smartSet([]);const cat=document.getElementById('productAdminCat');if(cat)cat.value='전체';renderAdminProducts()}
-function resetAdminPriceFiltersV87(){['priceClientSmart','priceProductSmart'].forEach(id=>{const root=document.getElementById(id);if(root&&root._smartSet)root._smartSet([])});renderPriceManagement()}
+
+function applyInventoryFiltersV83(){window.wjAdminInventoryPageV91=1;renderAdminInventory()}
+function clearInventoryFiltersV83(){window.wjAdminInventoryPageV91=1;const root=document.getElementById('inventorySearchSmart');if(root&&root._smartSet)root._smartSet([]);['inventorySpecThickness','inventorySpecWidth','inventorySpecLength','inventorySpecBoxQty'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});renderAdminInventory()}
+function resetAdminClientFiltersV87(){window.wjAdminClientPageV91=1;const root=document.getElementById('clientSmartFilter');if(root&&root._smartSet)root._smartSet([]);const status=document.getElementById('clientStatusFilter');if(status)status.value='전체';renderClients()}
+function resetAdminProductFiltersV87(){window.wjAdminProductPageV91=1;const root=document.getElementById('productAdminSmart');if(root&&root._smartSet)root._smartSet([]);const cat=document.getElementById('productAdminCat');if(cat)cat.value='전체';renderAdminProducts()}
+function resetAdminPriceFiltersV87(){window.wjAdminPricePageV91=1;['priceClientSmart','priceProductSmart'].forEach(id=>{const root=document.getElementById(id);if(root&&root._smartSet)root._smartSet([])});renderPriceManagement()}
 async function saveInventoryRowV83(id,button){
  const row=button?.closest('tr');if(!row)return;
  const p=products.find(x=>String(x.id)===String(id));if(!p)return;
@@ -3258,6 +3275,8 @@ function downloadDocumentPDF(no,type,orderNo,date){
 </style></head><body><h1>WONJUN TAPE</h1><h2>${escapeHtmlV8(type)}</h2><div class="box">${lines.map(x=>`<p>${escapeHtmlV8(x)}</p>`).join('')}</div><button onclick="window.print()">PDF로 저장 / 인쇄</button><script>setTimeout(()=>window.print(),300)<\/script>
 
 
+
+<!-- V91: admin list pagination aligned with Orders / Order Management -->
 </body></html>`);w.document.close();
 }
 
@@ -3556,6 +3575,8 @@ function openBulkProductStatusV89(){const ids=[...window.wjSelectedProductIdsV89
 function closeProductStatusModalV89(){document.getElementById('productStatusModalV89')?.classList.remove('show')}
 async function applyProductStatusV89(){const choice=document.querySelector('input[name="productStatusChoiceV89"]:checked');if(!choice){alert('변경할 판매 상태를 선택해 주세요.');return}const ids=[...window.wjSelectedProductIdsV89],targets=products.filter(p=>ids.includes(String(p.id)));if(!targets.length){closeProductStatusModalV89();return}const btn=document.querySelector('#productStatusModalV89 .bulk-status-foot-v54 .btn.primary');btn.disabled=true;btn.textContent='저장 중...';try{if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');for(const p of targets){const probe=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();if(probe.error)throw probe.error;if(!probe.data)throw new Error(`${p.name}: Supabase 제품 정보를 찾을 수 없습니다.`);const row=probe.data,payload={};const key=['sale_status','product_status','status'].find(k=>Object.prototype.hasOwnProperty.call(row,k));if(!key)throw new Error('제품 테이블에 판매 상태를 저장할 컬럼이 없습니다. Supabase products 테이블에 sale_status (text) 컬럼을 추가한 뒤 다시 시도해 주세요.');payload[key]=choice.value;const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);if(error)throw error}targets.forEach(p=>p.status=choice.value);await loadProductsFromSupabase();closeProductStatusModalV89();renderAdminProducts();renderProducts();renderPriceManagement();renderAdminInventory();alert(`${targets.length}개 제품의 판매 상태를 ‘${choice.value}’로 변경했습니다.`)}catch(err){console.error('제품 판매 상태 변경 실패',err);alert('제품 판매 상태를 저장하지 못했습니다.\n\n'+(err?.message||err))}finally{btn.disabled=false;btn.textContent='저장'}}
 </script>
+
+<!-- V91: admin list pagination aligned with Orders / Order Management -->
 </body>
 </html>
 
