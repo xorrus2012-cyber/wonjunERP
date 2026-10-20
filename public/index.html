@@ -279,9 +279,6 @@ html,body{overflow-x:hidden}
 #adminInventory .inventory-table-v83{min-width:1080px}
 #adminInventory .inventory-table-v83 input.inventory-qty{width:112px;min-width:0;box-sizing:border-box;height:36px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:7px}
 #adminInventory .inventory-table-v83 input.inventory-qty:focus,#adminInventory .inventory-table-v83 select:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
-#adminInventory .inventory-table-v83 .inventory-row-save-v83{padding:7px 12px;min-width:58px;border:1px solid #1d4ed8;background:#2563eb;color:white;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer}
-#adminInventory .inventory-table-v83 .inventory-row-save-v83:disabled{opacity:.6;cursor:wait}
-#adminInventory .inventory-table-v83 .inventory-row-status-v83{display:block;margin-top:4px;font-size:10px;color:#64748b;white-space:nowrap}
 @media(max-width:900px){#adminInventory .inventory-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:1/-1;justify-content:flex-end}#adminInventory .inventory-toolbar-v83{align-items:flex-start;flex-direction:column;gap:5px}}
 @media(max-width:520px){#adminInventory .inventory-filter-grid{grid-template-columns:minmax(0,1fr);gap:12px}#adminInventory .inventory-filter-grid .order-filter-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}#adminInventory .inventory-filter-grid .order-filter-actions .small-btn{width:100%;padding:0 10px}}
 </style>
@@ -596,6 +593,16 @@ html,body{overflow-x:hidden}
 #adminClientPaginationV91 select,#adminProductPaginationV91 select,#adminPricePaginationV91 select,#adminInventoryPaginationV91 select{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 8px}
 #adminClientPaginationV91 .page-current,#adminProductPaginationV91 .page-current,#adminPricePaginationV91 .page-current,#adminInventoryPaginationV91 .page-current{font-weight:700;color:#1d4ed8;min-width:75px;text-align:center}
 .product-status-toolbar-v90{margin:0!important;padding:10px 0!important}
+#adminInventory .inventory-toolbar-v92{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0 10px;padding:10px 0}
+#adminInventory .inventory-toolbar-left-v92,#adminInventory .inventory-toolbar-actions-v92{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#adminInventory .inventory-toolbar-actions-v92 label{font-size:12px;color:#475569;font-weight:700}
+#adminInventory .inventory-toolbar-actions-v92 select{height:34px;padding:0 10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#334155}
+#adminInventory .inventory-save-all-v92{height:34px;min-width:112px;background:#2563eb;border-color:#2563eb;color:#fff;font-weight:700}
+#adminInventory .inventory-check-v92{width:16px;height:16px;vertical-align:middle;cursor:pointer;accent-color:#2563eb}
+#adminInventory .inventory-table-v83{min-width:1080px}
+#adminInventory .inventory-table-v83 input.inventory-qty{width:112px;min-width:0;box-sizing:border-box;height:36px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:7px}
+#adminInventory .inventory-table-v83 input.inventory-qty:focus,#adminInventory .inventory-table-v83 select:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
+@media(max-width:900px){#adminInventory .inventory-toolbar-v92{align-items:flex-start;flex-direction:column}#adminInventory .inventory-toolbar-actions-v92{width:100%}}
 </style>
 
 </head>
@@ -904,8 +911,8 @@ html,body{overflow-x:hidden}
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyInventoryFiltersV83()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="clearInventoryFiltersV83()">초기화</button></div>
           </div>
         </div>
-        <div class="bulk-v6 inventory-toolbar-v83"><span id="inventoryResultV83" class="result-v6"></span><span class="inventory-save-hint-v83">수정 후 각 제품 행의 <b>저장</b> 버튼을 눌러야 반영됩니다.</span></div>
-        <div class="card table-wrap"><table class="inventory-table-v83"><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재 재고</th><th>안전재고 기준</th><th>창고</th><th>거래처 공개</th><th>공개 설정</th><th>관리</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div><div id="adminInventoryPaginationV91" aria-label="재고 목록 페이지 이동"></div>
+        <div class="bulk-v6 inventory-toolbar-v92"><div class="inventory-toolbar-left-v92"><span id="inventoryResultV83" class="result-v6"></span><span id="inventorySelectionCountV92" class="result-v6">0개 선택</span></div><div class="inventory-toolbar-actions-v92"><label for="inventoryBulkVisibilityV92">선택 항목 공개 설정</label><select id="inventoryBulkVisibilityV92" onchange="applyInventoryBulkVisibilityV92()"><option value="public">공개</option><option value="private">비공개</option></select><button type="button" class="small-btn inventory-save-all-v92" onclick="saveSelectedInventoryV92()">선택 항목 저장</button></div></div>
+        <div class="card table-wrap"><table class="inventory-table-v83"><thead><tr><th class="order-head-check"><input id="adminInventorySelectAllV92" class="inventory-check-v92" type="checkbox" aria-label="현재 페이지 전체 선택" title="현재 페이지 전체 선택" onchange="toggleAllInventoryV92(this.checked)"></th><th>제품코드</th><th>제품명</th><th>규격</th><th>현재 재고</th><th>안전재고 기준</th><th>창고</th><th>거래처 공개</th><th>공개 설정</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div><div id="adminInventoryPaginationV91" aria-label="재고 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN PRODUCTION -->
@@ -2856,11 +2863,32 @@ function renderAdminInventory(){
  const sw=(document.getElementById('inventorySpecWidth')?.value||'').trim().toLowerCase();
  const sl=(document.getElementById('inventorySpecLength')?.value||'').trim().toLowerCase();
  const sq=(document.getElementById('inventorySpecBoxQty')?.value||'').trim().toLowerCase();
- const filtered=products.filter(p=>{const spec=parseWJProductSpec(p.spec);return (!selectedIds.length||selectedIds.includes(String(p.id)) )&&(!st||String(spec.thickness).toLowerCase().includes(st))&&(!sw||String(spec.width).toLowerCase().includes(sw))&&(!sl||String(spec.length).toLowerCase().includes(sl))&&(!sq||String(spec.boxQty).toLowerCase().includes(sq))});
+ const filtered=products.filter(p=>{const spec=parseWJProductSpec(p.spec);return (!selectedIds.length||selectedIds.includes(String(p.id)))&&(!st||String(spec.thickness).toLowerCase().includes(st))&&(!sw||String(spec.width).toLowerCase().includes(sw))&&(!sl||String(spec.length).toLowerCase().includes(sl))&&(!sq||String(spec.boxQty).toLowerCase().includes(sq))});
  const size=Math.max(1,Number(window.wjAdminInventoryPageSizeV91||20)),total=Math.max(1,Math.ceil(filtered.length/size));window.wjAdminInventoryPageV91=Math.min(total,Math.max(1,Number(window.wjAdminInventoryPageV91||1)));const page=window.wjAdminInventoryPageV91,start=(page-1)*size,pageList=filtered.slice(start,start+size);
- rows.innerHTML=pageList.map(p=>`<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td class="inventory-public-label-v83">${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" data-field="visibility" aria-label="${escapeHtmlV8(p.name)} 재고 공개 설정"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td><td><button type="button" class="inventory-row-save-v83" onclick="saveInventoryRowV83('${String(p.id).replace(/'/g,"\'")}',this)">저장</button><span class="inventory-row-status-v83" aria-live="polite"></span></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
+ const selected=new Set((window.wjSelectedInventoryIdsV92||[]).map(String));
+ rows.innerHTML=pageList.map(p=>`<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td><input class="inventory-check-v92" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateInventorySelectionV92()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td class="inventory-public-label-v83">${p.inventoryPublic===false?'비공개':'공개'}</td><td><select class="status-select" data-field="visibility" aria-label="${escapeHtmlV8(p.name)} 재고 공개 설정"><option value="public" ${p.inventoryPublic!==false?'selected':''}>공개</option><option value="private" ${p.inventoryPublic===false?'selected':''}>비공개</option></select></td></tr>`).join('')||'<tr><td colspan="9" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
+ const master=document.getElementById('adminInventorySelectAllV92');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}
  const result=document.getElementById('inventoryResultV83');if(result)result.textContent=`${filtered.length.toLocaleString()}개 제품`;
+ updateInventorySelectionCountV92();
  renderAdminListPagerV91('adminInventoryPaginationV91',filtered.length,start,size,page,total,'wjAdminInventoryPageSizeV91','wjAdminInventoryPageV91','renderAdminInventory','changeAdminInventoryPageV91');
+}
+function updateInventorySelectionCountV92(){const el=document.getElementById('inventorySelectionCountV92');if(el)el.textContent=`${(window.wjSelectedInventoryIdsV92||[]).length}개 선택`}
+function updateInventorySelectionV92(){const selected=new Set((window.wjSelectedInventoryIdsV92||[]).map(String));document.querySelectorAll('#adminInventoryRows .inventory-check-v92').forEach(cb=>{if(cb.checked)selected.add(String(cb.value));else selected.delete(String(cb.value))});window.wjSelectedInventoryIdsV92=[...selected];const master=document.getElementById('adminInventorySelectAllV92');const all=[...document.querySelectorAll('#adminInventoryRows .inventory-check-v92')];if(master){master.checked=all.length>0&&all.every(cb=>cb.checked);master.indeterminate=all.some(cb=>cb.checked)&&!master.checked}updateInventorySelectionCountV92()}
+function toggleAllInventoryV92(checked){const selected=new Set((window.wjSelectedInventoryIdsV92||[]).map(String));document.querySelectorAll('#adminInventoryRows .inventory-check-v92').forEach(cb=>{cb.checked=checked;if(checked)selected.add(String(cb.value));else selected.delete(String(cb.value))});window.wjSelectedInventoryIdsV92=[...selected];updateInventorySelectionCountV92();const master=document.getElementById('adminInventorySelectAllV92');if(master)master.indeterminate=false}
+function applyInventoryBulkVisibilityV92(){const ids=new Set((window.wjSelectedInventoryIdsV92||[]).map(String));if(!ids.size){alert('먼저 공개 설정을 변경할 제품을 선택해 주세요.');return}const value=document.getElementById('inventoryBulkVisibilityV92')?.value||'public';document.querySelectorAll('#adminInventoryRows tr[data-inventory-product]').forEach(row=>{if(ids.has(String(row.getAttribute('data-inventory-product')))){const sel=row.querySelector('[data-field="visibility"]');if(sel)sel.value=value}})}
+async function saveSelectedInventoryV92(){
+ const ids=(window.wjSelectedInventoryIdsV92||[]).map(String);if(!ids.length){alert('먼저 저장할 제품을 선택해 주세요.');return}
+ const button=document.querySelector('#adminInventory .inventory-save-all-v92');if(!button)return;
+ const entries=ids.map(id=>{const row=[...document.querySelectorAll('#adminInventoryRows tr[data-inventory-product]')].find(r=>String(r.getAttribute('data-inventory-product'))===id);const p=products.find(x=>String(x.id)===id);if(!p)return null;return {id,row,p,stockInput:row?.querySelector('[data-field="stock"]'),safetyInput:row?.querySelector('[data-field="safety"]'),visInput:row?.querySelector('[data-field="visibility"]')}}).filter(Boolean);
+ if(!entries.length){alert('선택한 제품을 찾을 수 없습니다.');return}
+ for(const x of entries){const stock=Number(x.stockInput?.value??x.p.stock??0),safety=Number(x.safetyInput?.value??x.p.safety??0);if(!Number.isInteger(stock)||stock<0){alert(`${x.p.name}: 현재 재고는 0 이상의 정수로 입력해 주세요.`);x.stockInput?.focus();return}if(!Number.isInteger(safety)||safety<0){alert(`${x.p.name}: 안전재고는 0 이상의 정수로 입력해 주세요.`);x.safetyInput?.focus();return}}
+ const previous=entries.map(x=>({p:x.p,stock:x.p.stock,safety:x.p.safety,inventoryPublic:x.p.inventoryPublic}));button.disabled=true;button.textContent='저장 중...';
+ try{
+  for(const x of entries){const visibilityValue=x.visInput?.value||(document.getElementById('inventoryBulkVisibilityV92')?.value||'public');const changes={stock:Number(x.stockInput?.value??x.p.stock??0),safety:Number(x.safetyInput?.value??x.p.safety??0),inventoryPublic:visibilityValue==='public'};await persistInventoryV82(x.p,changes);Object.assign(x.p,changes)}
+  try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
+  await loadProductsFromSupabase();window.wjSelectedInventoryIdsV92=[];renderAdminInventory();renderAdminProducts();renderAdminDashboard();renderInventoryRows();renderProducts();alert(`${entries.length}개 제품의 재고 및 공개 설정을 저장했습니다.`)
+ }catch(err){previous.forEach(x=>Object.assign(x.p,{stock:x.stock,safety:x.safety,inventoryPublic:x.inventoryPublic}));console.error('일괄 재고/공개 설정 저장 실패',err);alert('일괄 저장에 실패했습니다. 일부 항목은 저장됐을 수 있으므로 목록을 새로고침해 저장 결과를 확인해 주세요.\n\n'+(err?.message||err));await loadProductsFromSupabase();renderAdminInventory()}
+ finally{button.disabled=false;button.textContent='선택 항목 저장'}
 }
 
 function applyInventoryFiltersV83(){window.wjAdminInventoryPageV91=1;renderAdminInventory()}
@@ -3276,7 +3304,7 @@ function downloadDocumentPDF(no,type,orderNo,date){
 
 
 
-<!-- V91: admin list pagination aligned with Orders / Order Management -->
+<!-- V92: inventory bulk visibility selection and single top save button; retain V91 pagination -->
 </body></html>`);w.document.close();
 }
 
