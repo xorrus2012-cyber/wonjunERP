@@ -924,6 +924,14 @@ html,body{overflow-x:hidden}
           <div><h2>공지사항 관리</h2><p>거래처에게 보여줄 공지사항을 등록하고 수정합니다.</p></div>
           <button class="btn primary" onclick="openNoticeModal()">+ 공지사항 등록</button>
         </div>
+        <div class="order-filter-panel admin-search-panel notice-search-panel-v97" aria-label="공지사항 검색 및 기간 필터">
+          <div class="order-filter-grid admin-search-grid notice-search-grid-v97">
+            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeSearchV97">공지사항 검색</label><input id="adminNoticeSearchV97" type="search" placeholder="제목 또는 내용 검색" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyAdminNoticeFiltersV97()}"></div>
+            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeDateFromV97">작성일 시작</label><input id="adminNoticeDateFromV97" type="date" aria-label="작성일 시작"></div>
+            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeDateToV97">작성일 종료</label><input id="adminNoticeDateToV97" type="date" aria-label="작성일 종료"></div>
+            <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyAdminNoticeFiltersV97()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminNoticeFiltersV97()">초기화</button></div>
+          </div>
+        </div>
         <div class="card table-wrap">
           <table>
             <thead><tr><th>제목</th><th>작성일</th><th>상태</th><th>관리</th></tr></thead>
@@ -2762,7 +2770,7 @@ function renderClients(){
  renderAdminListPagerV91('adminClientPaginationV91',list.length,start,size,page,total,'wjAdminClientPageSizeV91','wjAdminClientPageV91','renderClients','changeAdminClientPageV91');
 }
 
-function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const size=Math.max(1,Number(window.wjAdminProductPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminProductPageV91=Math.min(total,Math.max(1,Number(window.wjAdminProductPageV91||1)));const page=window.wjAdminProductPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=pageList.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td><span class="product-sale-status-v89 ${stCls}">${st}</span></td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`;renderAdminListPagerV91('adminProductPaginationV91',list.length,start,size,page,total,'wjAdminProductPageSizeV91','wjAdminProductPageV91','renderAdminProducts','changeAdminProductPageV91')}
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const size=Math.max(1,Number(window.wjAdminProductPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminProductPageV91=Math.min(total,Math.max(1,Number(window.wjAdminProductPageV91||1)));const page=window.wjAdminProductPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=pageList.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td>${productSaleStatusBadgeV89(st)}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`;renderAdminListPagerV91('adminProductPaginationV91',list.length,start,size,page,total,'wjAdminProductPageSizeV91','wjAdminProductPageV91','renderAdminProducts','changeAdminProductPageV91')}
 
 function renderPriceClients(){
  const sel=document.getElementById('priceClientSelect');
@@ -2938,14 +2946,27 @@ function editCartQty(id,value){
  cart[id]=q;saveCartV8();updateCart();renderCartPage();
 }
 function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage();}
+function getAdminNoticeFilteredEntriesV97(){
+ const q=(document.getElementById('adminNoticeSearchV97')?.value||'').trim().toLocaleLowerCase();
+ const from=document.getElementById('adminNoticeDateFromV97')?.value||'';
+ const to=document.getElementById('adminNoticeDateToV97')?.value||'';
+ return notices.map((n,i)=>({n,i})).filter(({n})=>{
+   const title=String(n.title||'').toLocaleLowerCase(),content=String(n.content||'').toLocaleLowerCase();
+   const date=String(n.date||'').slice(0,10);
+   return (!q||title.includes(q)||content.includes(q))&&(!from||(date&&date>=from))&&(!to||(date&&date<=to));
+ });
+}
+function applyAdminNoticeFiltersV97(){window.wjAdminNoticePageV93=1;renderAdminNotices()}
+function resetAdminNoticeFiltersV97(){['adminNoticeSearchV97','adminNoticeDateFromV97','adminNoticeDateToV97'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});window.wjAdminNoticePageV93=1;renderAdminNotices()}
 function renderAdminNotices(){
  const rows=document.getElementById('adminNoticeRows');if(!rows)return;
+ const entries=getAdminNoticeFilteredEntriesV97();
  const size=Math.max(1,Number(window.wjAdminNoticePageSizeV93||20));
- const total=Math.max(1,Math.ceil(notices.length/size));
+ const total=Math.max(1,Math.ceil(entries.length/size));
  window.wjAdminNoticePageV93=Math.min(total,Math.max(1,Number(window.wjAdminNoticePageV93||1)));
- const page=window.wjAdminNoticePageV93,start=(page-1)*size,pageItems=notices.map((n,i)=>({n,i})).slice(start,start+size);
- rows.innerHTML=pageItems.map(({n,i})=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${escapeHtmlV8(n.date||'')}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${escapeHtmlV8(n.popupStart)} ~ ${escapeHtmlV8(n.popupEnd)}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">등록된 공지사항이 없습니다.</td></tr>';
- renderAdminListPagerV91('adminNoticePaginationV93',notices.length,start,size,page,total,'wjAdminNoticePageSizeV93','wjAdminNoticePageV93','renderAdminNotices','changeAdminNoticePageV93');
+ const page=window.wjAdminNoticePageV93,start=(page-1)*size,pageItems=entries.slice(start,start+size);
+ rows.innerHTML=pageItems.map(({n,i})=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${escapeHtmlV8(n.date||'')}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${escapeHtmlV8(n.popupStart)} ~ ${escapeHtmlV8(n.popupEnd)}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
+ renderAdminListPagerV91('adminNoticePaginationV93',entries.length,start,size,page,total,'wjAdminNoticePageSizeV93','wjAdminNoticePageV93','renderAdminNotices','changeAdminNoticePageV93');
 }
 function changeAdminNoticePageV93(d){window.wjAdminNoticePageV93=Math.max(1,Number(window.wjAdminNoticePageV93||1)+Number(d||0));renderAdminNotices();document.getElementById('adminNotices')?.scrollIntoView({behavior:'smooth',block:'start'})}
 function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">이미지는 2MB 이하로 첨부해 주세요.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 사이트 내부 팝업 사용</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
@@ -3621,7 +3642,7 @@ document.addEventListener('DOMContentLoaded',()=>{for(const id of ['inventorySpe
 <script id="v89-product-status-logic">
 window.wjSelectedProductIdsV89=window.wjSelectedProductIdsV89||new Set();
 function normalizeProductSaleStatusV89(s){return ['판매중','판매중단','품절','단종'].includes(String(s||''))?String(s):'판매중'}
-function productSaleStatusBadgeV89(s){const st=normalizeProductSaleStatusV89(s),cls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<span class="product-sale-status-v89 ${cls}">${st}</span>`}
+function productSaleStatusBadgeV89(s){const st=normalizeProductSaleStatusV89(s),cls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<span class="status order-status-v54 product-sale-status-v89 ${cls}">${escapeHtmlV8(st)}</span>`}
 function updateProductSelectionV89(sync=true,totalOverride){const boxes=[...document.querySelectorAll('#adminProductRows .product-check-v89')];if(sync){boxes.forEach(x=>{if(x.checked)window.wjSelectedProductIdsV89.add(String(x.value));else window.wjSelectedProductIdsV89.delete(String(x.value))})}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${window.wjSelectedProductIdsV89.size}개 선택`;const master=document.getElementById('adminProductSelectAllV89');if(master){const n=boxes.filter(x=>window.wjSelectedProductIdsV89.has(String(x.value))).length;master.checked=boxes.length>0&&n===boxes.length;master.indeterminate=n>0&&n<boxes.length}}
 function toggleAllAdminProductsV89(checked){const q=smartGet('productAdminSmart'),c=document.getElementById('productAdminCat')?.value||'전체';products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c)).forEach(p=>checked?window.wjSelectedProductIdsV89.add(String(p.id)):window.wjSelectedProductIdsV89.delete(String(p.id)));renderAdminProducts()}
 function ensureProductStatusModalV89(){if(document.getElementById('productStatusModalV89'))return;const d=document.createElement('div');d.id='productStatusModalV89';d.className='bulk-status-overlay-v54';d.innerHTML=`<div class="bulk-status-dialog-v54" role="dialog" aria-modal="true" aria-labelledby="productStatusTitleV89"><div class="bulk-status-head-v54"><div><h3 id="productStatusTitleV89">선택 제품 상태 변경</h3><p id="productStatusCountV89">선택한 제품의 판매 상태를 변경합니다.</p></div><button type="button" class="bulk-status-x-v54" onclick="closeProductStatusModalV89()" aria-label="닫기">×</button></div><div class="bulk-status-options-v54" id="productStatusOptionsV89"></div><div class="bulk-status-foot-v54"><button type="button" class="small-btn" onclick="closeProductStatusModalV89()">취소</button><button type="button" class="btn primary" onclick="applyProductStatusV89()">저장</button></div></div>`;d.addEventListener('click',e=>{if(e.target===d)closeProductStatusModalV89()});document.body.appendChild(d)}
@@ -3631,6 +3652,32 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 </script>
 
 <!-- V91: admin list pagination aligned with Orders / Order Management -->
+
+<style id="v97-status-badge-and-notice-search">
+/* V97: force every admin status badge to use the exact shared base sizing from Orders / Order Management */
+#adminOrders .order-status-v54,
+#adminClients .status,
+#adminProducts .product-sale-status-v89,
+#adminPrices .status,
+#adminInventory .status{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;min-width:76px!important;min-height:27px!important;
+  padding:6px 10px!important;border-radius:999px!important;border-width:1px!important;
+  border-style:solid!important;font-size:11px!important;font-weight:700!important;
+  line-height:1.2!important;white-space:nowrap!important;text-align:center!important;
+}
+#adminProducts .product-sale-status-v89{border-color:transparent}
+#adminProducts .product-sale-active-v89{background:#e8f7ee!important;color:#167344!important;border-color:#b9e6c9!important}
+#adminProducts .product-sale-paused-v89{background:#fff2d9!important;color:#9a5b00!important;border-color:#f4d59b!important}
+#adminProducts .product-sale-oos-v89{background:#fff1f2!important;color:#be123c!important;border-color:#fecdd3!important}
+#adminProducts .product-sale-discontinued-v89{background:#e9eef3!important;color:#475569!important;border-color:#d2dbe4!important}
+.notice-search-panel-v97{margin:0 0 14px}
+.notice-search-grid-v97{grid-template-columns:minmax(220px,1.5fr) minmax(150px,1fr) minmax(150px,1fr) auto;align-items:end}
+.notice-search-grid-v97 input{width:100%;min-width:0;box-sizing:border-box;min-height:40px}
+@media(max-width:900px){.notice-search-grid-v97{grid-template-columns:repeat(2,minmax(0,1fr))}.notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:520px){.notice-search-grid-v97{grid-template-columns:1fr}.notice-search-grid-v97 .order-filter-actions{grid-column:auto}}
+</style>
+
 </body>
 </html>
 
