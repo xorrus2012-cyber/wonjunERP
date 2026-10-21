@@ -2420,7 +2420,7 @@ async function checkout(selectedOnly=false){
    alert('발주 저장에 실패했습니다.\n\n'+(e?.message||e));
  }
 }
-function badge(s){const cls=s==='취소'?'s-red':s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status ${cls}">${s}</span>`}
+function badge(s){const cls=s==='취소'?'s-red':s==='출고 완료'?'s-gray':s==='생산 중'||s==='출고 중'?'s-blue':s==='출고 대기'?'s-orange':'s-green';return `<span class="status order-status-v54 ${cls}">${escapeHtmlV8(s)}</span>`}
 function getWJOrderOptionSummary(details){
   const list=Array.isArray(details)?details:[];
   if(list.length<=1){
@@ -2779,7 +2779,7 @@ function renderPriceClients(){
  sel.innerHTML=clients.map(c=>`<option value="${c.id}">${c.company} · ${c.code}</option>`).join('');
  if(clients.some(c=>c.id===prev))sel.value=prev;
 }
-function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));let entries=[];if(!cs.length){entries=list.map(p=>({p,c:null}))}else{const selectedClients=clients.filter(c=>cs.includes(String(c.id)));entries=selectedClients.flatMap(c=>list.map(p=>({p,c})))}const size=Math.max(1,Number(window.wjAdminPricePageSizeV91||20)),total=Math.max(1,Math.ceil(entries.length/size));window.wjAdminPricePageV91=Math.min(total,Math.max(1,Number(window.wjAdminPricePageV91||1)));const page=window.wjAdminPricePageV91,start=(page-1)*size,pageEntries=entries.slice(start,start+size);box.innerHTML=pageEntries.map(({p,c})=>{if(!c)return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`;const key=c.loginId,val=p.prices?.[key]??p.base,custom=p.prices?.[key]!==undefined;return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status s-blue">개별단가</span>':'<span class="status s-gray">기본단가</span>'}</td><td><button class="small-btn" type="button" data-price-client-id="${escapeHtmlV8(c.id)}" data-price-product-id="${escapeHtmlV8(p.id)}" onclick="openSinglePriceModal(this.dataset.priceClientId,this.dataset.priceProductId)">단가 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>';renderAdminListPagerV91('adminPricePaginationV91',entries.length,start,size,page,total,'wjAdminPricePageSizeV91','wjAdminPricePageV91','renderPriceManagement','changeAdminPricePageV91')}
+function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));let entries=[];if(!cs.length){entries=list.map(p=>({p,c:null}))}else{const selectedClients=clients.filter(c=>cs.includes(String(c.id)));entries=selectedClients.flatMap(c=>list.map(p=>({p,c})))}const size=Math.max(1,Number(window.wjAdminPricePageSizeV91||20)),total=Math.max(1,Math.ceil(entries.length/size));window.wjAdminPricePageV91=Math.min(total,Math.max(1,Number(window.wjAdminPricePageV91||1)));const page=window.wjAdminPricePageV91,start=(page-1)*size,pageEntries=entries.slice(start,start+size);box.innerHTML=pageEntries.map(({p,c})=>{if(!c)return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status order-status-v54 s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`;const key=c.loginId,val=p.prices?.[key]??p.base,custom=p.prices?.[key]!==undefined;return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><b>${escapeHtmlV8(p.name)}</b></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status order-status-v54 s-blue">개별단가</span>':'<span class="status order-status-v54 s-gray">기본단가</span>'}</td><td><button class="small-btn" type="button" data-price-client-id="${escapeHtmlV8(c.id)}" data-price-product-id="${escapeHtmlV8(p.id)}" onclick="openSinglePriceModal(this.dataset.priceClientId,this.dataset.priceProductId)">단가 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>';renderAdminListPagerV91('adminPricePaginationV91',entries.length,start,size,page,total,'wjAdminPricePageSizeV91','wjAdminPricePageV91','renderPriceManagement','changeAdminPricePageV91')}
 
 function openSinglePriceModal(clientId,productId){
  const c=clients.find(x=>String(x.id)===String(clientId)),p=products.find(x=>String(x.id)===String(productId));
@@ -2882,7 +2882,7 @@ function renderAdminInventory(){
  const filtered=products.filter(p=>{const spec=parseWJProductSpec(p.spec);return (!selectedIds.length||selectedIds.includes(String(p.id)))&&(!st||String(spec.thickness).toLowerCase().includes(st))&&(!sw||String(spec.width).toLowerCase().includes(sw))&&(!sl||String(spec.length).toLowerCase().includes(sl))&&(!sq||String(spec.boxQty).toLowerCase().includes(sq))});
  const size=Math.max(1,Number(window.wjAdminInventoryPageSizeV91||20)),total=Math.max(1,Math.ceil(filtered.length/size));window.wjAdminInventoryPageV91=Math.min(total,Math.max(1,Number(window.wjAdminInventoryPageV91||1)));const page=window.wjAdminInventoryPageV91,start=(page-1)*size,pageList=filtered.slice(start,start+size);
  const selected=new Set((window.wjSelectedInventoryIdsV92||[]).map(String));
- rows.innerHTML=pageList.map(p=>{const isPrivate=p.inventoryPublic===false||String(p.inventoryPublic).toLowerCase()==='false'||p.inventoryPublic===0;return `<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td><input class="inventory-check-v92" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateInventorySelectionV92()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td><span class="status ${isPrivate?'s-red':'s-green'}">${isPrivate?'비공개':'공개'}</span></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
+ rows.innerHTML=pageList.map(p=>{const isPrivate=p.inventoryPublic===false||String(p.inventoryPublic).toLowerCase()==='false'||p.inventoryPublic===0;return `<tr data-inventory-product="${String(p.id).replace(/"/g,'&quot;')}"><td><input class="inventory-check-v92" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateInventorySelectionV92()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code||'')}</td><td><b>${escapeHtmlV8(p.name||'')}</b></td><td>${escapeHtmlV8(p.spec||'')}</td><td><input class="inventory-qty" data-field="stock" aria-label="${escapeHtmlV8(p.name)} 현재 재고 수량" type="number" min="0" step="1" value="${Number(p.stock)||0}"></td><td><input class="inventory-qty" data-field="safety" aria-label="${escapeHtmlV8(p.name)} 안전재고 수량" type="number" min="0" step="1" value="${Number(p.safety)||0}"></td><td>${escapeHtmlV8(p.warehouse||'-')}</td><td><span class="status order-status-v54 ${isPrivate?'s-red':'s-green'}">${isPrivate?'비공개':'공개'}</span></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 조건에 맞는 제품이 없습니다.</td></tr>';
  const master=document.getElementById('adminInventorySelectAllV92');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}
  const result=document.getElementById('inventoryResultV83');if(result)result.textContent=`${filtered.length.toLocaleString()}개 제품`;
  updateInventorySelectionCountV92();
@@ -3656,12 +3656,12 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 <style id="v97-status-badge-and-notice-search">
 /* V97: force every admin status badge to use the exact shared base sizing from Orders / Order Management */
 #adminOrders .order-status-v54,
-#adminClients .status,
+#adminClients .order-status-v54,
 #adminProducts .product-sale-status-v89,
-#adminPrices .status,
-#adminInventory .status{
+#adminPrices .order-status-v54,
+#adminInventory .order-status-v54{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  box-sizing:border-box!important;min-width:76px!important;min-height:27px!important;
+  box-sizing:border-box!important;min-width:76px!important;height:auto!important;min-height:27px!important;
   padding:6px 10px!important;border-radius:999px!important;border-width:1px!important;
   border-style:solid!important;font-size:11px!important;font-weight:700!important;
   line-height:1.2!important;white-space:nowrap!important;text-align:center!important;
@@ -3671,11 +3671,19 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 #adminProducts .product-sale-paused-v89{background:#fff2d9!important;color:#9a5b00!important;border-color:#f4d59b!important}
 #adminProducts .product-sale-oos-v89{background:#fff1f2!important;color:#be123c!important;border-color:#fecdd3!important}
 #adminProducts .product-sale-discontinued-v89{background:#e9eef3!important;color:#475569!important;border-color:#d2dbe4!important}
-.notice-search-panel-v97{margin:0 0 14px}
-.notice-search-grid-v97{grid-template-columns:minmax(220px,1.5fr) minmax(150px,1fr) minmax(150px,1fr) auto;align-items:end}
-.notice-search-grid-v97 input{width:100%;min-width:0;box-sizing:border-box;min-height:40px}
-@media(max-width:900px){.notice-search-grid-v97{grid-template-columns:repeat(2,minmax(0,1fr))}.notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;justify-content:flex-end}}
-@media(max-width:520px){.notice-search-grid-v97{grid-template-columns:1fr}.notice-search-grid-v97 .order-filter-actions{grid-column:auto}}
+/* 공지사항 검색: 주문/수주 관리 기간 검색 패널과 같은 입력·버튼 규격 */
+#adminNotices .notice-search-panel-v97{margin:0 0 12px;padding:15px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px}
+#adminNotices .notice-search-grid-v97{display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(150px,1fr) minmax(150px,1fr) auto;column-gap:14px;row-gap:14px;align-items:end}
+#adminNotices .notice-search-grid-v97 .order-filter-field{min-width:0;width:100%}
+#adminNotices .notice-search-grid-v97 .order-filter-label{display:block;margin:0 0 6px;color:#475569;font-size:12px;font-weight:700;line-height:1.2}
+#adminNotices .notice-search-grid-v97 input{display:block;width:100%;min-width:0;box-sizing:border-box;height:40px;min-height:40px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px}
+#adminNotices .notice-search-grid-v97 input:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
+#adminNotices .notice-search-grid-v97 .order-filter-actions{display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;min-width:0}
+#adminNotices .notice-search-grid-v97 .order-filter-actions .small-btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:40px;min-height:40px;padding:0 18px;border-radius:8px;white-space:nowrap;font-size:13px}
+#adminNotices .notice-search-grid-v97 .order-filter-search{background:#2563eb;border:1px solid #2563eb;color:#fff}
+#adminNotices .notice-search-grid-v97 .order-filter-reset{background:#fff;border:1px solid #cbd5e1;color:#475569}
+@media(max-width:900px){#adminNotices .notice-search-grid-v97{grid-template-columns:repeat(2,minmax(0,1fr))}#adminNotices .notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:520px){#adminNotices .notice-search-grid-v97{grid-template-columns:minmax(0,1fr)}#adminNotices .notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}#adminNotices .notice-search-grid-v97 .order-filter-actions .small-btn{width:100%;padding:0 10px}}
 </style>
 
 </body>
