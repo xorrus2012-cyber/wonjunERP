@@ -609,6 +609,10 @@ html,body{overflow-x:hidden}
 
 <style id="v99-notice-search-match-order-layout">
 /* 공지사항 검색 패널을 주문/수주 관리 검색 패널과 동일한 기반 스타일로 통일 */
+#adminNotices .notice-quick-v100{display:flex!important;flex-wrap:wrap!important;gap:5px!important;margin-top:5px!important;}
+#adminNotices .notice-quick-v100 button{padding:4px 9px!important;min-height:26px!important;border:1px solid #dbe3ed!important;border-radius:7px!important;background:#fff!important;color:#475569!important;font-size:11px!important;line-height:1.2!important;cursor:pointer!important;}
+#adminNotices .notice-quick-v100 button:hover{background:#eff6ff!important;border-color:#93c5fd!important;color:#1d4ed8!important;}
+@media(max-width:520px){#adminNotices .notice-quick-v100{gap:4px!important}#adminNotices .notice-quick-v100 button{padding:4px 7px!important}}
 #adminNotices .notice-search-panel-v99{margin:0 0 12px!important;padding:15px 16px!important;background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:12px!important;}
 #adminNotices .notice-search-grid-v99{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;column-gap:14px!important;row-gap:14px!important;align-items:start!important;}
 #adminNotices .notice-search-grid-v99 .order-filter-field{min-width:0!important;width:100%!important;}
@@ -806,7 +810,7 @@ html,body{overflow-x:hidden}
           <div class="order-filter-grid">
             <div class="order-filter-field order-filter-client"><label class="order-filter-label">거래처</label><div class="smartbox" id="orderClientFilter"></div></div>
             <div class="order-filter-field order-filter-product"><label class="order-filter-label">제품</label><div class="smartbox" id="orderProductFilter"></div></div>
-            <div class="order-filter-field order-filter-status"><label class="order-filter-label" for="adminStatus">주문 상태</label><select id="adminStatus" onchange="window.wjOrderPageV76=1;renderAdminOrders()"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option><option>취소</option></select></div>
+            <div class="order-filter-field order-filter-status"><label class="order-filter-label" for="adminStatus">주문 상태</label><select id="adminStatus"><option>전체</option><option>접수 완료</option><option>생산 중</option><option>출고 대기</option><option>출고 중</option><option>출고 완료</option><option>취소</option></select></div>
             <div class="order-filter-field order-filter-date"><label class="order-filter-label">접수일 기간</label><div class="date-range-v6"><input type="date" id="adminOrderDateFrom" aria-label="조회 시작일"><span>~</span><input type="date" id="adminOrderDateTo" aria-label="조회 종료일"></div><div class="quick-v6"><button type="button" onclick="quickOrderDate('today')">오늘</button><button type="button" onclick="quickOrderDate('week')">이번 주</button><button type="button" onclick="quickOrderDate('lastweek')">지난 주</button><button type="button" onclick="quickOrderDate('month')">이번 달</button><button type="button" onclick="quickOrderDate('lastmonth')">지난 달</button></div></div>
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyOrderFiltersV76()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="clearOrderFilters()">필터 초기화</button></div>
           </div>
@@ -947,8 +951,8 @@ html,body{overflow-x:hidden}
         </div>
         <div class="order-filter-panel notice-search-panel-v99" aria-label="공지사항 검색 및 필터">
           <div class="order-filter-grid notice-search-grid-v99">
-            <div class="order-filter-field notice-search-query-v99"><label class="order-filter-label" for="adminNoticeSearchV97">공지사항 검색</label><input id="adminNoticeSearchV97" type="search" placeholder="제목 또는 내용 검색" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyAdminNoticeFiltersV97()}"></div>
-            <div class="order-filter-field order-filter-date notice-search-date-v99"><label class="order-filter-label">작성일 기간</label><div class="date-range-v6"><input id="adminNoticeDateFromV97" type="date" aria-label="작성일 시작"><span>~</span><input id="adminNoticeDateToV97" type="date" aria-label="작성일 종료"></div></div>
+            <div class="order-filter-field notice-search-query-v99"><label class="order-filter-label" for="adminNoticeSearchV97">공지사항 검색</label><input id="adminNoticeSearchV97" type="search" placeholder="제목 또는 내용 검색" autocomplete="off"></div>
+            <div class="order-filter-field order-filter-date notice-search-date-v99"><label class="order-filter-label">작성일 기간</label><div class="date-range-v6"><input id="adminNoticeDateFromV97" type="date" aria-label="작성일 시작"><span>~</span><input id="adminNoticeDateToV97" type="date" aria-label="작성일 종료"></div><div class="quick-v6 notice-quick-v100"><button type="button" onclick="quickNoticeDateV100('today')">오늘</button><button type="button" onclick="quickNoticeDateV100('week')">이번 주</button><button type="button" onclick="quickNoticeDateV100('lastweek')">지난 주</button><button type="button" onclick="quickNoticeDateV100('month')">이번 달</button><button type="button" onclick="quickNoticeDateV100('lastmonth')">지난 달</button></div></div>
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyAdminNoticeFiltersV97()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminNoticeFiltersV97()">필터 초기화</button></div>
           </div>
         </div>
@@ -2503,8 +2507,10 @@ function renderAdminOrders(){
  // DOM에 남아 있는 선택도 Set에 합쳐, 재렌더링 전 선택을 놓치지 않습니다.
  rows.querySelectorAll('.order-check-v6:checked').forEach(el=>window.wjSelectedOrderNosV58.add(String(el.value)));
  const previouslyChecked=new Set(window.wjSelectedOrderNosV58);
- const clientsSel=smartGet('orderClientFilter'), productsSel=smartGet('orderProductFilter');
- const from=document.getElementById('adminOrderDateFrom')?.value||'',to=document.getElementById('adminOrderDateTo')?.value||'',st=document.getElementById('adminStatus')?.value||'전체';
+ if(!window.wjOrderAppliedFiltersV100){window.wjOrderAppliedFiltersV100={clients:smartGet('orderClientFilter'),products:smartGet('orderProductFilter'),from:document.getElementById('adminOrderDateFrom')?.value||'',to:document.getElementById('adminOrderDateTo')?.value||'',status:document.getElementById('adminStatus')?.value||'전체'};}
+ const applied=window.wjOrderAppliedFiltersV100;
+ const clientsSel=applied.clients||[], productsSel=applied.products||[];
+ const from=applied.from||'',to=applied.to||'',st=applied.status||'전체';
  const list=orders.filter(o=>{
    const c=clients.find(x=>x.loginId===o.id);
    const clientOK=!clientsSel.length||clientsSel.includes(String(c?.id));
@@ -2967,17 +2973,18 @@ function editCartQty(id,value){
 }
 function removeCart(id){delete cart[id];saveCartV8();updateCart();renderCartPage();}
 function getAdminNoticeFilteredEntriesV97(){
- const q=(document.getElementById('adminNoticeSearchV97')?.value||'').trim().toLocaleLowerCase();
- const from=document.getElementById('adminNoticeDateFromV97')?.value||'';
- const to=document.getElementById('adminNoticeDateToV97')?.value||'';
+ const applied=window.wjNoticeAppliedFiltersV100||{q:'',from:'',to:''};
+ const q=(applied.q||'').trim().toLocaleLowerCase();
+ const from=applied.from||'';
+ const to=applied.to||'';
  return notices.map((n,i)=>({n,i})).filter(({n})=>{
    const title=String(n.title||'').toLocaleLowerCase(),content=String(n.content||'').toLocaleLowerCase();
    const date=String(n.date||'').slice(0,10);
    return (!q||title.includes(q)||content.includes(q))&&(!from||(date&&date>=from))&&(!to||(date&&date<=to));
  });
 }
-function applyAdminNoticeFiltersV97(){window.wjAdminNoticePageV93=1;renderAdminNotices()}
-function resetAdminNoticeFiltersV97(){['adminNoticeSearchV97','adminNoticeDateFromV97','adminNoticeDateToV97'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});window.wjAdminNoticePageV93=1;renderAdminNotices()}
+function applyAdminNoticeFiltersV97(){window.wjNoticeAppliedFiltersV100={q:document.getElementById('adminNoticeSearchV97')?.value||'',from:document.getElementById('adminNoticeDateFromV97')?.value||'',to:document.getElementById('adminNoticeDateToV97')?.value||''};window.wjAdminNoticePageV93=1;renderAdminNotices()}
+function resetAdminNoticeFiltersV97(){['adminNoticeSearchV97','adminNoticeDateFromV97','adminNoticeDateToV97'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});window.wjNoticeAppliedFiltersV100={q:'',from:'',to:''};window.wjAdminNoticePageV93=1;renderAdminNotices()}
 function renderAdminNotices(){
  const rows=document.getElementById('adminNoticeRows');if(!rows)return;
  const entries=getAdminNoticeFilteredEntriesV97();
@@ -3140,13 +3147,15 @@ function smartBuild(id,items,placeholder,cb){
  if(!root._smartOutsideBound){root._smartOutsideBound=true;document.addEventListener('click',e=>{if(!root.contains(e.target)){root.classList.remove('open');focusIndex=-1;draw()}})}
  draw();
 }
-function initV6Smart(){const orderFilterChange=()=>{window.wjOrderPageV76=1;renderAdminOrders()};smartBuild('orderClientFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',orderFilterChange);smartBuild('orderProductFilter',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',orderFilterChange);smartBuild('clientSmartFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code} · ${c.loginId}`})),'거래처 검색 · 여러 개 선택',renderClients);smartBuild('priceClientSmart',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderPriceManagement);smartBuild('priceProductSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name} · ${p.spec}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderPriceManagement);smartBuild('productAdminSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name} · ${p.spec}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderAdminProducts);smartBuild('inventorySearchSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderAdminInventory)}
+function initV6Smart(){const orderFilterChange=()=>{};smartBuild('orderClientFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',orderFilterChange);smartBuild('orderProductFilter',products.map(p=>({value:p.id,label:`${p.name} · ${p.spec}`})),'제품 검색 · 여러 개 선택',orderFilterChange);smartBuild('clientSmartFilter',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code} · ${c.loginId}`})),'거래처 검색 · 여러 개 선택',renderClients);smartBuild('priceClientSmart',clients.map(c=>({value:c.id,label:`${c.name} · ${c.code}`})),'거래처 검색 · 여러 개 선택',renderPriceManagement);smartBuild('priceProductSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name} · ${p.spec}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderPriceManagement);smartBuild('productAdminSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name} · ${p.spec}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderAdminProducts);smartBuild('inventorySearchSmart',products.map(p=>({value:p.id,label:`${p.code} · ${p.name}`})),'제품 코드 / 제품명 검색 · 여러 개 선택',renderAdminInventory)}
 function localDateStringV76(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 function initDefaultOrderDateV76(){if(window.wjOrderDefaultDateInitializedV76)return;const from=document.getElementById('adminOrderDateFrom'),to=document.getElementById('adminOrderDateTo');if(!from||!to)return;const today=new Date(),start=new Date(today);start.setDate(start.getDate()-6);from.value=localDateStringV76(start);to.value=localDateStringV76(today);window.wjOrderDefaultDateInitializedV76=true;window.wjOrderPageV76=1}
-function applyOrderFiltersV76(){window.wjOrderPageV76=1;renderAdminOrders()}
+function applyOrderFiltersV76(){window.wjOrderAppliedFiltersV100={clients:smartGet('orderClientFilter'),products:smartGet('orderProductFilter'),from:document.getElementById('adminOrderDateFrom')?.value||'',to:document.getElementById('adminOrderDateTo')?.value||'',status:document.getElementById('adminStatus')?.value||'전체'};window.wjOrderPageV76=1;renderAdminOrders()}
 function changeOrderPageV76(delta){const next=Math.max(1,Number(window.wjOrderPageV76||1)+Number(delta||0));window.wjOrderPageV76=next;renderAdminOrders();document.getElementById('adminOrders')?.scrollIntoView({behavior:'smooth',block:'start'})}
-function quickOrderDate(k){const d=new Date(),f=localDateStringV76;let s,e;if(k==='today')s=e=f(d);if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}document.getElementById('adminOrderDateFrom').value=s;document.getElementById('adminOrderDateTo').value=e;window.wjOrderPageV76=1;renderAdminOrders()}
-function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});window.wjOrderPageV76=1;renderAdminOrders()}
+function getQuickDateRangeV100(k){const d=new Date(),f=localDateStringV76;let s,e;if(k==='today')s=e=f(d);if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}return {from:s,to:e}}
+function quickNoticeDateV100(k){const r=getQuickDateRangeV100(k);document.getElementById('adminNoticeDateFromV97').value=r.from;document.getElementById('adminNoticeDateToV97').value=r.to}
+function quickOrderDate(k){const d=new Date(),f=localDateStringV76;let s,e;if(k==='today')s=e=f(d);if(k==='week'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));s=f(x);e=f(d)}if(k==='lastweek'){let x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7)-7);s=f(x);let y=new Date(x);y.setDate(y.getDate()+6);e=f(y)}if(k==='month'){let x=new Date(d.getFullYear(),d.getMonth(),1);s=f(x);e=f(d)}if(k==='lastmonth'){let x=new Date(d.getFullYear(),d.getMonth()-1,1),y=new Date(d.getFullYear(),d.getMonth(),0);s=f(x);e=f(y)}document.getElementById('adminOrderDateFrom').value=s;document.getElementById('adminOrderDateTo').value=e;window.wjOrderPageV76=1}
+function clearOrderFilters(){['adminOrderDateFrom','adminOrderDateTo'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminStatus').value='전체';['orderClientFilter','orderProductFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e._smartSet([])});window.wjOrderAppliedFiltersV100={clients:[],products:[],from:'',to:'',status:'전체'};window.wjOrderPageV76=1;renderAdminOrders()}
 function setOrderStatusV6(no,status){const o=orders.find(x=>x.no===no);if(!o)return;o.status=status;saveV7Data();renderAdminOrders();renderAdminDashboard();renderClientOrders()}
 function toggleAllOrders(checked){const a=[...document.querySelectorAll('#adminOrderRows .order-check-v6')];a.forEach(x=>{x.checked=!!checked;const no=String(x.value);if(checked)window.wjSelectedOrderNosV58.add(no);else window.wjSelectedOrderNosV58.delete(no)});updateOrderSelectAllV71()}
 function orderStatusBadgeV54(status){const map={'접수 완료':'order-st-received-v54','생산 중':'order-st-production-v54','출고 대기':'order-st-wait-v54','출고 중':'order-st-shipping-v54','출고 완료':'order-st-done-v54','취소':'order-st-cancelled-v54'};const s=['접수 완료','생산 중','출고 대기','출고 중','출고 완료','취소'].includes(status)?status:'접수 완료';return `<span class="status order-status-v54 ${map[s]||'order-st-cancelled-v54'}">${escapeHtmlV8(s)}</span>`}
