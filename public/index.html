@@ -606,6 +606,27 @@ html,body{overflow-x:hidden}
 </style>
 
 
+
+<style id="v99-notice-search-match-order-layout">
+/* 공지사항 검색 패널을 주문/수주 관리 검색 패널과 동일한 기반 스타일로 통일 */
+#adminNotices .notice-search-panel-v99{margin:0 0 12px!important;padding:15px 16px!important;background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:12px!important;}
+#adminNotices .notice-search-grid-v99{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;column-gap:14px!important;row-gap:14px!important;align-items:start!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-field{min-width:0!important;width:100%!important;}
+#adminNotices .notice-search-grid-v99 .notice-search-query-v99{grid-column:1/-1!important;}
+#adminNotices .notice-search-grid-v99 .notice-search-date-v99{grid-column:span 2!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-label{display:block!important;margin:0 0 6px!important;color:#475569!important;font-size:12px!important;font-weight:700!important;line-height:1.2!important;}
+#adminNotices .notice-search-grid-v99 input{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:40px!important;min-height:40px!important;padding:9px 12px!important;border:1px solid #cbd5e1!important;border-radius:8px!important;background:#fff!important;font-size:13px!important;}
+#adminNotices .notice-search-grid-v99 input:focus{outline:2px solid #bfdbfe!important;border-color:#60a5fa!important;}
+#adminNotices .notice-search-grid-v99 .date-range-v6{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;}
+#adminNotices .notice-search-grid-v99 .date-range-v6 input{flex:1 1 0!important;min-width:0!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-actions{grid-column:auto!important;align-self:end!important;display:flex!important;align-items:flex-end!important;justify-content:flex-end!important;gap:8px!important;min-width:0!important;padding-bottom:0!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-actions .small-btn{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;height:40px!important;min-height:40px!important;padding:0 18px!important;border-radius:8px!important;white-space:nowrap!important;font-size:13px!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-search{background:#2563eb!important;border:1px solid #2563eb!important;color:#fff!important;}
+#adminNotices .notice-search-grid-v99 .order-filter-reset{background:#fff!important;border:1px solid #cbd5e1!important;color:#475569!important;}
+@media(max-width:900px){#adminNotices .notice-search-grid-v99{grid-template-columns:repeat(2,minmax(0,1fr))!important}#adminNotices .notice-search-grid-v99 .notice-search-query-v99{grid-column:1/-1!important}#adminNotices .notice-search-grid-v99 .notice-search-date-v99{grid-column:1/-1!important}#adminNotices .notice-search-grid-v99 .order-filter-actions{grid-column:1/-1!important;justify-content:flex-end!important}}
+@media(max-width:520px){#adminNotices .notice-search-grid-v99{grid-template-columns:minmax(0,1fr)!important}#adminNotices .notice-search-grid-v99 .notice-search-query-v99,#adminNotices .notice-search-grid-v99 .notice-search-date-v99,#adminNotices .notice-search-grid-v99 .order-filter-actions{grid-column:1/-1!important}#adminNotices .notice-search-grid-v99 .order-filter-actions{display:grid!important;grid-template-columns:1fr 1fr!important}#adminNotices .notice-search-grid-v99 .order-filter-actions .small-btn{width:100%!important;padding:0 10px!important}}
+</style>
+
 </head>
 <body>
 
@@ -924,12 +945,11 @@ html,body{overflow-x:hidden}
           <div><h2>공지사항 관리</h2><p>거래처에게 보여줄 공지사항을 등록하고 수정합니다.</p></div>
           <button class="btn primary" onclick="openNoticeModal()">+ 공지사항 등록</button>
         </div>
-        <div class="order-filter-panel admin-search-panel notice-search-panel-v97" aria-label="공지사항 검색 및 기간 필터">
-          <div class="order-filter-grid admin-search-grid notice-search-grid-v97">
-            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeSearchV97">공지사항 검색</label><input id="adminNoticeSearchV97" type="search" placeholder="제목 또는 내용 검색" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyAdminNoticeFiltersV97()}"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeDateFromV97">작성일 시작</label><input id="adminNoticeDateFromV97" type="date" aria-label="작성일 시작"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="adminNoticeDateToV97">작성일 종료</label><input id="adminNoticeDateToV97" type="date" aria-label="작성일 종료"></div>
-            <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyAdminNoticeFiltersV97()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminNoticeFiltersV97()">초기화</button></div>
+        <div class="order-filter-panel notice-search-panel-v99" aria-label="공지사항 검색 및 필터">
+          <div class="order-filter-grid notice-search-grid-v99">
+            <div class="order-filter-field notice-search-query-v99"><label class="order-filter-label" for="adminNoticeSearchV97">공지사항 검색</label><input id="adminNoticeSearchV97" type="search" placeholder="제목 또는 내용 검색" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyAdminNoticeFiltersV97()}"></div>
+            <div class="order-filter-field order-filter-date notice-search-date-v99"><label class="order-filter-label">작성일 기간</label><div class="date-range-v6"><input id="adminNoticeDateFromV97" type="date" aria-label="작성일 시작"><span>~</span><input id="adminNoticeDateToV97" type="date" aria-label="작성일 종료"></div></div>
+            <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyAdminNoticeFiltersV97()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminNoticeFiltersV97()">필터 초기화</button></div>
           </div>
         </div>
         <div class="card table-wrap">
