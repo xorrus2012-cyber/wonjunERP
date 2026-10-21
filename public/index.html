@@ -641,6 +641,27 @@ html,body{overflow-x:hidden}
 @media(max-width:520px){#adminNotices .notice-search-grid-v99{grid-template-columns:minmax(0,1fr)!important}#adminNotices .notice-search-grid-v99 .notice-search-query-v99,#adminNotices .notice-search-grid-v99 .notice-search-date-v99,#adminNotices .notice-search-grid-v99 .order-filter-actions{grid-column:1/-1!important}#adminNotices .notice-search-grid-v99 .order-filter-actions{display:grid!important;grid-template-columns:1fr 1fr!important}#adminNotices .notice-search-grid-v99 .order-filter-actions .small-btn{width:100%!important;padding:0 10px!important}}
 </style>
 
+
+<style id="v104-client-order-admin-layout-pagination">
+/* 거래처 발주/주문 현황: 관리자 주문/수주 검색 및 페이지네이션과 동일한 기본 레이아웃 */
+#orders .client-order-filter-panel{margin:0 0 12px;padding:15px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;}
+#orders .client-order-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:14px;row-gap:14px;align-items:start}
+#orders .client-order-filter-grid .order-filter-field{min-width:0;width:100%}
+#orders .client-order-filter-grid .order-filter-date{grid-column:span 2}
+#orders .client-order-filter-grid .order-filter-label{display:block;margin:0 0 6px;color:#475569;font-size:12px;font-weight:700;line-height:1.2}
+#orders .client-order-filter-grid input[type="search"]{box-sizing:border-box;width:100%;height:40px;min-height:40px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:13px}
+#orders .client-order-filter-grid input:focus{outline:none;border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.09)}
+#orders .client-order-filter-grid .date-range-v6 input{box-sizing:border-box;min-width:0;width:calc(50% - 12px);height:40px;min-height:40px}
+#orders .client-order-filter-grid .order-filter-actions{grid-column:3;display:flex;align-items:flex-end;justify-content:flex-end;gap:8px;min-width:0;padding-bottom:0;white-space:nowrap}
+#clientOrderPaginationV104{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-top:10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;color:#475569;font-size:12px}
+#clientOrderPaginationV104 .pagination-left,#clientOrderPaginationV104 .pagination-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#clientOrderPaginationV104 button{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 11px;font-size:12px;cursor:pointer}
+#clientOrderPaginationV104 button:disabled{opacity:.4;cursor:not-allowed}
+#clientOrderPaginationV104 select{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 8px}
+#clientOrderPaginationV104 .page-current{font-weight:700;color:#1d4ed8;min-width:75px;text-align:center}
+@media(max-width:850px){#orders .client-order-filter-grid{grid-template-columns:1fr}#orders .client-order-filter-grid .order-filter-date,#orders .client-order-filter-grid .order-filter-actions{grid-column:1}#orders .client-order-filter-grid .order-filter-actions{justify-content:flex-start}#clientOrderPaginationV104{align-items:flex-start}}
+</style>
+
 </head>
 <body>
 
@@ -755,13 +776,14 @@ html,body{overflow-x:hidden}
       <section id="orders" class="page">
         <div class="page-head"><div><h2>발주/주문 현황</h2><p>발주 접수부터 출고까지 진행 상태를 확인합니다.</p></div></div>
         <div class="order-filter-panel client-order-filter-panel" aria-label="발주 내역 검색">
-          <div class="client-order-filter-grid">
+          <div class="order-filter-grid client-order-filter-grid">
             <div class="order-filter-field"><label class="order-filter-label" for="clientOrderItemSearchV103">품목 검색</label><input id="clientOrderItemSearchV103" type="search" placeholder="품목명으로 검색"></div>
-            <div class="order-filter-field"><label class="order-filter-label">접수일 기간</label><div class="date-range-v6"><input type="date" id="clientOrderDateFromV103" aria-label="조회 시작일"><span>~</span><input type="date" id="clientOrderDateToV103" aria-label="조회 종료일"></div><div class="quick-v6"><button type="button" onclick="quickClientOrderDateV103('today')">오늘</button><button type="button" onclick="quickClientOrderDateV103('week')">이번 주</button><button type="button" onclick="quickClientOrderDateV103('lastweek')">지난 주</button><button type="button" onclick="quickClientOrderDateV103('month')">이번 달</button><button type="button" onclick="quickClientOrderDateV103('lastmonth')">지난 달</button></div></div>
+            <div class="order-filter-field order-filter-date"><label class="order-filter-label">접수일 기간</label><div class="date-range-v6"><input type="date" id="clientOrderDateFromV103" aria-label="조회 시작일"><span>~</span><input type="date" id="clientOrderDateToV103" aria-label="조회 종료일"></div><div class="quick-v6"><button type="button" onclick="quickClientOrderDateV103('today')">오늘</button><button type="button" onclick="quickClientOrderDateV103('week')">이번 주</button><button type="button" onclick="quickClientOrderDateV103('lastweek')">지난 주</button><button type="button" onclick="quickClientOrderDateV103('month')">이번 달</button><button type="button" onclick="quickClientOrderDateV103('lastmonth')">지난 달</button></div></div>
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyClientOrderFiltersV103()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetClientOrderFiltersV103()">초기화</button></div>
           </div>
         </div>
         <div class="card table-wrap"><table><thead><tr><th>발주번호</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>진행상태</th><th></th></tr></thead><tbody id="clientOrderRows"></tbody></table><div id="clientOrderResultV103" class="result-v6" style="display:block;padding:10px 12px"></div></div>
+        <div id="clientOrderPaginationV104" aria-label="발주 현황 페이지 이동"></div>
       </section>
 
       <!-- CLIENT INVENTORY -->
@@ -2482,11 +2504,13 @@ function applyClientOrderFiltersV103(){
  const from=document.getElementById('clientOrderDateFromV103')?.value||'';
  const to=document.getElementById('clientOrderDateToV103')?.value||'';
  window.wjClientOrderAppliedFiltersV103={item,from,to};
+ window.wjClientOrderPageV104=1;
  renderClientOrders();
 }
 function resetClientOrderFiltersV103(){
  ['clientOrderItemSearchV103','clientOrderDateFromV103','clientOrderDateToV103'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
  window.wjClientOrderAppliedFiltersV103={item:'',from:'',to:''};
+ window.wjClientOrderPageV104=1;
  renderClientOrders();
 }
 function quickClientOrderDateV103(kind){
@@ -2509,9 +2533,35 @@ function renderClientOrders(){
    const searchable=[getWJOrderSummaryText(o),o.item||'',...(Array.isArray(o.items)?o.items.map(it=>[it.name,it.spec].filter(Boolean).join(' ')):[])].join(' ').toLocaleLowerCase();
    return (!applied.item||searchable.includes(String(applied.item).toLocaleLowerCase()))&&(!applied.from||date>=applied.from)&&(!applied.to||date<=applied.to);
  });
- body.innerHTML=arr.map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${formatOrderDateTime(o)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
- const result=document.getElementById('clientOrderResultV103');if(result)result.textContent=`조회 결과 ${arr.length}건`;
+ const sizeEl=document.getElementById('clientOrderPageSizeV104');
+ const pageSize=Math.max(1,Number(sizeEl?.value||20));
+ const totalPages=Math.max(1,Math.ceil(arr.length/pageSize));
+ window.wjClientOrderPageV104=Math.min(Math.max(1,Number(window.wjClientOrderPageV104||1)),totalPages);
+ const page=window.wjClientOrderPageV104;
+ const start=(page-1)*pageSize;
+ const pageArr=arr.slice(start,start+pageSize);
+ body.innerHTML=pageArr.map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${formatOrderDateTime(o)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
+ const result=document.getElementById('clientOrderResultV103');if(result)result.textContent=`조회 결과 ${arr.length}건 · ${page}/${totalPages}페이지`;
+ const pager=document.getElementById('clientOrderPaginationV104');
+ if(pager){
+   const fromCount=arr.length?start+1:0,toCount=Math.min(start+pageSize,arr.length);
+   pager.innerHTML=`<div class="pagination-left"><span>총 <b>${arr.length.toLocaleString()}</b>건 중 <b>${fromCount.toLocaleString()}–${toCount.toLocaleString()}</b>건 표시</span><label for="clientOrderPageSizeV104">페이지당</label><select id="clientOrderPageSizeV104" onchange="window.wjClientOrderPageV104=1;renderClientOrders()"><option value="10" ${pageSize===10?'selected':''}>10개</option><option value="20" ${pageSize===20?'selected':''}>20개</option><option value="30" ${pageSize===30?'selected':''}>30개</option><option value="50" ${pageSize===50?'selected':''}>50개</option></select></div><div class="pagination-right"><button type="button" onclick="changeClientOrderPageV104(-1)" ${page<=1?'disabled':''}>이전</button><span class="page-current">${page} / ${totalPages} 페이지</span><button type="button" onclick="changeClientOrderPageV104(1)" ${page>=totalPages?'disabled':''}>다음</button></div>`;
+ }
 }
+function changeClientOrderPageV104(delta){
+ const sizeEl=document.getElementById('clientOrderPageSizeV104');
+ const pageSize=Math.max(1,Number(sizeEl?.value||20));
+ const applied=window.wjClientOrderAppliedFiltersV103||{item:'',from:'',to:''};
+ const arr=orders.filter(o=>String(o.id)===String(currentUser)).filter(o=>{
+   const date=String(o.date||'').slice(0,10);
+   const searchable=[getWJOrderSummaryText(o),o.item||'',...(Array.isArray(o.items)?o.items.map(it=>[it.name,it.spec].filter(Boolean).join(' ')):[])].join(' ').toLocaleLowerCase();
+   return (!applied.item||searchable.includes(String(applied.item).toLocaleLowerCase()))&&(!applied.from||date>=applied.from)&&(!applied.to||date<=applied.to);
+ });
+ const totalPages=Math.max(1,Math.ceil(arr.length/pageSize));
+ window.wjClientOrderPageV104=Math.min(totalPages,Math.max(1,Number(window.wjClientOrderPageV104||1)+Number(delta||0)));
+ renderClientOrders();
+}
+
 async function showClientOrderDetail(no){
  const found=orders.find(o=>String(o.no)===String(no)&&String(o.id)===String(currentUser));
  if(!found){alert('해당 발주 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');return}
