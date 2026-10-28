@@ -3457,6 +3457,27 @@ function downloadOrderExcelV71(selectedOnly=false){
  const html='<!doctype html><html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table></body></html>';
  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=selectedOnly?'원준_선택주문.xls':'원준_조회결과.xls';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+async function persistInventoryVisibilityFallbackV107(productId,isPublic){
+ // inventory 테이블에 공개 여부 컬럼이 없는 구조라면 products 테이블에 저장합니다.
+ const productLookup=await supabaseERP.from('products').select('*').eq('id',productId).maybeSingle();
+ if(productLookup.error)throw productLookup.error;
+ if(!productLookup.data)throw new Error('제품 공개 여부를 저장할 제품 행을 찾지 못했습니다. products 테이블의 id를 확인해 주세요.');
+ const row=productLookup.data;
+ const names=['is_public','public','inventory_public','is_visible','visibility','visibility_status'];
+ const col=names.find(k=>Object.prototype.hasOwnProperty.call(row,k));
+ if(!col)throw new Error('inventory와 products 테이블 모두에서 공개 여부 컬럼을 찾지 못했습니다. Supabase의 inventory/products 컬럼 구성을 확인해야 합니다.');
+ const value=typeof row[col]==='string'?(isPublic?'public':'private'):isPublic;
+ const updated=await supabaseERP.from('products').update({[col]:value}).eq('id',productId).select('*').maybeSingle();
+ if(updated.error)throw updated.error;
+ if(!updated.data)throw new Error('products 테이블의 공개 여부가 업데이트되지 않았습니다. products 테이블 RLS UPDATE 권한을 확인해 주세요.');
+ const confirmed=updated.data[col];
+ const expected=typeof confirmed==='string'?(isPublic?'public':'private'):isPublic;
+ if(normalizeInventoryPublic(confirmed,!isPublic)!==isPublic)throw new Error('공개 여부 저장 후 확인값이 일치하지 않습니다. Supabase 저장 결과를 확인해 주세요.');
+ return updated.data;
+}
+function inventoryRowHasVisibilityV107(row){
+ return !!row&&['is_public','public','inventory_public','is_visible','visibility','visibility_status'].some(k=>Object.prototype.hasOwnProperty.call(row,k));
+}
 async function persistInventoryV82(p,changes){
  if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
  const lookup=await supabaseERP.from('inventory').select('*').eq('product_id',p.id).maybeSingle();
@@ -3477,6 +3498,7 @@ async function persistInventoryV82(p,changes){
    const saved=await supabaseERP.from('inventory').update(payload).eq('product_id',p.id).select('*').maybeSingle();
    if(saved.error)throw saved.error;
    if(!saved.data)throw new Error('재고 행이 업데이트되지 않았습니다. inventory 테이블의 RLS UPDATE 정책과 product_id 값을 확인해 주세요.');
+   if(!inventoryRowHasVisibilityV107(saved.data)) await persistInventoryVisibilityFallbackV107(p.id,isPublic);
    return saved.data;
  }
  // 테이블마다 수량 컬럼명이 다를 수 있으므로 schema cache 오류가 나면 다른 후보를 시도합니다.
@@ -3495,7 +3517,7 @@ async function persistInventoryV82(p,changes){
  let lastError=null;
  for(const payload of candidates){
    const ins=await supabaseERP.from('inventory').insert(payload).select('*').maybeSingle();
-   if(!ins.error){if(!ins.data)throw new Error('재고 행이 저장되었지만 저장 결과를 확인할 수 없습니다.');return ins.data;}
+   if(!ins.error){if(!ins.data)throw new Error('재고 행이 저장되었지만 저장 결과를 확인할 수 없습니다.');if(!inventoryRowHasVisibilityV107(ins.data))await persistInventoryVisibilityFallbackV107(p.id,isPublic);return ins.data;}
    lastError=ins.error;
    const msg=String(ins.error.message||'');
    if(/permission denied|row-level security|violates row-level security|not allowed/i.test(msg))throw ins.error;
