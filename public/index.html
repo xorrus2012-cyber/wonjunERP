@@ -1472,6 +1472,10 @@ async function loadProductsFromSupabase(){
       p.safety=Number(firstValue(r,['safety_stock','safety'],p.safety))||0;
       p.warehouse=firstValue(r,['warehouse','warehouse_name'],p.warehouse);
       p.inventoryPublic=normalizeInventoryPublic(firstValue(r,['is_public','public','inventory_public','is_visible','visibility','visibility_status'],p.inventoryPublic),p.inventoryPublic);
+    }else if(currentUser!=='admin'){
+      // 고객은 RLS 정책 때문에 비공개 inventory 행을 읽지 못합니다.
+      // 따라서 inventory 조회 결과에 없는 제품은 고객 화면에서 기본 공개로 취급하지 않습니다.
+      p.inventoryPublic=false;
     }
   });
   // 단가는 관리자 전체 단가가 아니라 현재 로그인 거래처의 DB 단가를
