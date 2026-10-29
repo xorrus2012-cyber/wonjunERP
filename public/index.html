@@ -2558,7 +2558,7 @@ function renderClientOrders(){
  const page=window.wjClientOrderPageV104;
  const start=(page-1)*pageSize;
  const pageArr=arr.slice(start,start+pageSize);
- body.innerHTML=pageArr.map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${formatOrderDateTime(o)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
+ body.innerHTML=pageArr.map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${formatOrderDateTime(o)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td style="white-space:nowrap"><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button> <button class="small-btn doc-btn" onclick="generateOrderPDF('${escapeHtmlV8(o.no)}','client')">발주서 PDF</button></td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
  const result=document.getElementById('clientOrderResultV103');if(result)result.textContent=`조회 결과 ${arr.length}건 · ${page}/${totalPages}페이지`;
  const pager=document.getElementById('clientOrderPaginationV104');
  if(pager){
@@ -2699,7 +2699,7 @@ function renderAdminOrders(){
      <td><b>${escapeHtmlV8(optionSummary.stamp)}</b></td>
      <td>${escapeHtmlV8(optionSummary.pallet)}</td>
      <td>${won(totalAmount)}</td>
-     <td><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">상세</button></td>
+     <td style="white-space:nowrap"><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">상세</button> <button class="small-btn doc-btn" onclick="generateOrderPDF('${escapeHtmlV8(o.no)}','admin')">발주서 PDF</button></td>
    </tr>`);
  });
  rows.innerHTML=rowsHtml.join('')||'<tr><td colspan="13" class="v4-empty">검색 조건에 맞는 주문이 없습니다.</td></tr>';
