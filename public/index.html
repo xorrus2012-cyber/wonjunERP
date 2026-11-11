@@ -1328,6 +1328,23 @@ function normalizeInventoryPublic(value, fallback=true){
   if(['true','1','public','공개','visible','show','yes','y','on'].includes(v))return true;
   return fallback;
 }
+// 판매 상태와 공개/비공개 상태를 분리해 해석합니다.
+// 구형 DB에서 products.status가 '공개/비공개'로 사용된 경우에도
+// 이를 판매중단으로 오인해 고객 주문 목록에서 제품을 숨기지 않습니다.
+function normalizeProductSaleStatusV116(row){
+  const allowed=['판매중','판매중단','품절','단종'];
+  const candidates=[row?.sale_status,row?.product_status,row?.status];
+  for(const value of candidates){
+    const v=String(value??'').trim();
+    if(allowed.includes(v))return v;
+    const lower=v.toLowerCase();
+    if(['active','on_sale','onsale','available'].includes(lower))return '판매중';
+    if(['inactive','paused','stop','discontinued','단종','판매중지','판매중단'].includes(lower))return lower==='discontinued'||lower==='단종'?'단종':'판매중단';
+    if(['soldout','sold_out','out_of_stock','품절'].includes(lower))return '품절';
+  }
+  // 공개/비공개는 판매 상태가 아니라 노출/재고 공개 설정이므로 판매중으로 간주합니다.
+  return '판매중';
+}
 function firstColumn(row,names){
   if(!row)return null;
   for(const n of names){if(Object.prototype.hasOwnProperty.call(row,n))return n;}
@@ -1438,7 +1455,7 @@ async function loadProductsFromSupabase(){
       code:firstValue(r,['code','product_code'],''),
       cat:firstValue(r,['category','cat'],catMap.get(String(catId))||'기타'),
       name:firstValue(r,['name','product_name'],''),
-      status:firstValue(r,['sale_status','product_status','status'],'판매중'),
+      status:normalizeProductSaleStatusV116(r),
       spec:firstValue(r,['spec','specification'],''),
       base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
       stock:Number(firstValue(r,['stock','quantity','qty'],0))||0,
@@ -2270,10 +2287,11 @@ function renderProducts(){
  const q=(document.getElementById('productSearch').value||'').toLowerCase(),c=document.getElementById('productCat').value;
  // 주문 가능 여부는 제품의 판매 상태로만 판단합니다. 재고 공개 여부는 재고 수량 표시만 제어합니다.
  // 따라서 재고가 비공개여도 판매중인 제품은 거래처 주문 목록에 표시됩니다.
- document.getElementById('productGrid').innerHTML=products.filter(p=>(currentUser==='admin'||String(p.status||'판매중')==='판매중')&&(c==='전체'||p.cat===c)&&(p.name+p.spec).toLowerCase().includes(q)).map(p=>`
- <div class="product"><div class="cat">${p.cat}</div><h3>${p.name}</h3><div class="spec">${p.spec}</div>
+ const orderable=products.filter(p=>(currentUser==='admin'||normalizeProductSaleStatusV116({sale_status:p.status})==='판매중')&&(c==='전체'||p.cat===c)&&(String(p.name||'')+String(p.spec||'')).toLowerCase().includes(q));
+ document.getElementById('productGrid').innerHTML=orderable.map(p=>`
+ <div class="product"><div class="cat">${escapeHtmlV8(p.cat||'')}</div><h3>${escapeHtmlV8(p.name||'')}</h3><div class="spec">${escapeHtmlV8(p.spec||'')}</div>
  <div class="price-row"><div><div class="price">${won(price(p))}</div><div class="unit">1박스 기준 · 거래처 적용 단가</div></div>
- <div><input class="qty" id="qty-${p.id}" type="number" min="1" value="50"><button type="button" class="btn primary" data-cart-add="${String(p.id)}" style="margin-left:5px;padding:9px 11px">담기</button></div></div></div>`).join('');
+ <div><input class="qty" id="qty-${String(p.id)}" type="number" min="1" value="50"><button type="button" class="btn primary" data-cart-add="${String(p.id)}" style="margin-left:5px;padding:9px 11px">담기</button></div></div></div>`).join('') || `<div class="card pad" style="grid-column:1/-1;text-align:center;color:#64748b">${products.length?'현재 검색 조건에 해당하는 판매중 제품이 없습니다.':'제품 정보를 불러오지 못했습니다. 관리자에게 products 테이블 조회 권한과 제품 등록 상태를 확인해 주세요.'}</div>`;
 }
 
 function getOrderOptionLists(){
@@ -2282,7 +2300,7 @@ function getOrderOptionLists(){
 function openAddCartOptionModal(id,qty){
  const p=products.find(x=>String(x.id)===String(id)); if(!p)return false;
  // 재고 공개 여부와 판매 가능 여부는 별개입니다. 판매중인 제품은 재고 비공개여도 주문할 수 있습니다.
- if(currentUser!=='admin'&&String(p.status||'판매중')!=='판매중'){alert('현재 판매하지 않는 제품입니다.');return false;}
+ if(currentUser!=='admin'&&normalizeProductSaleStatusV116({sale_status:p.status})!=='판매중'){alert('현재 판매하지 않는 제품입니다.');return false;}
  const lists=getOrderOptionLists();
  const body=document.getElementById('modalBody');
  document.getElementById('modalTitle').textContent='장바구니에 담기';
