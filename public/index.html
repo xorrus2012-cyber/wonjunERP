@@ -2244,11 +2244,41 @@ async function deleteCurrentClientV79(){
  }
 }
 
-function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('app').classList.add('hidden')}
+function showLogin(){
+ const login=document.getElementById('loginScreen');
+ const app=document.getElementById('app');
+ if(login)login.classList.remove('hidden');
+ if(app)app.classList.add('hidden');
+ // 로그인 화면으로 돌아갈 때 이전 계정의 메뉴/페이지가 남지 않도록 화면 상태도 초기화합니다.
+ document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+ document.querySelectorAll('.nav').forEach(el=>el.classList.remove('active'));
+ const modal=document.getElementById('modalBg');if(modal)modal.classList.remove('show');
+ const adminNav=document.getElementById('navAdmin');if(adminNav)adminNav.classList.add('hidden');
+ const clientNav=document.getElementById('navClient');if(clientNav)clientNav.classList.add('hidden');
+}
 
 async function logout(){
- if(supabaseERP){try{await supabaseERP.auth.signOut()}catch(e){console.warn('Supabase 로그아웃 실패',e)}}
- localStorage.removeItem('wonjun_v7_session');currentUser=null;showLogin();document.getElementById('loginId').value='';document.getElementById('loginPw').value='';
+ // 관리자 -> 거래처 계정 전환 시 관리자 Realtime 구독/화면 상태가 남지 않도록 완전히 정리합니다.
+ try{
+   if(supabaseERP && supabaseRealtimeChannel){
+     try{await supabaseERP.removeChannel(supabaseRealtimeChannel)}catch(e){console.warn('Realtime 구독 해제 실패',e)}
+   }
+   supabaseRealtimeChannel=null;
+   supabaseSyncReady=false;
+   supabaseSyncBusy=false;
+   if(supabaseERP){
+     const {error}=await supabaseERP.auth.signOut({scope:'local'});
+     if(error)console.warn('Supabase 로그아웃 실패',error);
+   }
+ }catch(e){console.warn('로그아웃 정리 중 오류:',e)}
+ finally{
+   localStorage.removeItem('wonjun_v7_session');
+   currentUser=null;
+   const id=document.getElementById('loginId');if(id)id.value='';
+   const pw=document.getElementById('loginPw');if(pw)pw.value='';
+   // 메모리에 남은 관리자 화면/상품/주문 데이터가 거래처 로그인에 재사용되지 않도록 새로 시작합니다.
+   window.location.reload();
+ }
 }
 function go(page,btn){
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
