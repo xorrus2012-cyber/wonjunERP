@@ -1588,6 +1588,12 @@ async function loadOrdersFromSupabase(){
       boxType:firstValue(r,['box_type'],'기본 박스'),
       boxStamp:firstValue(r,['box_stamp'],''),
       palletType:firstValue(r,['pallet_type'],'나무'),
+      deliveryMethod:firstValue(r,['delivery_method'],''),
+      deliveryCarrier:firstValue(r,['delivery_carrier'],''),
+      deliveryAddress:firstValue(r,['delivery_address'],''),
+      deliveryContactName:firstValue(r,['delivery_contact_name'],''),
+      deliveryContactPhone:firstValue(r,['delivery_contact_phone'],''),
+      deliveryRequest:firstValue(r,['delivery_request'],''),
       items:[]
     };
     const packedItems=parseWJOrderItemSummary(firstValue(r,['item_summary','item'],''));
@@ -2396,6 +2402,67 @@ function updateCart(){
  if(document.getElementById('cartRows'))renderCartPage();
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
+let wjDeliveryModalResolver=null;
+let wjDeliveryAddresses=[];
+function escapeDelivery(v){return escapeHtmlV8(String(v??''))}
+async function loadClientDeliveryAddresses(clientId){
+ if(!supabaseERP||!clientId)return [];
+ const {data,error}=await supabaseERP.from('client_delivery_addresses').select('*').eq('client_id',String(clientId)).order('is_default',{ascending:false}).order('created_at',{ascending:true});
+ if(error){console.warn('배송지 목록 조회 실패:',error);return null;}
+ return Array.isArray(data)?data:[];
+}
+function deliveryAddressChanged(id){
+ const a=wjDeliveryAddresses.find(x=>String(x.id)===String(id));
+ const set=(key,value)=>{const el=document.getElementById(key);if(el)el.value=value||''};
+ if(a){set('wjDeliveryAddressName',a.address_name);set('wjDeliveryAddress',a.address);set('wjDeliveryContactName',a.contact_name);set('wjDeliveryContactPhone',a.contact_phone);}
+ else if(!id){['wjDeliveryAddressName','wjDeliveryAddress','wjDeliveryContactName','wjDeliveryContactPhone'].forEach(k=>set(k,''));}
+}
+function finishDeliveryModal(value){
+ const overlay=document.getElementById('wjDeliveryOverlay');if(overlay)overlay.remove();
+ const resolve=wjDeliveryModalResolver;wjDeliveryModalResolver=null;if(resolve)resolve(value);
+}
+async function openDeliveryInfoModal(client){
+ wjDeliveryAddresses=await loadClientDeliveryAddresses(client.id);
+ if(wjDeliveryAddresses===null){alert('저장된 배송지를 불러오지 못했습니다. Supabase에 배송지 SQL을 먼저 적용해 주세요.');return null;}
+ return await new Promise(resolve=>{
+  wjDeliveryModalResolver=resolve;
+  const first=wjDeliveryAddresses.find(x=>x.is_default)||wjDeliveryAddresses[0]||null;
+  const opts=wjDeliveryAddresses.map(a=>`<option value="${escapeDelivery(a.id)}" ${String(a.id)===String(first?.id)?'selected':''}>${escapeDelivery(a.address_name||'배송지')} · ${escapeDelivery(a.address||'')}</option>`).join('');
+  const html=`<div id="wjDeliveryOverlay" style="position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div style="width:min(620px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.28)"><div style="padding:20px 22px;border-bottom:1px solid #e2e8f0"><div style="font-size:18px;font-weight:800;color:#172033">배송 정보 확인</div><div style="font-size:12px;color:#64748b;margin-top:5px">주문 품목을 확인한 뒤 배송 방법과 받으실 주소를 선택해 주세요.</div></div><div style="padding:20px 22px;display:grid;gap:14px"><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송 방법</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button type="button" id="wjDeliveryParcel" class="btn primary" onclick="setWjDeliveryMethod('택배')">택배</button><button type="button" id="wjDeliveryTruck" class="btn light" onclick="setWjDeliveryMethod('용차(팔레트)')">용차(팔레트)</button></div><input id="wjDeliveryMethod" type="hidden" value="택배"></div><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송지 선택</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="wjDeliverySavedSelect" style="flex:1;min-width:220px;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px" onchange="deliveryAddressChanged(this.value)"><option value="">새 배송지 입력</option>${opts}</select><button type="button" class="btn light" onclick="resetWjDeliveryAddressForm()">새 주소</button></div></div><div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송지 이름</label><input id="wjDeliveryAddressName" placeholder="예: 물류센터" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송 주소</label><input id="wjDeliveryAddress" placeholder="도로명 또는 지번 주소" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">현장 담당자</label><input id="wjDeliveryContactName" placeholder="담당자 이름" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">담당자 연락처</label><input id="wjDeliveryContactPhone" type="tel" placeholder="010-0000-0000" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div><label id="wjDeliveryCarrierLabel" style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">택배사</label><input id="wjDeliveryCarrier" placeholder="예: 대신택배" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">추가 배송 요청사항 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><textarea id="wjDeliveryRequest" rows="2" placeholder="예: 경투 74 70박스 / 상차 및 하차 관련 요청" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;resize:vertical"></textarea></div><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliverySaveAddress" type="checkbox" checked> 이 배송지를 거래처 배송지 목록에 저장</label><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliveryMakeDefault" type="checkbox"> 기본 배송지로 지정</label></div><div style="padding:14px 22px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn light" onclick="finishDeliveryModal(null)">취소</button><button type="button" class="btn primary" onclick="confirmWjDeliveryInfo()">배송 정보 확인</button></div></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+  if(first)deliveryAddressChanged(first.id);
+  setWjDeliveryMethod('택배');
+ });
+}
+function setWjDeliveryMethod(method){
+ const v=document.getElementById('wjDeliveryMethod');if(v)v.value=method;
+ const p=document.getElementById('wjDeliveryParcel'),t=document.getElementById('wjDeliveryTruck');
+ if(p){p.className=method==='택배'?'btn primary':'btn light'}if(t){t.className=method==='용차(팔레트)'?'btn primary':'btn light'}
+ const l=document.getElementById('wjDeliveryCarrierLabel'),i=document.getElementById('wjDeliveryCarrier');
+ if(l)l.textContent=method==='택배'?'택배사':'용차 업체 / 배차 정보';
+ if(i)i.placeholder=method==='택배'?'예: 대신택배':'예: 용차 직접 배차';
+}
+function resetWjDeliveryAddressForm(){
+ const sel=document.getElementById('wjDeliverySavedSelect');if(sel)sel.value='';
+ ['wjDeliveryAddressName','wjDeliveryAddress','wjDeliveryContactName','wjDeliveryContactPhone'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+ const save=document.getElementById('wjDeliverySaveAddress');if(save)save.checked=true;
+}
+async function confirmWjDeliveryInfo(){
+ const method=document.getElementById('wjDeliveryMethod')?.value||'택배';
+ const addressName=(document.getElementById('wjDeliveryAddressName')?.value||'').trim();
+ const address=(document.getElementById('wjDeliveryAddress')?.value||'').trim();
+ const contactName=(document.getElementById('wjDeliveryContactName')?.value||'').trim();
+ const contactPhone=(document.getElementById('wjDeliveryContactPhone')?.value||'').trim();
+ const carrier=(document.getElementById('wjDeliveryCarrier')?.value||'').trim();
+ const request=(document.getElementById('wjDeliveryRequest')?.value||'').trim();
+ const selectedId=document.getElementById('wjDeliverySavedSelect')?.value||'';
+ if(!address){alert('배송 주소를 입력하거나 저장된 배송지를 선택해 주세요.');return}
+ if(!contactName||!contactPhone){alert('현장 담당자 이름과 연락처를 입력해 주세요.');return}
+ if(method==='택배'&&!carrier){alert('택배사를 입력해 주세요. 예: 대신택배');return}
+ const payload={deliveryMethod:method,deliveryCarrier:carrier,deliveryAddress:address,deliveryAddressName:addressName,deliveryContactName:contactName,deliveryContactPhone:contactPhone,deliveryRequest:request,deliveryAddressId:selectedId,saveAddress:!selectedId&&!!document.getElementById('wjDeliverySaveAddress')?.checked,makeDefault:!!document.getElementById('wjDeliveryMakeDefault')?.checked};
+ finishDeliveryModal(payload);
+}
+
 async function checkout(selectedOnly=false){
  const entries=(cartItems||[]).filter(x=>(!selectedOnly||selectedCartKeys.has(String(x.key)))&&products.find(p=>String(p.id)===String(x.productId))&&Number(x.qty)>0);
  if(!entries.length){alert(selectedOnly?'주문할 품목을 먼저 선택해 주세요.':'장바구니가 비어 있습니다.');return}
@@ -2410,7 +2477,9 @@ async function checkout(selectedOnly=false){
  const count=items.reduce((a,x)=>a+x.q,0);
  const total=items.reduce((a,x)=>a+x.amount,0);
  const names=items.map(x=>x.p.name);
- if(!confirm(`${selectedOnly?'선택 품목':'전체 품목'} ${items.length}개 · ${count.toLocaleString()}박스 / ${won(total)}\n발주를 접수하시겠습니까?`))return;
+ const delivery=await openDeliveryInfoModal(cl);
+ if(!delivery)return;
+ if(!confirm(`${selectedOnly?'선택 품목':'전체 품목'} ${items.length}개 · ${count.toLocaleString()}박스 / ${won(total)}\n배송 방법: ${delivery.deliveryMethod}\n배송지: ${delivery.deliveryAddress}\n발주를 접수하시겠습니까?`))return;
  try{
    /* 품명만 저장하지 않고, 같은 제품이라도 옵션이 다른 각 장바구니 행을 통째로 저장합니다.
       item_summary는 기존 orders 스키마를 그대로 활용하기 위한 JSON 보관 영역입니다. */
@@ -2447,7 +2516,14 @@ async function checkout(selectedOnly=false){
      admin_memo:'',
      box_type:boxType,
      box_stamp:boxStamp,
-     pallet_type:palletType
+     pallet_type:palletType,
+     delivery_method:delivery.deliveryMethod,
+     delivery_carrier:delivery.deliveryCarrier,
+     delivery_address:delivery.deliveryAddress,
+     delivery_address_name:delivery.deliveryAddressName,
+     delivery_contact_name:delivery.deliveryContactName,
+     delivery_contact_phone:delivery.deliveryContactPhone,
+     delivery_request:delivery.deliveryRequest
    };
    const clean={};
    // 테이블에 이미 행이 있으면 실제 컬럼만 사용
@@ -2456,7 +2532,7 @@ async function checkout(selectedOnly=false){
    }
    // 테이블이 비어 있어 select 결과가 {}인 경우, 실제 프로젝트 스키마의 기본 컬럼으로 저장 시도
    if(!Object.keys(clean).length){
-     Object.assign(clean,{order_no:orderNo,client_id:cl.id,order_date:orderDate,item_summary:itemSummary,total_qty:count,total_amount:total,status:'접수 완료',client_memo:''});
+     Object.assign(clean,{order_no:orderNo,client_id:cl.id,order_date:orderDate,item_summary:itemSummary,total_qty:count,total_amount:total,status:'접수 완료',client_memo:'',delivery_method:delivery.deliveryMethod,delivery_carrier:delivery.deliveryCarrier,delivery_address:delivery.deliveryAddress,delivery_address_name:delivery.deliveryAddressName,delivery_contact_name:delivery.deliveryContactName,delivery_contact_phone:delivery.deliveryContactPhone,delivery_request:delivery.deliveryRequest});
    }
 
    let inserted=await supabaseERP.from('orders').insert(clean).select('*').single();
@@ -2475,7 +2551,14 @@ async function checkout(selectedOnly=false){
        client_memo:'',
        box_type:boxType,
        box_stamp:boxStamp,
-       pallet_type:palletType
+       pallet_type:palletType,
+       delivery_method:delivery.deliveryMethod,
+       delivery_carrier:delivery.deliveryCarrier,
+       delivery_address:delivery.deliveryAddress,
+       delivery_address_name:delivery.deliveryAddressName,
+       delivery_contact_name:delivery.deliveryContactName,
+       delivery_contact_phone:delivery.deliveryContactPhone,
+       delivery_request:delivery.deliveryRequest
      };
      const retryProbe={};
      for(const [k,v] of Object.entries(retry)){
@@ -2490,6 +2573,17 @@ async function checkout(selectedOnly=false){
 
    const orderRow=inserted.data||{};
    const orderDbId=orderRow.id||orderRow.order_id||orderRow.order_no||orderNo;
+
+   // 신규 배송지는 발주 저장 성공 후에만 거래처 주소록에 등록합니다.
+   if(delivery.saveAddress||(delivery.deliveryAddressId&&delivery.makeDefault)){
+     try{
+       if(delivery.makeDefault)await supabaseERP.from('client_delivery_addresses').update({is_default:false}).eq('client_id',String(cl.id));
+       const savedAddress=delivery.deliveryAddressId
+         ? (delivery.makeDefault?await supabaseERP.from('client_delivery_addresses').update({is_default:true}).eq('id',delivery.deliveryAddressId).eq('client_id',String(cl.id)):({error:null}))
+         : await supabaseERP.from('client_delivery_addresses').insert({client_id:String(cl.id),address_name:delivery.deliveryAddressName||'배송지',address:delivery.deliveryAddress,contact_name:delivery.deliveryContactName,contact_phone:delivery.deliveryContactPhone,is_default:!!delivery.makeDefault});
+       if(savedAddress.error)console.warn('배송지 주소록 저장 실패:',savedAddress.error);
+     }catch(addressError){console.warn('배송지 주소록 저장 중 오류:',addressError)}
+   }
 
    // 상세 품목은 orders 저장을 막지 않도록 별도로 저장합니다.
    // order_items 테이블 구조가 다른 경우에도 발주 자체는 성공해야 합니다.
@@ -2686,6 +2780,7 @@ async function showClientOrderDetail(no){
  const found=orders.find(o=>String(o.no)===String(no)&&String(o.id)===String(currentUser));
  if(!found){alert('해당 발주 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');return}
  let source={...found}, details=getWJOrderDetailItems(found);
+ if(supabaseERP){try{let dq=supabaseERP.from('orders').select('*');if(source.dbId)dq=dq.eq('id',source.dbId);else dq=dq.eq('order_no',source.no);const dr=await dq.limit(1).maybeSingle();if(!dr.error&&dr.data){const d=dr.data;source={...source,deliveryMethod:firstValue(d,['delivery_method'],''),deliveryCarrier:firstValue(d,['delivery_carrier'],''),deliveryAddress:firstValue(d,['delivery_address'],''),deliveryAddressName:firstValue(d,['delivery_address_name'],''),deliveryContactName:firstValue(d,['delivery_contact_name'],''),deliveryContactPhone:firstValue(d,['delivery_contact_phone'],''),deliveryRequest:firstValue(d,['delivery_request'],'')};}}catch(e){console.warn('거래처 배송 정보 조회 실패:',e)}}
  // 목록에 품목 상세가 없으면 Supabase의 order_items에서 다시 조회합니다.
  if(!details.length&&supabaseERP){
    try{
@@ -2710,7 +2805,7 @@ async function showClientOrderDetail(no){
  const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
  const rows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='발주 상세';
- document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
+ document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}<div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
  const save=document.getElementById('modalSave');if(save){save.style.display='none';save.onclick=null}
  const cancel=document.getElementById('modalCancel');if(cancel)cancel.textContent='확인';
  document.getElementById('modalBg').classList.add('show');
@@ -3672,8 +3767,13 @@ function generateOrderPDF(no, audience='client'){
   w.document.open();
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>발주서_${escapeHtmlV8(order.no)}</title><style>
   @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}html{background:#eef2f7}body{margin:0;color:#172033;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;font-size:10pt;line-height:1.55;background:#eef2f7}.document-sheet{width:calc(100% - 48px);max-width:980px;min-height:calc(100vh - 82px);margin:24px auto 32px;padding:30px 38px;background:#fff;box-shadow:0 4px 22px rgba(15,23,42,.10);border:1px solid #e2e8f0}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #173b67;padding-bottom:14px;margin-bottom:18px}.brand{font-size:12pt;font-weight:800;letter-spacing:1.4px;color:#173b67}.doc-title{text-align:center;font-size:25pt;font-weight:800;letter-spacing:8px;margin:20px 0 22px;color:#142b46}.doc-no{font-size:9pt;color:#526176;text-align:right}.info{width:100%;border-collapse:collapse;margin:0 0 18px}.info th,.info td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left}.info th{width:19%;background:#f1f5f9;font-weight:700}.items{width:100%;border-collapse:collapse;margin-top:8px;font-size:9pt}.items th{background:#173b67;color:white;font-weight:700;padding:8px 5px;border:1px solid #173b67}.items td{padding:8px 6px;border:1px solid #cbd5e1}.items small{display:block;color:#64748b;font-size:8pt;margin-top:2px}.center{text-align:center}.right{text-align:right;white-space:nowrap}.total{margin:14px 0 18px;display:flex;justify-content:flex-end}.total table{width:48%;border-collapse:collapse}.total th,.total td{padding:10px;border:1px solid #cbd5e1}.total th{background:#f1f5f9;text-align:left}.total td{text-align:right;font-weight:800;font-size:13pt}.memo{border:1px solid #cbd5e1;min-height:62px;padding:10px;white-space:pre-wrap}.memo-title{font-weight:800;margin:12px 0 5px}.footer{margin-top:30px;border-top:1px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;color:#64748b;font-size:8.5pt}.sign{margin-top:28px;display:flex;justify-content:flex-end;gap:24px}.sign span{display:inline-block;min-width:95px;border-bottom:1px solid #94a3b8;padding:0 4px 6px}.actions{position:sticky;top:0;padding:10px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;justify-content:center;gap:8px}.actions button{border:0;border-radius:7px;padding:10px 18px;background:#173b67;color:white;font-weight:700;cursor:pointer}.actions button.secondary{background:#e2e8f0;color:#172033}@media(max-width:700px){.document-sheet{width:calc(100% - 24px);padding:22px 18px;margin:12px auto 20px}}@media print{html,body{background:#fff}.document-sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;border:0;box-shadow:none}.actions{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-  </style></head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:12%">단가</th><th style="width:14%">금액</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>발주 합계 금액</th><td>${total.toLocaleString()}원</td></tr></table></div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
+  </style></head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:12%">단가</th><th style="width:14%">금액</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>발주 합계 금액</th><td>${total.toLocaleString()}원</td></tr></table></div><div class="memo-title">배송 정보</div><div class="memo">배송 방법: ${escapeHtmlV8(order.deliveryMethod||'-')}\n택배사 / 업체: ${escapeHtmlV8(order.deliveryCarrier||'-')}\n배송지: ${escapeHtmlV8(order.deliveryAddressName||'')} ${escapeHtmlV8(order.deliveryAddress||'-')}\n담당자: ${escapeHtmlV8(order.deliveryContactName||'-')} / ${escapeHtmlV8(order.deliveryContactPhone||'-')}\n추가 요청: ${escapeHtmlV8(order.deliveryRequest||'없음')}</div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
   w.document.close();
+}
+
+function renderWjDeliveryInfo(order){
+ if(!order||!(order.deliveryAddress||order.deliveryMethod||order.deliveryContactName))return `<div style="margin-top:16px"><label style="font-size:11px;font-weight:800">배송 정보</label><div style="margin-top:6px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;color:#94a3b8;font-size:12px">등록된 배송 정보가 없습니다.</div></div>`;
+ return `<div style="margin-top:16px"><label style="font-size:11px;font-weight:800">배송 정보</label><div style="margin-top:7px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;display:grid;grid-template-columns:100px minmax(0,1fr);gap:8px 10px;font-size:12px"><span style="color:#64748b">배송 방법</span><b>${escapeHtmlV8(order.deliveryMethod||'-')}</b><span style="color:#64748b">택배사 / 업체</span><span>${escapeHtmlV8(order.deliveryCarrier||'-')}</span><span style="color:#64748b">배송지</span><b>${escapeHtmlV8(order.deliveryAddressName||'')}${order.deliveryAddressName?' · ':''}${escapeHtmlV8(order.deliveryAddress||'-')}</b><span style="color:#64748b">현장 담당자</span><span>${escapeHtmlV8(order.deliveryContactName||'-')}</span><span style="color:#64748b">연락처</span><span>${escapeHtmlV8(order.deliveryContactPhone||'-')}</span><span style="color:#64748b">추가 요청</span><span style="white-space:pre-wrap">${escapeHtmlV8(order.deliveryRequest||'없음')}</span></div></div>`;
 }
 
 function getWJOrderDetailItems(order){
@@ -3732,7 +3832,14 @@ async function showOrderDetail(no){
           adminMemo:firstValue(data,['admin_memo'],o.adminMemo||''),
           boxType:firstValue(data,['box_type'],o.boxType||'기본 박스'),
           boxStamp:firstValue(data,['box_stamp'],o.boxStamp||''),
-          palletType:firstValue(data,['pallet_type'],o.palletType||'나무')
+          palletType:firstValue(data,['pallet_type'],o.palletType||'나무'),
+          deliveryMethod:firstValue(data,['delivery_method'],o.deliveryMethod||''),
+          deliveryCarrier:firstValue(data,['delivery_carrier'],o.deliveryCarrier||''),
+          deliveryAddress:firstValue(data,['delivery_address'],o.deliveryAddress||''),
+          deliveryAddressName:firstValue(data,['delivery_address_name'],o.deliveryAddressName||''),
+          deliveryContactName:firstValue(data,['delivery_contact_name'],o.deliveryContactName||''),
+          deliveryContactPhone:firstValue(data,['delivery_contact_phone'],o.deliveryContactPhone||''),
+          deliveryRequest:firstValue(data,['delivery_request'],o.deliveryRequest||'')
         };
       }
 
@@ -3771,7 +3878,7 @@ async function showOrderDetail(no){
   document.getElementById('modalTitle').textContent='주문 상세';
   document.getElementById('modalBody').innerHTML=`
   <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','admin')">발주서 PDF 다운로드</button></div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
-  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>
+  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'거래처 메모가 없습니다.')}</div></div>
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 관리자 메모를 입력해 주세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>${historyHtml}`;
   const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};
