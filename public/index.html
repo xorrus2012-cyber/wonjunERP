@@ -2647,6 +2647,24 @@ function changeClientOrderPageV104(delta){
  renderClientOrders();
 }
 
+function formatOrderHistoryTimeV121(value){
+  if(!value)return '-';const d=new Date(value);if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+}
+async function loadOrderStatusHistoryV121(order){
+  if(!supabaseERP||!order)return [];
+  let q=supabaseERP.from('order_status_history').select('id,order_id,order_no,client_id,previous_status,new_status,actor_type,actor_label,event_type,note,created_at');
+  if(order.dbId)q=q.eq('order_id',String(order.dbId));else q=q.eq('order_no',String(order.no));
+  const {data,error}=await q.order('created_at',{ascending:true});
+  if(error){console.warn('주문 처리 이력 조회 실패:',error);return null;}
+  return Array.isArray(data)?data:[];
+}
+function renderOrderStatusHistoryV121(history){
+  if(history===null)return `<div style="margin-top:18px;padding:12px;border:1px solid #fecaca;background:#fff7f7;border-radius:9px;color:#991b1b;font-size:12px">처리 이력을 불러오지 못했습니다. Supabase에 V121 이력 SQL이 적용되었는지 확인해 주세요.</div>`;
+  if(!history?.length)return `<section style="margin-top:20px"><b style="font-size:13px">주문 처리 이력</b><div style="margin-top:9px;padding:12px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:9px;color:#64748b;font-size:12px">아직 기록된 상태 변경 이력이 없습니다.</div></section>`;
+  return `<section style="margin-top:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><label style="font-size:13px;font-weight:800;color:#0f172a">주문 처리 이력</label><span style="font-size:10px;color:#64748b">한국 시간 · 초 단위</span></div><div style="border:1px solid #e2e8f0;border-radius:10px;padding:13px 14px;background:#fff">${history.map((h,i)=>{const baseline=h.event_type==='baseline';const initial=h.event_type==='initial';const title=baseline?'이력 기능 도입 시점':initial?'최초 주문 접수':(h.new_status||'상태 변경');const transition=h.previous_status?`${escapeHtmlV8(h.previous_status)} → ${escapeHtmlV8(h.new_status||'-')}`:(h.new_status?escapeHtmlV8(h.new_status):'');return `<div style="display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;${i<history.length-1?'padding-bottom:15px;':''}"><div style="display:flex;flex-direction:column;align-items:center"><span style="width:9px;height:9px;border-radius:50%;background:${h.new_status==='취소'?'#dc2626':baseline?'#94a3b8':'#2563eb'};margin-top:4px"></span>${i<history.length-1?'<span style="width:1px;flex:1;background:#e2e8f0;margin-top:4px"></span>':''}</div><div style="min-width:0"><div style="font-size:12px;font-weight:800;color:#0f172a">${escapeHtmlV8(title)}</div><div style="font-size:11px;font-weight:700;color:#334155;margin-top:3px">${transition}</div><div style="font-size:11px;color:#64748b;margin-top:4px">${escapeHtmlV8(formatOrderHistoryTimeV121(h.created_at))} · ${escapeHtmlV8(h.actor_label|| (h.actor_type==='admin'?'관리자':h.actor_type==='client'?'거래처':'시스템'))}${baseline?' · 당시 현재 상태':''}</div>${h.note?`<div style="font-size:11px;color:#64748b;margin-top:3px;white-space:pre-wrap">${escapeHtmlV8(h.note)}</div>`:''}</div></div>`}).join('')}</div></section>`;
+}
+
 async function showClientOrderDetail(no){
  const found=orders.find(o=>String(o.no)===String(no)&&String(o.id)===String(currentUser));
  if(!found){alert('해당 발주 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');return}
@@ -2670,10 +2688,12 @@ async function showClientOrderDetail(no){
      }else if(error)console.warn('거래처 주문 상세 품목 조회 실패:',error);
    }catch(e){console.warn('거래처 주문 상세 조회 중 오류:',e)}
  }
+ const history=await loadOrderStatusHistoryV121(source);
+ const historyHtml=renderOrderStatusHistoryV121(history);
  const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
  const rows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='발주 상세';
- document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>`;
+ document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div><div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
  const save=document.getElementById('modalSave');if(save){save.style.display='none';save.onclick=null}
  const cancel=document.getElementById('modalCancel');if(cancel)cancel.textContent='확인';
  document.getElementById('modalBg').classList.add('show');
@@ -3722,6 +3742,8 @@ async function showOrderDetail(no){
     }catch(e){console.warn('주문 상세 원본/품목 조회 실패',e)}
   }
 
+  const history=await loadOrderStatusHistoryV121(source);
+  const historyHtml=renderOrderStatusHistoryV121(history);
   const c=clients.find(x=>String(x.loginId)===String(source.id))||clients.find(x=>String(x.id)===String(source.clientId));
   const jsonItems=getWJOrderDetailItems(source);
   const directItems=Array.isArray(source._directOrderItems)?source._directOrderItems:[];
@@ -3734,7 +3756,7 @@ async function showOrderDetail(no){
   <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','admin')">발주서 PDF 다운로드</button></div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
   <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'거래처 메모가 없습니다.')}</div></div>
-  <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 관리자 메모를 입력해 주세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>`;
+  <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 관리자 메모를 입력해 주세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>${historyHtml}`;
   const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};
   document.getElementById('modalBg').classList.add('show');
 }
