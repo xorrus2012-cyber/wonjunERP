@@ -2658,11 +2658,23 @@ function formatOrderHistoryTimeV121(value){
 }
 async function loadOrderStatusHistoryV121(order){
   if(!supabaseERP||!order)return [];
-  let q=supabaseERP.from('order_status_history').select('id,order_id,order_no,client_id,previous_status,new_status,actor_type,actor_label,event_type,note,created_at');
-  if(order.dbId)q=q.eq('order_id',String(order.dbId));else q=q.eq('order_no',String(order.no));
-  const {data,error}=await q.order('created_at',{ascending:true});
-  if(error){console.warn('주문 처리 이력 조회 실패:',error);return null;}
-  return Array.isArray(data)?data:[];
+  const columns='id,order_id,order_no,client_id,previous_status,new_status,actor_type,actor_label,event_type,note,created_at';
+  const found=new Map();
+  let firstError=null;
+  // 관리자/거래처 화면의 주문 객체는 dbId 매핑 방식이 다를 수 있으므로
+  // 공통 식별자인 주문번호와 DB id를 각각 조회해 합칩니다.
+  if(order.no){
+    const byNo=await supabaseERP.from('order_status_history').select(columns).eq('order_no',String(order.no)).order('created_at',{ascending:true});
+    if(byNo.error)firstError=byNo.error;
+    else for(const row of (byNo.data||[]))found.set(String(row.id),row);
+  }
+  if(order.dbId){
+    const byId=await supabaseERP.from('order_status_history').select(columns).eq('order_id',String(order.dbId)).order('created_at',{ascending:true});
+    if(byId.error&&!firstError)firstError=byId.error;
+    else if(!byId.error)for(const row of (byId.data||[]))found.set(String(row.id),row);
+  }
+  if(firstError&&!found.size){console.warn('주문 처리 이력 조회 실패:',firstError);return null;}
+  return [...found.values()].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
 }
 function renderOrderStatusHistoryV121(history){
   if(history===null)return `<div style="margin-top:18px;padding:12px;border:1px solid #fecaca;background:#fff7f7;border-radius:9px;color:#991b1b;font-size:12px">처리 이력을 불러오지 못했습니다. Supabase에 V121 이력 SQL이 적용되었는지 확인해 주세요.</div>`;
