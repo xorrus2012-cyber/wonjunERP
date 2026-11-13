@@ -2351,10 +2351,22 @@ function resetClientProductFiltersV126(){window.wjClientProductPageV126=1;const 
 
 function openClientProductDetailV126(productId){
  const p=products.find(x=>String(x.id)===String(productId));if(!p)return;
- const unit=Number(price(p))||0,qty=1,supply=unit*qty,vat=Math.round(supply*.1),total=supply+vat;
+ const unit=Number(price(p))||0;
+ const rowQty=document.getElementById(`qty-${String(p.id)}`);
+ const qty=Math.max(1,Math.floor(Number(rowQty?.value)||1));
+ window.wjClientProductDetailV127={productId:String(p.id),unit};
  document.getElementById('modalTitle').textContent='제품 및 금액 상세';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0 4px">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(p.spec||'')}</div></div><div class="field full"><label>거래처 적용 단가 (1박스)</label><div style="font-size:22px;font-weight:800;color:#1d4ed8">${won(unit)}</div><div class="vat-note-v126">부가세 별도</div></div></div><div class="vat-summary-v126"><div class="line"><span>단가</span><b>${won(unit)}</b></div><div class="line"><span>수량</span><b>1박스</b></div><div class="line"><span>공급가액</span><b>${won(supply)}</b></div><div class="line"><span>부가세 (10%)</span><b>${won(vat)}</b></div><div class="line grand"><span>부가세 포함 합계</span><b>${won(total)}</b></div></div><div style="font-size:11px;color:#64748b;margin-top:10px">실제 주문 금액은 장바구니에서 선택한 수량을 기준으로 다시 계산됩니다.</div>`;
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0 4px">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(p.spec||'')}</div></div><div class="field full"><label>거래처 적용 단가 (1박스)</label><div style="font-size:22px;font-weight:800;color:#1d4ed8">${won(unit)}</div><div class="vat-note-v126">부가세 별도</div></div><div class="field full"><label for="clientProductDetailQtyV127">주문 수량 (박스)</label><input id="clientProductDetailQtyV127" type="number" min="1" step="1" value="${qty}" oninput="updateClientProductDetailTotalsV127()" style="max-width:180px"></div></div><div class="vat-summary-v126" id="clientProductDetailSummaryV127"></div><div style="font-size:11px;color:#64748b;margin-top:10px">수량을 변경하면 제품 목록의 수량에도 반영됩니다. 장바구니에 담기 전까지 주문은 확정되지 않습니다.</div>`;
+ updateClientProductDetailTotalsV127();
  const save=document.getElementById('modalSave');save.style.display='none';document.getElementById('modalCancel').textContent='닫기';document.getElementById('modalBg').classList.add('show');
+}
+function updateClientProductDetailTotalsV127(){
+ const state=window.wjClientProductDetailV127;if(!state)return;
+ const input=document.getElementById('clientProductDetailQtyV127');if(!input)return;
+ const raw=Math.floor(Number(input.value)||1),qty=Math.max(1,raw);if(String(qty)!==input.value)input.value=qty;
+ const rowQty=document.getElementById(`qty-${state.productId}`);if(rowQty)rowQty.value=qty;
+ const supply=state.unit*qty,vat=Math.round(supply*.1),total=supply+vat;
+ const summary=document.getElementById('clientProductDetailSummaryV127');if(summary)summary.innerHTML=`<div class="line"><span>박스당 단가</span><b>${won(state.unit)}</b></div><div class="line"><span>수량</span><b>${qty.toLocaleString()}박스</b></div><div class="line"><span>공급가액</span><b>${won(supply)}</b></div><div class="line"><span>부가세 (10%)</span><b>${won(vat)}</b></div><div class="line grand"><span>부가세 포함 합계</span><b>${won(total)}</b></div>`;
 }
 function openAdminProductPriceDetailV126(productId){
  const p=products.find(x=>String(x.id)===String(productId));if(!p)return;
