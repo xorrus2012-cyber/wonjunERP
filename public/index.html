@@ -942,13 +942,13 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN PRICES -->
       <section id="adminPrices" class="page">
-        <div class="page-head"><div><h2>단가 관리</h2><p>거래처를 먼저 선택한 뒤 제품을 검색·선택하여 해당 거래처의 적용 단가를 관리합니다.</p></div></div>
+        <div class="page-head"><div><h2>단가 관리</h2><p>거래처별 적용 단가를 관리합니다. 신규 등록·수정 단가는 부가세 별도 금액으로 입력합니다.</p></div></div>
         <div class="order-filter-panel admin-search-panel" aria-label="단가 검색 및 필터"><div class="order-filter-grid admin-search-grid admin-price-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">거래처 선택 · 여러 개 가능</label><div class="smartbox" id="priceClientSmart"></div></div>
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명 · 여러 개 가능</label><div class="smartbox" id="priceProductSmart"></div></div>
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminPricePageV91=1;renderPriceManagement()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminPriceFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>현재 적용 단가</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div><div id="adminPricePaginationV91" aria-label="단가 목록 페이지 이동"></div>
+        <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가 (VAT 별도)</th><th>현재 적용 단가 (VAT 별도)</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div><div id="adminPricePaginationV91" aria-label="단가 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN INVENTORY -->
@@ -1188,14 +1188,14 @@ async function saveClientPriceToSupabase(clientId, productId, price){
 
   if(existing){
     const {data,error}=await supabaseERP.from('client_prices')
-      .update({price:n,updated_at:new Date().toISOString()})
+      .update({price:n,price_tax_type:'exclusive',updated_at:new Date().toISOString()})
       .eq('id',existing.id).select('*').single();
     if(error) throw error;
     return data;
   }
 
   const {data,error}=await supabaseERP.from('client_prices')
-    .insert({client_id:cid,product_id:pid,price:n})
+    .insert({client_id:cid,product_id:pid,price:n,price_tax_type:'exclusive'})
     .select('*').single();
   if(error) throw error;
   return data;
@@ -1420,7 +1420,7 @@ async function ensureProductInSupabase(localProduct){
   const sample=probe.data?.[0]||{}, payload={};
   const put=(k,v)=>{if(Object.prototype.hasOwnProperty.call(sample,k))payload[k]=v};
   put('code',code);put('product_code',code);put('name',name);put('product_name',name);put('spec',spec);put('specification',spec);
-  const base=Number(localProduct.base||0); put('base_price',base);put('base',base);put('unit_price',base);put('price',base);put('category',localProduct.cat||'');
+  const base=Number(localProduct.base||0); put('base_price',base);put('base',base);put('unit_price',base);put('price',base);put('base_price_tax_type','exclusive');put('category',localProduct.cat||'');
   if(Object.prototype.hasOwnProperty.call(sample,'category_id')){
     const cq=await supabaseERP.from('product_categories').select('id,name').eq('name',String(localProduct.cat||'')).limit(1).maybeSingle();
     if(!cq.error&&cq.data?.id)payload.category_id=cq.data.id;
@@ -1604,7 +1604,10 @@ async function loadOrdersFromSupabase(){
         spec:x.spec||'',
         qty:Number(x.qty||x.quantity||0)||0,
         unit:Number(x.unit||x.unit_price||0)||0,
-        amount:Number(x.amount||x.total_amount||0)||0,
+        amount:Number(x.supplyAmount??x.supply_amount??x.amount??0)||0,
+        supplyAmount:Number(x.supplyAmount??x.supply_amount??x.amount??0)||0,
+        vatAmount:Number(x.vatAmount??x.vat_amount??Math.round(Number(x.amount||0)*0.1))||0,
+        totalAmount:Number(x.totalAmount??x.total_amount??(Number(x.amount||0)+Number(x.vatAmount||0)))||0,
         boxType:x.boxType||x.box_type||'기본 박스',
         boxStamp:x.boxStamp||x.box_stamp||'',
         palletType:x.palletType||x.pallet_type||'나무',
@@ -1633,7 +1636,10 @@ async function loadOrdersFromSupabase(){
           spec:firstValue(r,['spec','product_spec'],product?.spec||''),
           qty:Number(firstValue(r,['quantity','qty'],0))||0,
           unit:Number(firstValue(r,['unit_price','price'],0))||0,
-          amount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
+          amount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,
+          supplyAmount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,
+          vatAmount:Number(firstValue(r,['vat_amount'],0))||0,
+          totalAmount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
           boxType:firstValue(r,['box_type'],'기본 박스'),
           boxStamp:firstValue(r,['box_stamp'],''),
           palletType:firstValue(r,['pallet_type'],'나무'),
@@ -2384,20 +2390,21 @@ function deleteSelectedCartItems(){
 function renderCartPage(){
  const rows=document.getElementById('cartRows');if(!rows)return;
  if(!cartItems.length){rows.innerHTML='<tr><td colspan="7" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';selectedCartKeys.clear();document.getElementById('cartPageTotal').textContent=won(0);updateCartSelectionUI();return}
- rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty);const safe=JSON.stringify(String(item.key));const safeAttr=encodeURIComponent(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(decodeURIComponent('${safeAttr}'),this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')} · <b>지관</b> ${escapeHtmlV8(item.coreType||'공용지관')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
- updateCartSelectionUI();document.getElementById('cartPageTotal').textContent=won(getSelectedCartTotal());
+ rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=price(p),amount=unit*Number(item.qty),vat=Math.round(amount*.1),grand=amount+vat;const safe=JSON.stringify(String(item.key));const safeAttr=encodeURIComponent(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(decodeURIComponent('${safeAttr}'),this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')} · <b>지관</b> ${escapeHtmlV8(item.coreType||'공용지관')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b><div style="font-size:10px;color:#64748b">VAT 별도</div></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
+ updateCartSelectionUI();const selectedSupply=getSelectedCartTotal();document.getElementById('cartPageTotal').textContent=won(selectedSupply+Math.round(selectedSupply*.1))+' (부가세 포함)';
 }
 function updateCart(){
  let count=0,total=0;
- cartItems.forEach(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return;count+=Number(item.qty);total+=Number(item.qty)*price(p)});
- document.getElementById('cartCount').textContent=count.toLocaleString();document.getElementById('cartTotal').textContent=won(total);document.getElementById('cartBar').classList.toggle('hidden',count===0);
+ cartItems.forEach(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return;count+=Number(item.qty);total+=Number(item.qty)*price(p)});total+=Math.round(total*.1);
+ document.getElementById('cartCount').textContent=count.toLocaleString();document.getElementById('cartTotal').textContent=won(total)+' (VAT 포함)';document.getElementById('cartBar').classList.toggle('hidden',count===0);
  const pageTotal=document.getElementById('cartPageTotal');if(pageTotal)pageTotal.textContent=won(total);if(document.getElementById('cartRows'))renderCartPage();const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
 }
 function updateCart(){
  let count=0,total=0;
  Object.entries(cart).forEach(([id,q])=>{const p=products.find(x=>String(x.id)===String(id));if(!p)return;count+=Number(q);total+=Number(q)*price(p)});
+ total+=Math.round(total*.1);
  document.getElementById('cartCount').textContent=count.toLocaleString();
- document.getElementById('cartTotal').textContent=won(total);
+ document.getElementById('cartTotal').textContent=won(total)+' (VAT 포함)';
  document.getElementById('cartBar').classList.toggle('hidden',count===0);
  if(document.getElementById('cartRows'))renderCartPage();
  const nav=document.getElementById('navCartCount');if(nav)nav.textContent=count?` (${count})`:'';
@@ -2471,11 +2478,13 @@ async function checkout(selectedOnly=false){
  if(!cl){alert('거래처 정보를 찾을 수 없습니다. 다시 로그인해 주세요.');return}
  const items=entries.map(x=>{
    const p=products.find(xp=>String(xp.id)===String(x.productId));
-   return p?{p,q:Math.floor(Number(x.qty)),unit:Number(price(p))||0,amount:(Number(price(p))||0)*Math.floor(Number(x.qty)),boxType:x.boxType||'기본 박스',boxStamp:x.boxStamp||'',palletType:x.palletType||'나무',coreType:x.coreType||'공용지관',cartKey:x.key}:null;
+   const unit=Number(price(p))||0,qty=Math.floor(Number(x.qty));const supplyAmount=unit*qty;const vatAmount=Math.round(supplyAmount*0.1);return p?{p,q:qty,unit,amount:supplyAmount,supplyAmount,vatAmount,totalAmount:supplyAmount+vatAmount,boxType:x.boxType||'기본 박스',boxStamp:x.boxStamp||'',palletType:x.palletType||'나무',coreType:x.coreType||'공용지관',cartKey:x.key}:null;
  }).filter(Boolean);
  if(!items.length){alert('장바구니의 제품 정보를 찾을 수 없습니다. 제품 목록을 새로고침해 주세요.');return}
  const count=items.reduce((a,x)=>a+x.q,0);
- const total=items.reduce((a,x)=>a+x.amount,0);
+ const supplyTotal=items.reduce((a,x)=>a+x.supplyAmount,0);
+ const vatTotal=items.reduce((a,x)=>a+x.vatAmount,0);
+ const total=supplyTotal+vatTotal;
  const names=items.map(x=>x.p.name);
  const delivery=await openDeliveryInfoModal(cl);
  if(!delivery)return;
@@ -2483,7 +2492,7 @@ async function checkout(selectedOnly=false){
  try{
    /* 품명만 저장하지 않고, 같은 제품이라도 옵션이 다른 각 장바구니 행을 통째로 저장합니다.
       item_summary는 기존 orders 스키마를 그대로 활용하기 위한 JSON 보관 영역입니다. */
-   const packedOrderItems=items.map(x=>({productId:String(x.p.id),name:x.p.name,spec:x.p.spec,qty:x.q,unit:x.unit,amount:x.amount,boxType:x.boxType,boxStamp:x.boxStamp,palletType:x.palletType,coreType:x.coreType||'공용지관'}));
+   const packedOrderItems=items.map(x=>({productId:String(x.p.id),name:x.p.name,spec:x.p.spec,qty:x.q,unit:x.unit,amount:x.supplyAmount,supplyAmount:x.supplyAmount,vatAmount:x.vatAmount,totalAmount:x.totalAmount,taxType:'exclusive',boxType:x.boxType,boxStamp:x.boxStamp,palletType:x.palletType,coreType:x.coreType||'공용지관'}));
    const itemSummary=JSON.stringify({__wjOrderItems:packedOrderItems});
    const orderNo='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
    const orderDate=new Date().toISOString().slice(0,10);
@@ -2511,6 +2520,9 @@ async function checkout(selectedOnly=false){
      quantity:count,
      total_amount:total,
      amount:total,
+     supply_amount:supplyTotal,
+     vat_amount:vatTotal,
+     tax_type:'exclusive',
      status:'접수 완료',
      client_memo:'',
      admin_memo:'',
@@ -2547,6 +2559,9 @@ async function checkout(selectedOnly=false){
        item_summary:itemSummary,
        total_qty:count,
        total_amount:total,
+       supply_amount:supplyTotal,
+       vat_amount:vatTotal,
+       tax_type:'exclusive',
        status:'접수 완료',
        client_memo:'',
        box_type:boxType,
@@ -2605,9 +2620,12 @@ async function checkout(selectedOnly=false){
            qty:x.q,
            unit_price:x.unit,
            price:x.unit,
-           total_price:x.amount,
-           total_amount:x.amount,
-           amount:x.amount,
+           total_price:x.totalAmount,
+           total_amount:x.totalAmount,
+           amount:x.totalAmount,
+           supply_amount:x.supplyAmount,
+           vat_amount:x.vatAmount,
+           tax_type:'exclusive',
            box_type:x.boxType,
            box_stamp:x.boxStamp,
            pallet_type:x.palletType,
@@ -2618,7 +2636,7 @@ async function checkout(selectedOnly=false){
            if(Object.prototype.hasOwnProperty.call(itemSample,k)) cleanItem[k]=v;
          }
          if(!Object.keys(cleanItem).length){
-           Object.assign(cleanItem,{order_id:orderDbId,product_id:x.p.id,quantity:x.q,unit_price:x.unit,total_amount:x.amount,box_type:x.boxType,box_stamp:x.boxStamp,pallet_type:x.palletType,core_type:x.coreType||'공용지관'});
+           Object.assign(cleanItem,{order_id:orderDbId,product_id:x.p.id,quantity:x.q,unit_price:x.unit,total_amount:x.totalAmount,supply_amount:x.supplyAmount,vat_amount:x.vatAmount,tax_type:'exclusive',box_type:x.boxType,box_stamp:x.boxStamp,pallet_type:x.palletType,core_type:x.coreType||'공용지관'});
          }
          const r=await supabaseERP.from('order_items').insert(cleanItem);
          if(r.error) console.warn('order_items 저장 실패(발주 자체는 성공):',r.error);
@@ -2805,7 +2823,7 @@ async function showClientOrderDetail(no){
  const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
  const rows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='발주 상세';
- document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}<div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
+ document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">공급가액</div><div>${won(detailSupplyTotal)}</div><div class="key">부가세</div><div>${won(detailVatTotal)}</div><div class="key">총 주문금액</div><div><b>${won(Number(source.amount||detailSupplyTotal+detailVatTotal))}</b></div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${rows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}<div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
  const save=document.getElementById('modalSave');if(save){save.style.display='none';save.onclick=null}
  const cancel=document.getElementById('modalCancel');if(cancel)cancel.textContent='확인';
  document.getElementById('modalBg').classList.add('show');
@@ -3214,7 +3232,7 @@ function openProductEdit(i){
   <div class="field"><label>제품명</label><input id="editPName" value="${p.name}"></div>
   <div class="field"><label>제품 코드</label><input id="editPCode" value="${p.code}"></div>
   <div class="field"><label>분류</label><select id="editPCat">${productCategories.map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
-  <div class="field"><label>기본 단가</label><input id="editPBase" type="number" value="${p.base}"></div>
+  <div class="field"><label>기본 단가 (부가세 별도)</label><input id="editPBase" type="number" value="${p.base}"></div>
   <div class="field full"><label>제품 규격</label><div class="form-grid" style="margin-top:0">
     <div class="field"><label>두께</label><input id="editPThickness" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).thickness}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">μ</div></div>
     <div class="field"><label>폭</label><input id="editPWidth" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).width}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">mm</div></div>
@@ -3234,7 +3252,7 @@ function openProductEdit(i){
      const probe=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();
      if(probe.error) throw probe.error;
      const row=probe.data||{};
-     for(const [k,v] of Object.entries({name:next.name,product_name:next.name,code:next.code,product_code:next.code,spec:next.spec,specification:next.spec,base_price:next.base,base:next.base,unit_price:next.base,price:next.base,category:next.cat})){if(Object.prototype.hasOwnProperty.call(row,k))payload[k]=v}
+     for(const [k,v] of Object.entries({name:next.name,product_name:next.name,code:next.code,product_code:next.code,spec:next.spec,specification:next.spec,base_price:next.base,base:next.base,unit_price:next.base,price:next.base,category:next.cat,base_price_tax_type:'exclusive'})){if(Object.prototype.hasOwnProperty.call(row,k))payload[k]=v}
      const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);
      if(error) throw error;
      await loadProductsFromSupabase();
@@ -3755,10 +3773,12 @@ function generateOrderPDF(no, audience='client'){
   }
   const client=clients.find(x=>String(x.loginId)===String(order.id))||clients.find(x=>String(x.id)===String(order.clientId));
   const items=getWJOrderDetailItems(order);
-  const rows=(items.length?items:[{name:order.item||'-',spec:'',qty:order.qty||0,unit:0,amount:order.amount||0,boxType:order.boxType||'기본 박스',boxStamp:order.boxStamp||'',palletType:order.palletType||'나무',coreType:order.coreType||'공용지관'}]).map((it,i)=>{
-    const qty=Number(it.qty||0), amount=Number(it.amount||0), unit=Number(it.unit||0)||(qty?Math.round(amount/qty):0);
-    return `<tr><td class="center">${i+1}</td><td><strong>${escapeHtmlV8(it.name||'-')}</strong><small>${escapeHtmlV8(it.spec||'')}</small></td><td class="center">${qty.toLocaleString()}</td><td class="right">${unit?unit.toLocaleString()+'원':'-'}</td><td class="right">${amount.toLocaleString()}원</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`;
+  const pdfItems=items.length?items:[{name:order.item||'-',spec:'',qty:order.qty||0,unit:0,amount:order.supplyAmount||0,vatAmount:order.vatAmount||0,boxType:order.boxType||'기본 박스',boxStamp:order.boxStamp||'',palletType:order.palletType||'나무',coreType:order.coreType||'공용지관'}];
+  const rows=pdfItems.map((it,i)=>{
+    const qty=Number(it.qty||0), supply=Number(it.supplyAmount??it.amount??0), vat=Number(it.vatAmount??0), unit=Number(it.unit||0)||(qty?Math.round(supply/qty):0);
+    return `<tr><td class="center">${i+1}</td><td><strong>${escapeHtmlV8(it.name||'-')}</strong><small>${escapeHtmlV8(it.spec||'')}</small></td><td class="center">${qty.toLocaleString()}</td><td class="right">${unit?unit.toLocaleString()+'원':'-'}</td><td class="right">${supply.toLocaleString()}원</td><td class="right">${vat.toLocaleString()}원</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`;
   }).join('');
+  const supplyTotal=pdfItems.reduce((a,it)=>a+Number(it.supplyAmount??it.amount??0),0);const vatTotal=pdfItems.reduce((a,it)=>a+Number(it.vatAmount??0),0);
   const date=String(order.date||'').slice(0,10)||new Date().toISOString().slice(0,10);
   const total=Number(order.amount||0);
   const memo=order.clientMemo||'';
@@ -3766,8 +3786,8 @@ function generateOrderPDF(no, audience='client'){
   if(!w){alert('발주서 창이 차단되었습니다. 브라우저에서 팝업을 허용한 뒤 다시 눌러 주세요.');return}
   w.document.open();
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>발주서_${escapeHtmlV8(order.no)}</title><style>
-  @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}html{background:#eef2f7}body{margin:0;color:#172033;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;font-size:10pt;line-height:1.55;background:#eef2f7}.document-sheet{width:calc(100% - 48px);max-width:980px;min-height:calc(100vh - 82px);margin:24px auto 32px;padding:30px 38px;background:#fff;box-shadow:0 4px 22px rgba(15,23,42,.10);border:1px solid #e2e8f0}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #173b67;padding-bottom:14px;margin-bottom:18px}.brand{font-size:12pt;font-weight:800;letter-spacing:1.4px;color:#173b67}.doc-title{text-align:center;font-size:25pt;font-weight:800;letter-spacing:8px;margin:20px 0 22px;color:#142b46}.doc-no{font-size:9pt;color:#526176;text-align:right}.info{width:100%;border-collapse:collapse;margin:0 0 18px}.info th,.info td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left}.info th{width:19%;background:#f1f5f9;font-weight:700}.items{width:100%;border-collapse:collapse;margin-top:8px;font-size:9pt}.items th{background:#173b67;color:white;font-weight:700;padding:8px 5px;border:1px solid #173b67}.items td{padding:8px 6px;border:1px solid #cbd5e1}.items small{display:block;color:#64748b;font-size:8pt;margin-top:2px}.center{text-align:center}.right{text-align:right;white-space:nowrap}.total{margin:14px 0 18px;display:flex;justify-content:flex-end}.total table{width:48%;border-collapse:collapse}.total th,.total td{padding:10px;border:1px solid #cbd5e1}.total th{background:#f1f5f9;text-align:left}.total td{text-align:right;font-weight:800;font-size:13pt}.memo{border:1px solid #cbd5e1;min-height:62px;padding:10px;white-space:pre-wrap}.memo-title{font-weight:800;margin:12px 0 5px}.footer{margin-top:30px;border-top:1px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;color:#64748b;font-size:8.5pt}.sign{margin-top:28px;display:flex;justify-content:flex-end;gap:24px}.sign span{display:inline-block;min-width:95px;border-bottom:1px solid #94a3b8;padding:0 4px 6px}.actions{position:sticky;top:0;padding:10px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;justify-content:center;gap:8px}.actions button{border:0;border-radius:7px;padding:10px 18px;background:#173b67;color:white;font-weight:700;cursor:pointer}.actions button.secondary{background:#e2e8f0;color:#172033}@media(max-width:700px){.document-sheet{width:calc(100% - 24px);padding:22px 18px;margin:12px auto 20px}}@media print{html,body{background:#fff}.document-sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;border:0;box-shadow:none}.actions{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-  </style></head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:12%">단가</th><th style="width:14%">금액</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>발주 합계 금액</th><td>${total.toLocaleString()}원</td></tr></table></div><div class="memo-title">배송 정보</div><div class="memo">배송 방법: ${escapeHtmlV8(order.deliveryMethod||'-')}\n택배사 / 업체: ${escapeHtmlV8(order.deliveryCarrier||'-')}\n배송지: ${escapeHtmlV8(order.deliveryAddressName||'')} ${escapeHtmlV8(order.deliveryAddress||'-')}\n담당자: ${escapeHtmlV8(order.deliveryContactName||'-')} / ${escapeHtmlV8(order.deliveryContactPhone||'-')}\n추가 요청: ${escapeHtmlV8(order.deliveryRequest||'없음')}</div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
+  @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}html{background:#eef2f7}body{margin:0;color:#172033;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;font-size:10pt;line-height:1.55;background:#eef2f7}.document-sheet{width:calc(100% - 48px);max-width:980px;min-height:calc(100vh - 82px);margin:24px auto 32px;padding:30px 38px;background:#fff;box-shadow:0 4px 22px rgba(15,23,42,.10);border:1px solid #e2e8f0}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #173b67;padding-bottom:14px;margin-bottom:18px}.brand{font-size:12pt;font-weight:800;letter-spacing:1.4px;color:#173b67}.doc-title{text-align:center;font-size:25pt;font-weight:800;letter-spacing:8px;margin:20px 0 22px;color:#142b46}.doc-no{font-size:9pt;color:#526176;text-align:right}.info{width:100%;border-collapse:collapse;margin:0 0 18px}.info th,.info td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left}.info th{width:19%;background:#f1f5f9;font-weight:700}.items{width:100%;border-collapse:collapse;margin-top:8px;font-size:8pt;table-layout:fixed}.items th{background:#173b67;color:white;font-weight:700;padding:8px 5px;border:1px solid #173b67}.items td{padding:8px 6px;border:1px solid #cbd5e1}.items small{display:block;color:#64748b;font-size:8pt;margin-top:2px}.center{text-align:center}.right{text-align:right;white-space:nowrap}.total{margin:14px 0 18px;display:flex;justify-content:flex-end}.total table{width:48%;border-collapse:collapse}.total th,.total td{padding:10px;border:1px solid #cbd5e1}.total th{background:#f1f5f9;text-align:left}.total td{text-align:right;font-weight:800;font-size:13pt}.memo{border:1px solid #cbd5e1;min-height:62px;padding:10px;white-space:pre-wrap}.memo-title{font-weight:800;margin:12px 0 5px}.footer{margin-top:30px;border-top:1px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;color:#64748b;font-size:8.5pt}.sign{margin-top:28px;display:flex;justify-content:flex-end;gap:24px}.sign span{display:inline-block;min-width:95px;border-bottom:1px solid #94a3b8;padding:0 4px 6px}.actions{position:sticky;top:0;padding:10px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;justify-content:center;gap:8px}.actions button{border:0;border-radius:7px;padding:10px 18px;background:#173b67;color:white;font-weight:700;cursor:pointer}.actions button.secondary{background:#e2e8f0;color:#172033}@media(max-width:700px){.document-sheet{width:calc(100% - 24px);padding:22px 18px;margin:12px auto 20px}}@media print{html,body{background:#fff}.document-sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;border:0;box-shadow:none}.actions{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  </style></head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:10%">단가</th><th style="width:12%">공급가액</th><th style="width:10%">부가세</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>공급가액 합계</th><td>${supplyTotal.toLocaleString()}원</td></tr><tr><th>부가세 (10%)</th><td>${vatTotal.toLocaleString()}원</td></tr><tr><th>총 합계</th><td>${(supplyTotal+vatTotal).toLocaleString()}원</td></tr></table></div><div class="memo-title">배송 정보</div><div class="memo">배송 방법: ${escapeHtmlV8(order.deliveryMethod||'-')}\n택배사 / 업체: ${escapeHtmlV8(order.deliveryCarrier||'-')}\n배송지: ${escapeHtmlV8(order.deliveryAddressName||'')} ${escapeHtmlV8(order.deliveryAddress||'-')}\n담당자: ${escapeHtmlV8(order.deliveryContactName||'-')} / ${escapeHtmlV8(order.deliveryContactPhone||'-')}\n추가 요청: ${escapeHtmlV8(order.deliveryRequest||'없음')}</div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
   w.document.close();
 }
 
@@ -3784,7 +3804,10 @@ function getWJOrderDetailItems(order){
     spec:x.spec||x.product_spec||'',
     qty:Number(x.qty??x.quantity??0)||0,
     unit:Number(x.unit??x.unit_price??x.price??0)||0,
-    amount:Number(x.amount??x.total_amount??x.total_price??0)||0,
+    amount:Number(x.supplyAmount??x.supply_amount??x.amount??0)||0,
+    supplyAmount:Number(x.supplyAmount??x.supply_amount??x.amount??0)||0,
+    vatAmount:Number(x.vatAmount??x.vat_amount??0)||0,
+    totalAmount:Number(x.totalAmount??x.total_amount??x.total_price??0)||0,
     boxType:x.boxType||x.box_type||'기본 박스',
     boxStamp:x.boxStamp||x.box_stamp||'',
     palletType:x.palletType||x.pallet_type||'나무',
@@ -3856,7 +3879,10 @@ async function showOrderDetail(no){
           spec:firstValue(r,['spec','product_spec'],productById.get(String(firstValue(r,['product_id','product'],'')))?.spec||''),
           qty:Number(firstValue(r,['quantity','qty'],0))||0,
           unit:Number(firstValue(r,['unit_price','price'],0))||0,
-          amount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
+          amount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,
+          supplyAmount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,
+          vatAmount:Number(firstValue(r,['vat_amount'],0))||0,
+          totalAmount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
           boxType:firstValue(r,['box_type'],'기본 박스'),
           boxStamp:firstValue(r,['box_stamp'],''),
           palletType:firstValue(r,['pallet_type'],'나무'),coreType:firstValue(r,['core_type'],'공용지관')
@@ -3874,11 +3900,12 @@ async function showOrderDetail(no){
   // 상세에서는 가장 구체적인 구조화 데이터 중 '행 수가 더 많은 쪽'을 사용한다.
   const details=(directItems.length>jsonItems.length?directItems:jsonItems);
   const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
-  const detailRows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`).join('');
+  const detailRows=finalDetails.map(it=>{const supply=Number(it.supplyAmount??it.amount??0),vat=Number(it.vatAmount??0),unit=Number(it.unit||0);return `<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(unit)}</td><td>${won(supply)}</td><td>${won(vat)}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td></tr>`}).join('');
+  const detailSupplyTotal=finalDetails.reduce((a,it)=>a+Number(it.supplyAmount??it.amount??0),0);const detailVatTotal=finalDetails.reduce((a,it)=>a+Number(it.vatAmount??0),0);
   document.getElementById('modalTitle').textContent='주문 상세';
   document.getElementById('modalBody').innerHTML=`
-  <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','admin')">발주서 PDF 다운로드</button></div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">전체 금액</div><div>${won(source.amount)}</div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
-  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','admin')">발주서 PDF 다운로드</button></div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">공급가액</div><div>${won(detailSupplyTotal)}</div><div class="key">부가세</div><div>${won(detailVatTotal)}</div><div class="key">총 주문금액</div><div><b>${won(Number(source.amount||detailSupplyTotal+detailVatTotal))}</b></div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
+  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'거래처 메모가 없습니다.')}</div></div>
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 관리자 메모를 입력해 주세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>${historyHtml}`;
   const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};
