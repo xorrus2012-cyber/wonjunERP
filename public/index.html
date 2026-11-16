@@ -708,7 +708,17 @@ html,body{overflow-x:hidden}
 </style>
 <!-- V132: 견적 요청 관리 검색 영역을 주문/수주 관리와 동일한 레이아웃·기간검색 기능으로 통일 -->
 <style id="v133-quote-order-filter-panel-match">#adminQuotesV130 .order-filter-panel{margin:0 0 12px;padding:15px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;}@media(max-width:900px){#adminQuotesV130 .order-filter-panel{padding:13px;}}</style>
-</head>
+
+<style id="v134-client-quote-modal-css">
+.v134-quote-modal{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.v134-quote-modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.56)}
+.v134-quote-modal-dialog{position:relative;z-index:1;width:min(720px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(15,23,42,.28);box-sizing:border-box}
+.v134-quote-modal-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e2e8f0}
+.v134-quote-modal-close{border:0;background:#f1f5f9;color:#334155;border-radius:9px;width:34px;height:34px;font-size:23px;line-height:1;cursor:pointer;flex:0 0 auto}
+.v134-quote-modal-dialog .v130-quote-panel .form-grid{display:grid}
+@media(max-width:700px){.v134-quote-modal{padding:8px;align-items:flex-end}.v134-quote-modal-dialog{width:100%;max-height:calc(100vh - 16px);border-radius:16px 16px 8px 8px;padding:17px}.v134-quote-modal-dialog .v130-quote-panel .form-grid{grid-template-columns:1fr!important}}
+</style>
+\n</head>
 <body>
 
 <!-- LOGIN -->
@@ -787,23 +797,40 @@ html,body{overflow-x:hidden}
       <!-- CLIENT PRODUCTS -->
       <section id="products" class="page">
         <div class="page-head"><div><h2>제품 주문</h2><p>로그인한 거래처에 적용된 개별 단가가 표시됩니다.</p></div></div>
-        <section class="card pad v130-quote-panel" aria-label="별도 견적 요청" style="margin-bottom:16px;border:1px solid #dbe5f0;background:#f8fafc">
-          <div class="page-head" style="margin-bottom:8px"><div><h3 class="section-title" style="margin:0">별도 견적 요청</h3><p style="margin:5px 0 0;color:#64748b;font-size:12px">등록된 포장 옵션에 없는 입수량이나 비규격 제품은 견적 확인 후 주문할 수 있습니다.</p></div><span class="v129-packaging-pill">관리자 견적 후 거래처 승인</span></div>
-          <div class="form-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-            <div class="field"><label for="v130QuoteMode">요청 유형</label><select id="v130QuoteMode" onchange="renderQuoteRequestFormV130()"><option value="custom_packaging">기존 제품 · 입수량 변경</option><option value="nonstandard">비규격 제품 제작 요청</option></select></div>
-            <div class="field" id="v130ExistingProductWrap"><label for="v130QuoteProduct">기존 제품 선택</label><select id="v130QuoteProduct" onchange="fillQuoteProductSpecV130()"><option value="">제품을 선택해 주세요</option></select></div>
-            <div class="field full" id="v130ExistingSpecWrap"><label>선택 제품 규격 (자동 입력)</label><div id="v130QuoteSpecPreview" style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#475569">제품을 선택하면 기존 규격이 표시됩니다.</div></div>
-            <div class="field" id="v130QuoteNameWrap" style="display:none"><label for="v130QuoteName">요청 제품명</label><input id="v130QuoteName" placeholder="제품명을 입력해 주세요"></div>
-            <div class="field"><label for="v130QuoteCategory">제품 종류</label><select id="v130QuoteCategory" onchange="toggleQuoteCustomCategoryV130()"></select><input id="v130QuoteCategoryCustom" style="display:none;margin-top:7px" placeholder="제품 종류를 직접 입력해 주세요"></div>
-            <div class="field" id="v130QuoteQtyWrap"><label for="v130QuotePackQty">희망 입수량</label><input id="v130QuotePackQty" type="number" min="1" step="1" placeholder="예: 30"><small style="color:#64748b">포장 단위 1개에 들어가는 수량</small></div>
-            <div class="field"><label for="v130QuoteOrderQty">주문 희망 수량</label><input id="v130QuoteOrderQty" type="number" min="1" step="1" value="1"></div>
-            <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteThickness">두께</label><input id="v130QuoteThickness" placeholder="예: 50μ"></div>
-            <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteWidth">폭</label><input id="v130QuoteWidth" placeholder="예: 48mm"></div>
-            <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteLength">길이</label><input id="v130QuoteLength" placeholder="예: 40m"></div>
-            <div class="field full"><label for="v130QuoteMemo">요청 사항</label><textarea id="v130QuoteMemo" rows="2" placeholder="포장 방식이나 제작 관련 요청 사항을 입력해 주세요."></textarea></div>
+        <div class="client-quote-launch" style="display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:14px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc">
+          <div style="flex:1;min-width:0"><strong style="display:block;font-size:14px">원하는 규격이나 입수량이 없으신가요?</strong><span style="display:block;margin-top:4px;color:#64748b;font-size:12px">별도 견적 요청을 통해 관리자 확인 후 주문하실 수 있습니다.</span></div>
+          <button type="button" class="btn primary" onclick="openQuoteRequestModalV134()" style="white-space:nowrap">비규격 · 별도 견적 요청</button>
+        </div>
+
+        <div id="v134QuoteRequestModal" class="v134-quote-modal" role="dialog" aria-modal="true" aria-labelledby="v134QuoteModalTitle" style="display:none">
+          <div class="v134-quote-modal-backdrop" onclick="closeQuoteRequestModalV134()"></div>
+          <div class="v134-quote-modal-dialog">
+            <div class="v134-quote-modal-header">
+              <div><h3 id="v134QuoteModalTitle" style="margin:0;font-size:18px">별도 견적 요청</h3><p style="margin:5px 0 0;color:#64748b;font-size:12px">요청 유형을 선택하고 내용을 입력해 주세요.</p></div>
+              <button type="button" class="v134-quote-modal-close" aria-label="창 닫기" onclick="closeQuoteRequestModalV134()">×</button>
+            </div>
+            <section class="card pad v130-quote-panel" aria-label="별도 견적 요청 입력" style="border:0;padding:0;box-shadow:none;background:#fff">
+              <div class="form-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+                <div class="field"><label for="v130QuoteMode">요청 유형</label><select id="v130QuoteMode" onchange="renderQuoteRequestFormV130()"><option value="custom_packaging">기존 제품 · 입수량 변경</option><option value="nonstandard">비규격 제품 제작 요청</option></select></div>
+                <div class="field" id="v130ExistingProductWrap"><label for="v130QuoteProduct">기존 제품 선택</label><select id="v130QuoteProduct" onchange="fillQuoteProductSpecV130()"><option value="">제품을 선택해 주세요</option></select></div>
+                <div class="field full" id="v130ExistingSpecWrap"><label>선택 제품 규격 (자동 입력)</label><div id="v130QuoteSpecPreview" style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#475569">제품을 선택하면 기존 규격이 표시됩니다.</div></div>
+                <div class="field" id="v130QuoteNameWrap" style="display:none"><label for="v130QuoteName">요청 제품명</label><input id="v130QuoteName" placeholder="제품명을 입력해 주세요"></div>
+                <div class="field"><label for="v130QuoteCategory">제품 종류</label><select id="v130QuoteCategory" onchange="toggleQuoteCustomCategoryV130()"></select><input id="v130QuoteCategoryCustom" style="display:none;margin-top:7px" placeholder="제품 종류를 직접 입력해 주세요"></div>
+                <div class="field" id="v130QuoteQtyWrap"><label for="v130QuotePackQty">희망 입수량</label><input id="v130QuotePackQty" type="number" min="1" step="1" placeholder="예: 30"><small style="color:#64748b">포장 단위 1개에 들어가는 수량</small></div>
+                <div class="field"><label for="v130QuoteOrderQty">주문 희망 수량</label><input id="v130QuoteOrderQty" type="number" min="1" step="1" value="1"></div>
+                <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteThickness">두께</label><input id="v130QuoteThickness" placeholder="예: 50μ"></div>
+                <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteWidth">폭</label><input id="v130QuoteWidth" placeholder="예: 48mm"></div>
+                <div class="field v130-nonstandard-field" style="display:none"><label for="v130QuoteLength">길이</label><input id="v130QuoteLength" placeholder="예: 40m"></div>
+                <div class="field full"><label for="v130QuoteMemo">요청 사항</label><textarea id="v130QuoteMemo" rows="3" placeholder="포장 방식이나 제작 관련 요청 사항을 입력해 주세요."></textarea></div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" class="btn light" onclick="closeQuoteRequestModalV134()">취소</button><button type="button" class="btn primary" onclick="submitQuoteRequestV130()">견적 요청하기</button></div>
+            </section>
           </div>
-          <div style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" class="btn primary" onclick="submitQuoteRequestV130()">견적 요청하기</button></div>
-          <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0"><div style="font-weight:800;font-size:13px;margin-bottom:8px">내 견적 요청 현황</div><div class="table-wrap"><table><thead><tr><th>요청일</th><th>요청 내용</th><th>요청 수량</th><th>견적 금액</th><th>상태 / 관리</th></tr></thead><tbody id="v130ClientQuoteRows"><tr><td colspan="5" class="v4-empty">견적 요청 내역을 불러오는 중입니다.</td></tr></tbody></table></div></div>
+        </div>
+
+        <section class="card pad" style="margin-bottom:16px">
+          <div style="font-weight:800;font-size:13px;margin-bottom:10px">내 견적 요청 현황</div>
+          <div class="table-wrap"><table><thead><tr><th>요청일</th><th>요청 내용</th><th>요청 수량</th><th>견적 금액</th><th>상태 / 관리</th></tr></thead><tbody id="v130ClientQuoteRows"><tr><td colspan="5" class="v4-empty">견적 요청 내역을 불러오는 중입니다.</td></tr></tbody></table></div>
         </section>
         <div class="order-filter-panel admin-search-panel" aria-label="제품 검색 및 필터"><div class="order-filter-grid admin-search-grid">
           <div class="order-filter-field"><label class="order-filter-label">제품 코드 / 제품명 / 규격</label><div class="smartbox" id="clientProductSmart"></div></div>
@@ -2058,7 +2085,7 @@ function subscribeERPRealtime(){
     .on('postgres_changes',{event:'*',schema:'public',table:'order_option_settings'},async()=>{await loadOrderOptionSettings();renderProducts();renderOrderOptionSettings()})
     .on('postgres_changes',{event:'*',schema:'public',table:'product_packaging_options'},async()=>{await loadPackagingOptionsV129();renderAll()})
     .on('postgres_changes',{event:'*',schema:'public',table:'client_packaging_prices'},async()=>{await loadClientPackagingPricesV129();renderAll()})
-    .on('postgres_changes',{event:'*',schema:'public',table:'quote_requests'},async()=>{await loadQuoteRequestsV130();renderClientQuoteRequestsV130();renderQuoteRequestsAdminV130()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'quote_requests'},async()=>{closeQuoteRequestModalV134();await loadQuoteRequestsV130();renderClientQuoteRequestsV130();renderQuoteRequestsAdminV130()})
     .subscribe(status=>console.log('WONJUN ERP Realtime:',status));
 }
 
@@ -4265,6 +4292,15 @@ function initQuoteRequestFormV130(){
  if(cat){const current=cat.value;cat.innerHTML=(productCategories||[]).map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')+'<option value="__custom__">목록에 없음 · 직접 입력</option>';if([...cat.options].some(o=>o.value===current))cat.value=current;}
  if(!wjQuoteFormReadyV130){wjQuoteFormReadyV130=true;renderQuoteRequestFormV130();}
 }
+function openQuoteRequestModalV134(){
+ const modal=document.getElementById('v134QuoteRequestModal');if(!modal)return;
+ modal.style.display='flex';document.body.classList.add('v134-quote-modal-open');
+ initQuoteRequestFormV130();renderQuoteRequestFormV130();
+}
+function closeQuoteRequestModalV134(){
+ const modal=document.getElementById('v134QuoteRequestModal');if(modal)modal.style.display='none';
+ document.body.classList.remove('v134-quote-modal-open');
+}
 function renderQuoteRequestFormV130(){
  const mode=document.getElementById('v130QuoteMode')?.value||'custom_packaging';
  const isCustom=mode==='custom_packaging';
@@ -4405,6 +4441,7 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 <script>
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
 window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeQuoteRequestModalV134();}});
 </script>
 
 <style id="v34-cart-modal-ui">
