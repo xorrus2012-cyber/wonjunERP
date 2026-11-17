@@ -1599,7 +1599,8 @@ async function loadProductsFromSupabase(){
       safety:Number(firstValue(r,['safety_stock','safety'],0))||0,
       warehouse:firstValue(r,['warehouse','warehouse_name'],''),
       prices:{},
-      inventoryPublic:normalizeInventoryPublic(firstValue(r,['is_public','public','inventory_public','is_visible','visibility','visibility_status'],true),true)
+      inventoryPublic:normalizeInventoryPublic(firstValue(r,['is_public','public','inventory_public','is_visible','visibility','visibility_status'],true),true),
+      isDeleted:(()=>{const flag=firstValue(r,['is_deleted','deleted','is_archived','archived'],false);const status=String(firstValue(r,['sale_status','product_status','status'],'')).trim().toLowerCase();const deletedAt=firstValue(r,['deleted_at','archived_at'],'');const activeFlag=firstValue(r,['is_active','active'],'__missing__');return flag===true||flag===1||['true','1','yes','y','deleted','delete','삭제','삭제됨','폐기','보관'].includes(String(flag).trim().toLowerCase())||['deleted','delete','삭제','삭제됨','폐기','보관'].includes(status)||!!deletedAt||(activeFlag!== '__missing__' && (activeFlag===false||activeFlag===0||['false','0','no','n','off'].includes(String(activeFlag).trim().toLowerCase())));})()
     };
   });
   // inventory is separated from products in the production schema.
@@ -2105,7 +2106,7 @@ function subscribeERPRealtime(){
     .on('postgres_changes',{event:'*',schema:'public',table:'order_option_settings'},async()=>{await loadOrderOptionSettings();renderProducts();renderOrderOptionSettings()})
     .on('postgres_changes',{event:'*',schema:'public',table:'product_packaging_options'},async()=>{await loadPackagingOptionsV129();renderAll()})
     .on('postgres_changes',{event:'*',schema:'public',table:'client_packaging_prices'},async()=>{await loadClientPackagingPricesV129();renderAll()})
-    .on('postgres_changes',{event:'*',schema:'public',table:'quote_requests'},async()=>{await loadQuoteRequestsV130();renderClientQuoteRequestsV130();renderQuoteRequestsAdminV130()})
+    .on('postgres_changes',{event:'*',schema:'public',table:'quote_requests'},async()=>{await loadQuoteRequestsV130();renderClientQuoteRequestsV130();const a=document.activeElement;if(!(a&&a.id&&a.id.startsWith('v130QuotePrice_')))renderQuoteRequestsAdminV130()})
     .subscribe(status=>console.log('WONJUN ERP Realtime:',status));
 }
 
@@ -2113,8 +2114,9 @@ function subscribeERPRealtime(){
 setInterval(async()=>{
   const active=document.activeElement;
   const modalOpen=!!document.getElementById('modalBg')?.classList.contains('show');
-  const editingAdminValue=!!(active && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName) && (active.closest('#adminInventory') || active.closest('#adminPrices') || active.closest('#modalBg')));
-  if(supabaseERP && supabaseSyncReady && !document.hidden && !editingAdminValue && !modalOpen) await loadAllERPDataFromSupabase();
+  const editingQuotePrice=!!(active && active.id && active.id.startsWith('v130QuotePrice_'));
+  const editingAdminValue=!!(active && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName) && (active.closest('#adminInventory') || active.closest('#adminPrices') || active.closest('#adminQuotesV130') || active.closest('#modalBg')));
+  if(supabaseERP && supabaseSyncReady && !document.hidden && !editingAdminValue && !editingQuotePrice && !modalOpen) await loadAllERPDataFromSupabase();
 },3000);
 
 /* V28: 제품 목록은 관리자/거래처 모두 동일한 Supabase products만 사용 */
@@ -4314,20 +4316,29 @@ function initQuoteRequestFormV130(){
 function initQuoteProductSmartV134(){
  const root=document.getElementById('v130QuoteProductSmart'),hidden=document.getElementById('v130QuoteProduct');if(!root||!hidden)return;
  const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags');if(!input||!drop||!tags)return;
- const list=products.filter(p=>normalizeProductSaleStatusV116({sale_status:p.status})==='판매중');let focus=-1;
- const selected=()=>list.find(p=>String(p.id)===String(hidden.value||''));
- function draw(){const chosen=selected();root.classList.toggle('has-quote-selection',!!chosen);if(chosen){input.setAttribute('aria-hidden','true');input.tabIndex=-1;tags.innerHTML=`<span class="smarttag quote-selected-product">${escapeHtmlV8(chosen.code||'')} · ${escapeHtmlV8(chosen.name||'')} · ${escapeHtmlV8(chosen.spec||'')}<button type="button" data-quote-clear="1" aria-label="선택한 제품 지우기">×</button></span>`;drop.innerHTML='';root.classList.remove('open');return;}
-  input.removeAttribute('aria-hidden');input.tabIndex=0;const q=input.value.trim().toLowerCase();const filtered=list.filter(p=>[p.code,p.name,p.spec].some(v=>String(v||'').toLowerCase().includes(q)));drop.innerHTML=root.classList.contains('open')?(filtered.length?'<div class="smart-hint">↑ ↓ 이동 · Enter 선택 · Esc 닫기</div>'+filtered.slice(0,60).map((p,i)=>`<div class="smartopt ${i===focus?'active':''}" tabindex="-1" data-quote-product="${escapeHtmlV8(p.id)}"><b>${escapeHtmlV8(p.code||'')}</b> · ${escapeHtmlV8(p.name||'')} <span style="color:#64748b">· ${escapeHtmlV8(p.spec||'')}</span></div>`).join(''):'<div style="padding:12px;color:#94a3b8">검색 결과가 없습니다.</div>'):'';tags.innerHTML='';
+ // 이벤트 핸들러는 최초 한 번만 연결하고, 제품 목록은 매번 최신 products 배열에서 읽습니다.
+ const state=root._quoteProductState||(root._quoteProductState={focus:-1});
+ const liveList=()=>products.filter(p=>!p.isDeleted&&normalizeProductSaleStatusV116({sale_status:p.status})==='판매중');
+ const selected=()=>liveList().find(p=>String(p.id)===String(hidden.value||''));
+ const matches=()=>{const q=String(input.value||'').trim().toLocaleLowerCase();return liveList().filter(p=>[p.code,p.name,p.spec].some(v=>String(v||'').toLocaleLowerCase().includes(q))).slice(0,60)};
+ function draw(){
+  const chosen=selected();root.classList.toggle('has-quote-selection',!!chosen);
+  if(chosen){input.setAttribute('aria-hidden','true');input.tabIndex=-1;tags.innerHTML=`<span class="smarttag quote-selected-product"><span>${escapeHtmlV8(chosen.code||'')} · ${escapeHtmlV8(chosen.name||'')} · ${escapeHtmlV8(chosen.spec||'')}</span><button type="button" data-quote-clear="1" aria-label="선택한 제품 지우기">×</button></span>`;drop.innerHTML='';root.classList.remove('open');return;}
+  if(hidden.value){hidden.value='';fillQuoteProductSpecV130();}
+  input.removeAttribute('aria-hidden');input.tabIndex=0;
+  const filtered=matches();drop.innerHTML=root.classList.contains('open')?(filtered.length?'<div class="smart-hint">↑ ↓ 이동 · Enter 선택 · Esc 닫기</div>'+filtered.map((p,i)=>`<div class="smartopt ${i===state.focus?'active':''}" tabindex="-1" data-quote-product="${escapeHtmlV8(p.id)}"><b>${escapeHtmlV8(p.code||'')}</b> · ${escapeHtmlV8(p.name||'')} <span style="color:#64748b">· ${escapeHtmlV8(p.spec||'')}</span></div>`).join(''):'<div style="padding:12px;color:#94a3b8">검색 결과가 없습니다.</div>') : '';
+  tags.innerHTML='';
  }
- function choose(id){const p=list.find(x=>String(x.id)===String(id));if(!p)return;hidden.value=String(p.id);input.value='';focus=-1;draw();fillQuoteProductSpecV130();}
- if(!root._quoteEventsBoundV137){
-  root._quoteEventsBoundV137=true;
-  input.addEventListener('focus',()=>{if(hidden.value)return;root.classList.add('open');focus=-1;draw()});
-  input.addEventListener('input',()=>{root.classList.add('open');focus=-1;draw()});
-  input.addEventListener('keydown',e=>{const q=input.value.trim().toLowerCase(),filtered=list.filter(p=>[p.code,p.name,p.spec].some(v=>String(v||'').toLowerCase().includes(q))).slice(0,60);if(e.key==='ArrowDown'){e.preventDefault();if(filtered.length){root.classList.add('open');focus=(focus+1)%filtered.length;draw()}}else if(e.key==='ArrowUp'){e.preventDefault();if(filtered.length){root.classList.add('open');focus=(focus-1+filtered.length)%filtered.length;draw()}}else if(e.key==='Enter'){e.preventDefault();if(filtered[focus])choose(filtered[focus].id);else if(filtered.length===1)choose(filtered[0].id)}else if(e.key==='Escape'){root.classList.remove('open');focus=-1;draw()}});
+ function choose(id){const p=liveList().find(x=>String(x.id)===String(id));if(!p)return;hidden.value=String(p.id);input.value='';state.focus=-1;root.classList.remove('open');draw();fillQuoteProductSpecV130();}
+ if(!root._quoteEventsBoundV138){
+  root._quoteEventsBoundV138=true;
+  input.addEventListener('focus',()=>{if(hidden.value)return;root.classList.add('open');state.focus=-1;draw()});
+  input.addEventListener('input',()=>{root.classList.add('open');state.focus=-1;draw()});
+  input.addEventListener('keydown',e=>{const filtered=matches();if(e.key==='ArrowDown'){e.preventDefault();if(filtered.length){root.classList.add('open');state.focus=(state.focus+1)%filtered.length;draw()}}else if(e.key==='ArrowUp'){e.preventDefault();if(filtered.length){root.classList.add('open');state.focus=(state.focus-1+filtered.length)%filtered.length;draw()}}else if(e.key==='Enter'){e.preventDefault();if(filtered[state.focus])choose(filtered[state.focus].id);else if(filtered.length===1)choose(filtered[0].id)}else if(e.key==='Escape'){root.classList.remove('open');state.focus=-1;draw()}});
+  drop.addEventListener('mousedown',e=>{if(e.target.closest('[data-quote-product]'))e.preventDefault()});
   drop.addEventListener('click',e=>{const row=e.target.closest('[data-quote-product]');if(row)choose(row.dataset.quoteProduct)});
-  tags.addEventListener('click',e=>{if(!e.target.closest('[data-quote-clear]'))return;hidden.value='';input.value='';focus=-1;draw();fillQuoteProductSpecV130();input.focus()});
-  document.addEventListener('click',e=>{if(!root.contains(e.target)){root.classList.remove('open');focus=-1;draw()}});
+  tags.addEventListener('click',e=>{if(!e.target.closest('[data-quote-clear]'))return;hidden.value='';input.value='';state.focus=-1;root.classList.remove('open');draw();fillQuoteProductSpecV130();input.focus()});
+  document.addEventListener('click',e=>{if(!root.contains(e.target)){root.classList.remove('open');state.focus=-1;draw()}});
  }
  draw();
 }
@@ -4388,7 +4399,7 @@ function editQuoteV130(id){const r=wjQuoteRequestsV130.find(x=>String(x.id)===St
 async function approveQuoteRequestV130(id){const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted'||r.admin_unit_price==null)return;if(!confirm(`공급가 ${won(r.supply_amount)} + 부가세 ${won(r.vat_amount)} = ${won(r.total_amount)}\n이 견적을 승인하고 정식 주문으로 접수하시겠습니까?`))return;try{const orderNo='WJ-Q-'+String(r.id).replace(/-/g,'').slice(0,10).toUpperCase();let existing=await supabaseERP.from('orders').select('*').eq('order_no',orderNo).maybeSingle();let orderRow=existing.data;if(existing.error&&existing.error.code!=='PGRST116')throw existing.error;if(!orderRow){const probe=await supabaseERP.from('orders').select('*').limit(1);if(probe.error)throw probe.error;const sample=probe.data?.[0]||{};const packed=[{productId:r.product_id||'',name:r.product_name,spec:r.product_spec||'',qty:Number(r.order_qty||0),unit:Number(r.admin_unit_price||0),amount:Number(r.supply_amount||0),supplyAmount:Number(r.supply_amount||0),vatAmount:Number(r.vat_amount||0),totalAmount:Number(r.total_amount||0),taxType:'exclusive',packagingOptionName:r.request_type==='custom_packaging'?`별도 입수량 ${r.desired_pack_qty}개`:'비규격 제작'}];const summary=JSON.stringify({__wjOrderItems:packed});const cand={order_no:orderNo,no:orderNo,client_id:r.client_id,order_date:new Date().toISOString().slice(0,10),item_summary:summary,item:summary,total_qty:Number(r.order_qty||0),qty:Number(r.order_qty||0),quantity:Number(r.order_qty||0),total_amount:Number(r.total_amount||0),amount:Number(r.total_amount||0),supply_amount:Number(r.supply_amount||0),vat_amount:Number(r.vat_amount||0),tax_type:'exclusive',status:'접수 완료',admin_memo:`견적 요청 승인 전환 · 요청 ID ${r.id}`,box_type:'기본 박스',box_stamp:'',pallet_type:'나무'};const clean={};for(const [k,v] of Object.entries(cand))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;if(!Object.keys(clean).length)Object.assign(clean,{order_no:orderNo,client_id:r.client_id,order_date:new Date().toISOString().slice(0,10),item_summary:summary,total_qty:Number(r.order_qty||0),total_amount:Number(r.total_amount||0),status:'접수 완료',admin_memo:`견적 요청 승인 전환 · 요청 ID ${r.id}`});const ins=await supabaseERP.from('orders').insert(clean).select('*').single();if(ins.error)throw ins.error;orderRow=ins.data;}const response=await supabaseERP.rpc('client_respond_quote_request',{p_request_id:id,p_approve:true,p_order_id:orderRow?.id||null,p_order_no:orderNo});if(response.error)throw response.error;await loadOrdersFromSupabase();await loadQuoteRequestsV130();renderQuoteRequestsAdminV130();renderClientQuoteRequestsV130();renderAdminOrders();renderHome();alert(`승인이 완료되어 정식 주문 ${orderNo}로 접수되었습니다.`);}catch(e){alert('정식 주문 전환에 실패했습니다.\n'+(e.message||e));}}
 async function rejectQuoteRequestV130(id){const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted')return;if(!confirm('이 견적 요청을 거절하시겠습니까?'))return;const response=await supabaseERP.rpc('client_respond_quote_request',{p_request_id:id,p_approve:false});if(response.error){alert('처리 실패: '+response.error.message);return;}await loadQuoteRequestsV130();renderClientQuoteRequestsV130();}
 
-function renderAll(){if(supabaseERP&&supabaseSyncReady)loadQuoteRequestsV130().then(()=>{renderClientQuoteRequestsV130();renderQuoteRequestsAdminV130()});renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();renderAdminStats();updateCart()}
+function renderAll(){if(supabaseERP&&supabaseSyncReady)loadQuoteRequestsV130().then(()=>{renderClientQuoteRequestsV130();const a=document.activeElement;if(!(a&&a.id&&a.id.startsWith('v130QuotePrice_')))renderQuoteRequestsAdminV130()});renderCategories();renderProducts();renderHome();renderClientOrders();renderInventoryRows();renderNotices();renderAdminDashboard();renderAdminOrders();renderClients();renderAdminProducts();renderPriceClients();renderPriceManagement();renderAdminInventory();renderAdminStats();updateCart()}
 ensureNoticePopupV9();
 initDefaultOrderDateV76();
 renderAll();
