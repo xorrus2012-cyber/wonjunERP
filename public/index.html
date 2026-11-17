@@ -2114,9 +2114,10 @@ function subscribeERPRealtime(){
 setInterval(async()=>{
   const active=document.activeElement;
   const modalOpen=!!document.getElementById('modalBg')?.classList.contains('show');
-  const editingQuotePrice=!!(active && active.id && active.id.startsWith('v130QuotePrice_'));
-  const editingAdminValue=!!(active && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName) && (active.closest('#adminInventory') || active.closest('#adminPrices') || active.closest('#adminQuotesV130') || active.closest('#modalBg')));
-  if(supabaseERP && supabaseSyncReady && !document.hidden && !editingAdminValue && !editingQuotePrice && !modalOpen) await loadAllERPDataFromSupabase();
+  // 견적 단가 입력 중에도 전체 서버 동기화는 계속 수행합니다.
+  // 견적 목록 렌더러가 포커스 중인 입력 DOM을 보존하므로 입력값은 덮어쓰지 않습니다.
+  const editingAdminValue=!!(active && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName) && (active.closest('#adminInventory') || active.closest('#adminPrices') || active.closest('#modalBg')));
+  if(supabaseERP && supabaseSyncReady && !document.hidden && !editingAdminValue && !modalOpen) await loadAllERPDataFromSupabase();
 },3000);
 
 /* V28: 제품 목록은 관리자/거래처 모두 동일한 Supabase products만 사용 */
@@ -4318,7 +4319,11 @@ function initQuoteProductSmartV134(){
  const input=root.querySelector('.smartinput'),drop=root.querySelector('.smartdrop'),tags=root.querySelector('.smarttags');if(!input||!drop||!tags)return;
  // 이벤트 핸들러는 최초 한 번만 연결하고, 제품 목록은 매번 최신 products 배열에서 읽습니다.
  const state=root._quoteProductState||(root._quoteProductState={focus:-1});
- const liveList=()=>products.filter(p=>!p.isDeleted&&normalizeProductSaleStatusV116({sale_status:p.status})==='판매중');
+ const liveList=()=>products.filter(p=>{
+  if(!p||p.isDeleted===true||p.deleted===true||p.archived===true)return false;
+  const st=String(p.status||'').trim();
+  return !['판매중단','품절','단종','삭제','삭제됨','보관','폐기'].includes(st);
+ });
  const selected=()=>liveList().find(p=>String(p.id)===String(hidden.value||''));
  const matches=()=>{const q=String(input.value||'').trim().toLocaleLowerCase();return liveList().filter(p=>[p.code,p.name,p.spec].some(v=>String(v||'').toLocaleLowerCase().includes(q))).slice(0,60)};
  function draw(){
@@ -4342,9 +4347,14 @@ function initQuoteProductSmartV134(){
  }
  draw();
 }
-function openQuoteRequestModalV134(){
+async function openQuoteRequestModalV134(){
  const modal=document.getElementById('v134QuoteRequestModal');if(!modal)return;
  modal.style.display='flex';document.body.classList.add('v134-quote-modal-open');
+ // 모달을 열 때 제품 원본을 한 번 새로 받아 삭제/보관된 과거 제품이 남지 않게 합니다.
+ if(supabaseERP&&supabaseSyncReady){
+  try{await loadProductsFromSupabase();}
+  catch(e){console.warn('견적 제품 목록 최신화 실패:',e);}
+ }
  initQuoteRequestFormV130();initQuoteProductSmartV134();renderQuoteRequestFormV130();
 }
 function closeQuoteRequestModalV134(){
@@ -4368,6 +4378,9 @@ function updateQuoteNavDotV136(){const nav=document.getElementById('v130QuoteNav
 // V136: 목록 재렌더링이 발생해도 입력 중인 견적 단가를 유지
 window.wjQuotePriceDraftsV136=window.wjQuotePriceDraftsV136||{};
 function saveQuotePriceDraftV136(id,value){window.wjQuotePriceDraftsV136=window.wjQuotePriceDraftsV136||{};window.wjQuotePriceDraftsV136[String(id)]=String(value??'');}
+// 입력 포커스가 이동하거나 탭이 바뀌기 직전에도 마지막 값을 초안에 보존합니다.
+document.addEventListener('change',function(e){const el=e.target;if(el&&el.id&&el.id.startsWith('v130QuotePrice_'))saveQuotePriceDraftV136(el.id.slice('v130QuotePrice_'.length),el.value);},true);
+document.addEventListener('focusout',function(e){const el=e.target;if(el&&el.id&&el.id.startsWith('v130QuotePrice_'))saveQuotePriceDraftV136(el.id.slice('v130QuotePrice_'.length),el.value);},true);
 async function loadQuoteRequestsV130(){if(!supabaseERP||!supabaseSyncReady)return;try{let q=supabaseERP.from('quote_requests').select('*').order('created_at',{ascending:false});if(currentUser&&currentUser!=='admin'){const c=quoteCurrentClientV130();if(!c){wjQuoteRequestsV130=[];return}q=q.eq('client_id',String(c.id));}const {data,error}=await q;if(error)throw error;wjQuoteRequestsV130=data||[];updateQuoteNavDotV136();}catch(e){console.warn('견적 요청 조회 실패:',e);wjQuoteRequestsV130=[];updateQuoteNavDotV136();}}
 async function submitQuoteRequestV130(){
  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 완료된 후 다시 시도해 주세요.');return;}
