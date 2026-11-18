@@ -3485,8 +3485,57 @@ function openClientEdit(i){
  document.getElementById('modalSave').onclick=async()=>{const companyValue=editCompany.value.trim();c.company=companyValue;c.name=companyValue;c.code=editCode.value.trim();c.loginId=editId.value.trim();c.manager=editManager.value.trim();c.phone=editPhone.value.trim();c.status=editStatus.value;saveV7Data();closeModal();renderClients();renderPriceManagement();alert('거래처 정보가 저장되었습니다.')};
  document.getElementById('modalBg').classList.add('show');
 }
-function openProductEdit(i){
+let wjProductVisibilityDraftV141={mode:'all',clientIds:[]};
+async function loadProductVisibilityConfigV141(productId){
+ if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+ const setting=await supabaseERP.from('product_visibility_settings').select('product_id,visibility_mode').eq('product_id',productId).maybeSingle();
+ if(setting.error)throw setting.error;
+ if(!setting.data||setting.data.visibility_mode!=='selected')return {mode:'all',clientIds:[]};
+ const links=await supabaseERP.from('product_visibility_clients').select('client_id').eq('product_id',productId);
+ if(links.error)throw links.error;
+ return {mode:'selected',clientIds:(links.data||[]).map(x=>String(x.client_id))};
+}
+function renderProductVisibilityEditorV141(config){
+ const c=config||{mode:'all',clientIds:[]};
+ wjProductVisibilityDraftV141={mode:c.mode==='selected'?'selected':'all',clientIds:(c.clientIds||[]).map(String)};
+ return `<div class="product-visibility-box-v141"><div class="pv-title">거래처별 제품 노출</div><div class="pv-mode"><label><input type="radio" name="productVisibilityModeV141" value="all" ${wjProductVisibilityDraftV141.mode==='all'?'checked':''} onchange="setProductVisibilityModeV141(this.value)"> 전체 거래처에 노출</label><label><input type="radio" name="productVisibilityModeV141" value="selected" ${wjProductVisibilityDraftV141.mode==='selected'?'checked':''} onchange="setProductVisibilityModeV141(this.value)"> 선택한 거래처에만 노출</label></div><div id="productVisibilityPickerWrapV141" class="pv-picker ${wjProductVisibilityDraftV141.mode==='selected'?'':'hidden'}"><label class="pv-title" style="display:block;margin-bottom:6px">노출할 거래처 선택</label><div id="productVisibilityClientSmartV141" class="smartbox"></div><div class="pv-help">거래처를 여러 곳 선택할 수 있습니다. 선택하지 않으면 저장할 수 없습니다.</div></div><div class="pv-help">기존 제품은 기본적으로 전체 거래처에 노출됩니다. 제품 코드와 거래처 노출 권한은 별도로 관리됩니다.</div></div>`;
+}
+function initProductVisibilityEditorV141(config){
+ const list=(clients||[]).filter(c=>c&&c.id).map(c=>({value:String(c.id),label:`${c.name||c.company||'거래처'} · ${c.code||''}`}));
+ smartBuild('productVisibilityClientSmartV141',list,'거래처명 또는 거래처 코드 검색',()=>{});
+ const root=document.getElementById('productVisibilityClientSmartV141');
+ if(root&&root._smartSet)root._smartSet((config?.clientIds||[]).map(String));
+}
+function setProductVisibilityModeV141(mode){
+ wjProductVisibilityDraftV141.mode=mode==='selected'?'selected':'all';
+ const wrap=document.getElementById('productVisibilityPickerWrapV141');
+ if(wrap)wrap.classList.toggle('hidden',wjProductVisibilityDraftV141.mode!=='selected');
+}
+async function saveProductVisibilityV141(productId){
+ if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+ const mode=wjProductVisibilityDraftV141.mode==='selected'?'selected':'all';
+ const clientIds=mode==='selected'?smartGet('productVisibilityClientSmartV141').map(String):[];
+ if(mode==='selected'&&!clientIds.length)throw new Error('특정 거래처만 노출하려면 거래처를 한 곳 이상 선택해 주세요.');
+ if(mode==='all'){
+   const delLinks=await supabaseERP.from('product_visibility_clients').delete().eq('product_id',productId);
+   if(delLinks.error)throw delLinks.error;
+   const delSetting=await supabaseERP.from('product_visibility_settings').delete().eq('product_id',productId);
+   if(delSetting.error)throw delSetting.error;
+   return;
+ }
+ const setting=await supabaseERP.from('product_visibility_settings').upsert({product_id:productId,visibility_mode:'selected',updated_at:new Date().toISOString()},{onConflict:'product_id'});
+ if(setting.error)throw setting.error;
+ const del=await supabaseERP.from('product_visibility_clients').delete().eq('product_id',productId);
+ if(del.error)throw del.error;
+ const rows=clientIds.map(client_id=>({product_id:productId,client_id}));
+ const ins=await supabaseERP.from('product_visibility_clients').insert(rows);
+ if(ins.error)throw ins.error;
+}
+
+async function openProductEdit(i){
  const p=products[i];
+ let visibilityConfigV141={mode:'all',clientIds:[]};
+ try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. Supabase에 V141 SQL을 먼저 적용했는지 확인해 주세요.\n\n'+(e.message||e));return}
  document.getElementById('modalTitle').textContent='제품 정보 수정';
  wjPackagingDraftV129=getPackagingOptionsV129(p.id,false).map(o=>({...o,isNew:false}));
  document.getElementById('modalBody').innerHTML=`<div class="form-grid">
@@ -3499,7 +3548,8 @@ function openProductEdit(i){
     <div class="field"><label>폭</label><input id="editPWidth" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).width}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">mm</div></div>
     <div class="field"><label>길이</label><input id="editPLength" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).length}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">m</div></div>
   </div><div id="editPSpecPreview" style="margin-top:8px;padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px">${p.spec||'규격 미입력'}</div></div>
- </div>${renderPackagingEditorV129(p)}`;
+ </div>${renderPackagingEditorV129(p)}${renderProductVisibilityEditorV141(visibilityConfigV141)}`;
+ initProductVisibilityEditorV141(visibilityConfigV141);
  const updateEditSpecPreview=()=>{const v=buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value);document.getElementById('editPSpecPreview').textContent=v||'규격 미입력'};
  [editPThickness,editPWidth,editPLength].forEach(el=>el.addEventListener('input',updateEditSpecPreview));
  document.getElementById('modalSave').onclick=async()=>{
@@ -3517,6 +3567,7 @@ function openProductEdit(i){
      const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);
      if(error) throw error;
      await savePackagingOptionsV129(p.id);
+     await saveProductVisibilityV141(p.id);
      await loadProductsFromSupabase();
      closeModal(); renderAdminProducts(); renderPriceManagement(); renderProducts();
      alert('제품 정보가 Supabase에 저장되었습니다.');
@@ -3724,7 +3775,8 @@ function openProductModal(){
   </div><div id="newPSpecPreview" style="margin-top:8px;padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px">규격 미입력</div></div>
   <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
   <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
- </div>`;
+ </div>${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}`;
+ initProductVisibilityEditorV141({mode:'all',clientIds:[]});
  setProductCodeModeV140('auto');
  document.getElementById('modalSave').onclick=async()=>{
    const save=document.getElementById('modalSave');
@@ -3733,12 +3785,15 @@ function openProductModal(){
    save.disabled=true;save.textContent='저장 중...';
    try{
      if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+     const visibilityReady=await supabaseERP.from('product_visibility_settings').select('product_id').limit(1);
+     if(visibilityReady.error)throw new Error('거래처별 제품 노출용 Supabase SQL을 먼저 적용해 주세요. '+(visibilityReady.error.message||''));
      const finalCode=(document.getElementById('newPCodeMode')?.value==='auto')?await getNextWJProductCodeV140():String(newPCode.value||'').trim().toUpperCase();
      if(!finalCode)throw new Error('제품 코드를 입력해 주세요.');
      if(await isProductCodeDuplicateV140(finalCode))throw new Error('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');
      newPCode.value=finalCode;
      const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
      const row=await ensureProductInSupabase(local);local.id=row.id;products.push(local);
+     await saveProductVisibilityV141(local.id);
      try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
      await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();renderProducts();
      alert('제품이 Supabase에 저장되었습니다. 관리자와 거래처가 같은 제품 목록을 사용합니다.');
@@ -4740,4 +4795,13 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeQuoteR
 .category-manage-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc;color:#334155;font-size:13px}
 .category-manage-row .small-btn{flex-shrink:0;background:#fff;border:1px solid #d8dee8;color:#64748b}
 .product-head-actions .btn{white-space:nowrap}
+
+/* V141: 거래처별 제품 노출 설정 */
+.product-visibility-box-v141{grid-column:1/-1;padding:14px 15px;border:1px solid #dbe3ee;border-radius:11px;background:#f8fafc;margin-top:4px}
+.product-visibility-box-v141 .pv-title{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:8px}
+.product-visibility-box-v141 .pv-help{font-size:11px;line-height:1.55;color:#64748b;margin-top:7px}
+.product-visibility-box-v141 .pv-mode{display:flex;gap:16px;flex-wrap:wrap;margin:9px 0 10px}
+.product-visibility-box-v141 .pv-mode label{display:flex;align-items:center;gap:6px;font-size:12px;color:#334155;cursor:pointer}
+.product-visibility-box-v141 .pv-picker{margin-top:8px}
+.product-visibility-box-v141 .pv-picker.hidden{display:none}
 </style>
