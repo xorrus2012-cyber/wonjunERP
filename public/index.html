@@ -751,7 +751,7 @@ html,body{overflow-x:hidden}
 <!-- V139: client quote request pagination, 5 rows per page; based on V138 -->
 
 <style id="v142-product-modal-compact-and-hide-inventory">
-/* V142: 제품 등록창을 짧고 밀도 있게 정리 */
+/* V143: 제품 등록창을 짧고 밀도 있게 정리 */
 #adminDash .kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 #modalBg:has(#newPCodeMode) .modal{width:min(760px,calc(100vw - 32px));max-height:90vh}
 #modalBg:has(#newPCodeMode) .modal-body{padding:16px 20px 18px;overflow-y:auto}
@@ -1082,7 +1082,7 @@ html,body{overflow-x:hidden}
         </div>
       </section>
 
-      <!-- V142: 재고/창고 화면은 제거했으며 기존 Supabase 재고 데이터는 삭제하지 않습니다. -->
+      <!-- V143: 재고/창고 화면은 제거했으며 기존 Supabase 재고 데이터는 삭제하지 않습니다. -->
       <!-- ADMIN PRODUCTS -->
       <section id="adminProducts" class="page">
         <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn category-manage-trigger-v89" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
@@ -1547,6 +1547,11 @@ function buildWJProductSpec(thickness,width,length){
   if(!t||!w||!l)return '';
   return `${t}μ × ${w}mm × ${l}m`;
 }
+function displayProductSpecV143(product){
+ const p=product||{};const spec=String(p.spec||'').trim();const actual=String(p.actualLength??p.actual_length??'').trim();
+ if(!actual)return spec||'-';
+ return `${spec||'-'} (실길이 ${actual}m)`;
+}
 async function ensureProductInSupabase(localProduct){
   if(!supabaseERP || !localProduct) return null;
   const code=String(localProduct.code||'').trim(), name=String(localProduct.name||'').trim(), spec=String(localProduct.spec||'').trim();
@@ -1600,6 +1605,7 @@ async function loadProductsFromSupabase(){
       name:firstValue(r,['name','product_name'],''),
       status:normalizeProductSaleStatusV116(r),
       spec:stripLegacyPackQtySpecV130(firstValue(r,['spec','specification'],'')),
+      actualLength:String(firstValue(r,['actual_length','actualLength','real_length'],'' )??'').trim(),
       base:Number(firstValue(r,['base_price','base','unit_price','price'],0))||0,
       stock:Number(firstValue(r,['stock','quantity','qty'],0))||0,
       safety:Number(firstValue(r,['safety_stock','safety'],0))||0,
@@ -2554,7 +2560,7 @@ function renderProducts(){
  const orderable=products.filter(p=>(currentUser==='admin'||normalizeProductSaleStatusV116({sale_status:p.status})==='판매중')&&(c==='전체'||p.cat===c)&&(!selected.length||selected.includes(String(p.id))));
  const size=Math.max(1,Number(window.wjClientProductPageSizeV126||20)),total=Math.max(1,Math.ceil(orderable.length/size));window.wjClientProductPageV126=Math.min(total,Math.max(1,Number(window.wjClientProductPageV126||1)));const page=window.wjClientProductPageV126,start=(page-1)*size,pageList=orderable.slice(start,start+size);
  const body=document.getElementById('productGrid');if(!body)return;
- body.innerHTML=pageList.map(p=>`<tr><td>${escapeHtmlV8(p.code||'')}</td><td>${escapeHtmlV8(p.cat||'')}</td><td><button type="button" class="product-admin-name-v126" onclick="openClientProductDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name||'')}</button>${getPackagingOptionsV129(p.id,true).length?`<div class="v129-option-label">포장 옵션 ${getPackagingOptionsV129(p.id,true).length}종</div>`:''}</td><td>${escapeHtmlV8(p.spec||'')}</td><td>${getPackagingOptionsV129(p.id,true).length?`<strong class="admin-price">포장 옵션 선택</strong><div class="vat-note-v126">옵션별 단가 적용 · 부가세 별도</div>`:`<strong class="admin-price">${won(price(p))}</strong><div class="vat-note-v126">부가세 별도</div>`}</td><td><input class="client-product-qty-v126" id="qty-${String(p.id)}" type="number" min="1" value="50" aria-label="${escapeHtmlV8(p.name)} 수량"></td><td><button type="button" class="btn primary client-product-add-v126" data-cart-add="${String(p.id)}">담기</button></td></tr>`).join('')||`<tr><td colspan="7" class="v4-empty">${products.length?'현재 검색 조건에 해당하는 판매중 제품이 없습니다.':'제품 정보를 불러오지 못했습니다. 관리자에게 products 테이블 조회 권한과 제품 등록 상태를 확인해 주세요.'}</td></tr>`;
+ body.innerHTML=pageList.map(p=>`<tr><td>${escapeHtmlV8(p.code||'')}</td><td>${escapeHtmlV8(p.cat||'')}</td><td><button type="button" class="product-admin-name-v126" onclick="openClientProductDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name||'')}</button>${getPackagingOptionsV129(p.id,true).length?`<div class="v129-option-label">포장 옵션 ${getPackagingOptionsV129(p.id,true).length}종</div>`:''}</td><td>${escapeHtmlV8(displayProductSpecV143(p))}</td><td>${getPackagingOptionsV129(p.id,true).length?`<strong class="admin-price">포장 옵션 선택</strong><div class="vat-note-v126">옵션별 단가 적용 · 부가세 별도</div>`:`<strong class="admin-price">${won(price(p))}</strong><div class="vat-note-v126">부가세 별도</div>`}</td><td><input class="client-product-qty-v126" id="qty-${String(p.id)}" type="number" min="1" value="50" aria-label="${escapeHtmlV8(p.name)} 수량"></td><td><button type="button" class="btn primary client-product-add-v126" data-cart-add="${String(p.id)}">담기</button></td></tr>`).join('')||`<tr><td colspan="7" class="v4-empty">${products.length?'현재 검색 조건에 해당하는 판매중 제품이 없습니다.':'제품 정보를 불러오지 못했습니다. 관리자에게 products 테이블 조회 권한과 제품 등록 상태를 확인해 주세요.'}</td></tr>`;
  renderAdminListPagerV91('clientProductPaginationV126',orderable.length,start,size,page,total,'wjClientProductPageSizeV126','wjClientProductPageV126','renderProducts','changeClientProductPageV126');
 }
 function changeClientProductPageV126(d){window.wjClientProductPageV126=Math.max(1,Number(window.wjClientProductPageV126||1)+Number(d||0));renderProducts();document.getElementById('products')?.scrollIntoView({behavior:'smooth',block:'start'})}
@@ -2568,7 +2574,7 @@ function openClientProductDetailV126(productId){
  const qty=Math.max(1,Math.floor(Number(rowQty?.value)||1));
  window.wjClientProductDetailV127={productId:String(p.id),unit,packagingOptionId:availablePacks[0]?.id||'',packagingOptions:availablePacks};
  document.getElementById('modalTitle').textContent='제품 및 금액 상세';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0 4px">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(p.spec||'')}</div></div>${availablePacks.length?`<div class="field full"><label>포장 옵션 선택</label><select id="clientDetailPackagingV129" onchange="updateClientDetailPackagingV129()">${availablePacks.map((o,i)=>`<option value="${escapeHtmlV8(o.id)}" ${i===0?'selected':''}>${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select></div>`:''}<div class="field full"><label>거래처 적용 단가 (포장 단위당)</label><div id="clientDetailUnitV129" style="font-size:22px;font-weight:800;color:#1d4ed8">${won(unit)}</div><div class="vat-note-v126">부가세 별도</div></div><div class="field full"><label for="clientProductDetailQtyV127">주문 수량 (박스)</label><input id="clientProductDetailQtyV127" type="number" min="1" step="1" value="${qty}" oninput="updateClientProductDetailTotalsV127()" style="max-width:180px"></div></div><div class="vat-summary-v126" id="clientProductDetailSummaryV127"></div><div style="font-size:11px;color:#64748b;margin-top:10px">수량을 변경하면 제품 목록의 수량에도 반영됩니다. 장바구니에 담기 전까지 주문은 확정되지 않습니다.</div>`;
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid"><div class="field full"><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0 4px">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(displayProductSpecV143(p))}</div></div>${availablePacks.length?`<div class="field full"><label>포장 옵션 선택</label><select id="clientDetailPackagingV129" onchange="updateClientDetailPackagingV129()">${availablePacks.map((o,i)=>`<option value="${escapeHtmlV8(o.id)}" ${i===0?'selected':''}>${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select></div>`:''}<div class="field full"><label>거래처 적용 단가 (포장 단위당)</label><div id="clientDetailUnitV129" style="font-size:22px;font-weight:800;color:#1d4ed8">${won(unit)}</div><div class="vat-note-v126">부가세 별도</div></div><div class="field full"><label for="clientProductDetailQtyV127">주문 수량 (박스)</label><input id="clientProductDetailQtyV127" type="number" min="1" step="1" value="${qty}" oninput="updateClientProductDetailTotalsV127()" style="max-width:180px"></div></div><div class="vat-summary-v126" id="clientProductDetailSummaryV127"></div><div style="font-size:11px;color:#64748b;margin-top:10px">수량을 변경하면 제품 목록의 수량에도 반영됩니다. 장바구니에 담기 전까지 주문은 확정되지 않습니다.</div>`;
  updateClientProductDetailTotalsV127();
  const save=document.getElementById('modalSave');save.style.display='none';document.getElementById('modalCancel').textContent='닫기';document.getElementById('modalBg').classList.add('show');
 }
@@ -2585,7 +2591,7 @@ function openAdminProductPriceDetailV126(productId){
  const p=products.find(x=>String(x.id)===String(productId));if(!p)return;
  const base=Number(p.base)||0,baseVat=Math.round(base*.1),rows=clients.map(c=>{const v=p.prices?.[c.loginId]??p.prices?.[c.id];return v===undefined||v===null||v===''?null:{client:c,unit:Number(v)||0}}).filter(Boolean);
  document.getElementById('modalTitle').textContent='제품 금액 상세';
- document.getElementById('modalBody').innerHTML=`<div><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(p.spec||'')}</div></div><div class="vat-summary-v126"><div style="font-weight:800;margin-bottom:7px">기본 단가 · 부가세 별도</div><div class="line"><span>단가</span><b>${won(base)}</b></div><div class="line"><span>공급가액 (1박스)</span><b>${won(base)}</b></div><div class="line"><span>부가세 (10%)</span><b>${won(baseVat)}</b></div><div class="line grand"><span>부가세 포함 합계</span><b>${won(base+baseVat)}</b></div></div><div style="margin-top:16px;font-weight:800">거래처별 적용 단가</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>거래처</th><th>단가</th><th>부가세</th><th>합계</th></tr></thead><tbody>${rows.map(x=>{const v=Math.round(x.unit*.1);return `<tr><td>${escapeHtmlV8(x.client.company||x.client.name||'')}</td><td>${won(x.unit)}</td><td>${won(v)}</td><td><b>${won(x.unit+v)}</b></td></tr>`}).join('')||'<tr><td colspan="4" style="text-align:center;color:#64748b">등록된 거래처별 단가가 없습니다.</td></tr>'}</tbody></table></div><div class="vat-note-v126">모든 신규 주문은 저장된 단가를 기준으로 부가세 10%를 별도 계산합니다.</div>`;
+ document.getElementById('modalBody').innerHTML=`<div><div style="font-size:11px;color:#2563eb;font-weight:800">${escapeHtmlV8(p.cat||'')}</div><h3 style="margin:5px 0">${escapeHtmlV8(p.name||'')}</h3><div style="font-size:12px;color:#64748b">${escapeHtmlV8(p.code||'')} · ${escapeHtmlV8(displayProductSpecV143(p))}</div></div><div class="vat-summary-v126"><div style="font-weight:800;margin-bottom:7px">기본 단가 · 부가세 별도</div><div class="line"><span>단가</span><b>${won(base)}</b></div><div class="line"><span>공급가액 (1박스)</span><b>${won(base)}</b></div><div class="line"><span>부가세 (10%)</span><b>${won(baseVat)}</b></div><div class="line grand"><span>부가세 포함 합계</span><b>${won(base+baseVat)}</b></div></div><div style="margin-top:16px;font-weight:800">거래처별 적용 단가</div><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>거래처</th><th>단가</th><th>부가세</th><th>합계</th></tr></thead><tbody>${rows.map(x=>{const v=Math.round(x.unit*.1);return `<tr><td>${escapeHtmlV8(x.client.company||x.client.name||'')}</td><td>${won(x.unit)}</td><td>${won(v)}</td><td><b>${won(x.unit+v)}</b></td></tr>`}).join('')||'<tr><td colspan="4" style="text-align:center;color:#64748b">등록된 거래처별 단가가 없습니다.</td></tr>'}</tbody></table></div><div class="vat-note-v126">모든 신규 주문은 저장된 단가를 기준으로 부가세 10%를 별도 계산합니다.</div>`;
  const save=document.getElementById('modalSave');save.style.display='none';document.getElementById('modalCancel').textContent='닫기';document.getElementById('modalBg').classList.add('show');
 }
 
@@ -2600,7 +2606,7 @@ function openAddCartOptionModal(id,qty){
  const body=document.getElementById('modalBody');
  document.getElementById('modalTitle').textContent='장바구니에 담기';
  const packOptions=getPackagingOptionsV129(p.id,true);const firstPack=packOptions[0]||null;
- body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(p.spec)} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장 단위</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label>포장 옵션</label><select id="addCartPackagingOptionV129" onchange="updateCartPackagingPriceV129('${String(p.id)}')">${packOptions.map((o,i)=>`<option value="${escapeHtmlV8(o.id)}" ${i===0?'selected':''}>${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select><div class="v129-option-label">선택한 포장 단가 기준으로 공급가액과 부가세가 계산됩니다.</div></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType">${lists.box.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType">${lists.pallet.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>지관</label><select id="addCartCoreType" onchange="const w=document.getElementById('addCartCoreCustomWrap');if(w)w.style.display=this.value==='__custom__'?'block':'none'"><option value="공용지관" selected>공용지관</option><option value="__custom__">기타 지관 직접 입력</option></select><div id="addCartCoreCustomWrap" style="display:none;margin-top:8px"><input id="addCartCoreCustom" maxlength="100" placeholder="사용할 지관 종류를 입력해 주세요."><div style="font-size:10px;color:#64748b;margin-top:5px;line-height:1.5">선택하신 지관 종류가 주문 내용에 바로 저장됩니다.</div></div></div><div class="order-option-card full"><label>도장 표기</label><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요"><div style="font-size:10px;color:#94a3b8;margin-top:5px">예: 50M / 원준테이프 50M / 수출용</div></div><div class="order-option-card full"><label>수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
+ body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장 단위</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label>포장 옵션</label><select id="addCartPackagingOptionV129" onchange="updateCartPackagingPriceV129('${String(p.id)}')">${packOptions.map((o,i)=>`<option value="${escapeHtmlV8(o.id)}" ${i===0?'selected':''}>${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select><div class="v129-option-label">선택한 포장 단가 기준으로 공급가액과 부가세가 계산됩니다.</div></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType">${lists.box.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType">${lists.pallet.map((x,i)=>`<option value="${escapeHtmlV8(x)}" ${i===0?'selected':''}>${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>지관</label><select id="addCartCoreType" onchange="const w=document.getElementById('addCartCoreCustomWrap');if(w)w.style.display=this.value==='__custom__'?'block':'none'"><option value="공용지관" selected>공용지관</option><option value="__custom__">기타 지관 직접 입력</option></select><div id="addCartCoreCustomWrap" style="display:none;margin-top:8px"><input id="addCartCoreCustom" maxlength="100" placeholder="사용할 지관 종류를 입력해 주세요."><div style="font-size:10px;color:#64748b;margin-top:5px;line-height:1.5">선택하신 지관 종류가 주문 내용에 바로 저장됩니다.</div></div></div><div class="order-option-card full"><label>도장 표기</label><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요"><div style="font-size:10px;color:#94a3b8;margin-top:5px">예: 50M / 원준테이프 50M / 수출용</div></div><div class="order-option-card full"><label>수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
  const save=document.getElementById('modalSave'); save.style.display=''; save.textContent='장바구니에 담기';
  save.onclick=()=>{
    const q=Math.floor(Number(document.getElementById('addCartQty')?.value||0)); if(q<1){alert('수량을 1 이상 입력해 주세요.');return}
@@ -2642,7 +2648,7 @@ function deleteSelectedCartItems(){
 function renderCartPage(){
  const rows=document.getElementById('cartRows');if(!rows)return;
  if(!cartItems.length){rows.innerHTML='<tr><td colspan="7" class="v4-empty">장바구니가 비어 있습니다.</td></tr>';selectedCartKeys.clear();document.getElementById('cartPageTotal').textContent=won(0);updateCartSelectionUI();return}
- rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=item.packagingOptionId?getPackagingUnitPriceV129(p,item.packagingOptionId):price(p),amount=unit*Number(item.qty),vat=Math.round(amount*.1),grand=amount+vat;const safe=JSON.stringify(String(item.key));const safeAttr=encodeURIComponent(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(decodeURIComponent('${safeAttr}'),this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}${item.packagingOptionName?` <span class="v129-packaging-pill">${escapeHtmlV8(item.packagingOptionName)}</span>`:''}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(p.spec||'-')}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')} · <b>지관</b> ${escapeHtmlV8(item.coreType||'공용지관')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b><div style="font-size:10px;color:#64748b">VAT 별도</div></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
+ rows.innerHTML=cartItems.map(item=>{const p=products.find(x=>String(x.id)===String(item.productId));if(!p)return '';const unit=item.packagingOptionId?getPackagingUnitPriceV129(p,item.packagingOptionId):price(p),amount=unit*Number(item.qty),vat=Math.round(amount*.1),grand=amount+vat;const safe=JSON.stringify(String(item.key));const safeAttr=encodeURIComponent(String(item.key));const checked=selectedCartKeys.has(String(item.key))?'checked':'';return `<tr><td class="cart-select-cell"><input aria-label="${escapeHtmlV8(p.name)} 선택" type="checkbox" ${checked} onchange="toggleCartItemSelection(decodeURIComponent('${safeAttr}'),this.checked)"></td><td><div class="cart-item-product">${escapeHtmlV8(p.name)}${item.packagingOptionName?` <span class="v129-packaging-pill">${escapeHtmlV8(item.packagingOptionName)}</span>`:''}</div></td><td><div class="cart-item-spec" style="font-size:12px;color:#334155;margin:0 0 5px">${escapeHtmlV8(displayProductSpecV143(p))}</div><div class="cart-item-options"><b>박스</b> ${escapeHtmlV8(item.boxType||'기본 박스')} · <b>도장</b> ${escapeHtmlV8(item.boxStamp||'없음')} · <b>파렛트</b> ${escapeHtmlV8(item.palletType||'나무')} · <b>지관</b> ${escapeHtmlV8(item.coreType||'공용지관')}</div></td><td>${won(unit)}</td><td><input class="qty" type="number" min="1" value="${item.qty}" onchange="editCartItemQty(${safe},this.value)"></td><td><b>${won(amount)}</b><div style="font-size:10px;color:#64748b">VAT 별도</div></td><td><button class="small-btn" onclick="removeCartItemV34(${safe})">삭제</button></td></tr>`}).join('');
  updateCartSelectionUI();const selectedSupply=getSelectedCartTotal();document.getElementById('cartPageTotal').textContent=won(selectedSupply+Math.round(selectedSupply*.1))+' (부가세 포함)';
 }
 function updateCart(){
@@ -2744,7 +2750,7 @@ async function checkout(selectedOnly=false){
  try{
    /* 품명만 저장하지 않고, 같은 제품이라도 옵션이 다른 각 장바구니 행을 통째로 저장합니다.
       item_summary는 기존 orders 스키마를 그대로 활용하기 위한 JSON 보관 영역입니다. */
-   const packedOrderItems=items.map(x=>({productId:String(x.p.id),name:x.p.name,spec:x.p.spec,packagingOptionId:x.packagingOptionId||'',packagingOptionName:x.packagingOptionName||'',qty:x.q,unit:x.unit,amount:x.supplyAmount,supplyAmount:x.supplyAmount,vatAmount:x.vatAmount,totalAmount:x.totalAmount,taxType:'exclusive',boxType:x.boxType,boxStamp:x.boxStamp,palletType:x.palletType,coreType:x.coreType||'공용지관'}));
+   const packedOrderItems=items.map(x=>({productId:String(x.p.id),name:x.p.name,spec:displayProductSpecV143(x.p),packagingOptionId:x.packagingOptionId||'',packagingOptionName:x.packagingOptionName||'',qty:x.q,unit:x.unit,amount:x.supplyAmount,supplyAmount:x.supplyAmount,vatAmount:x.vatAmount,totalAmount:x.totalAmount,taxType:'exclusive',boxType:x.boxType,boxStamp:x.boxStamp,palletType:x.palletType,coreType:x.coreType||'공용지관'}));
    const itemSummary=JSON.stringify({__wjOrderItems:packedOrderItems});
    const orderNo='WJ-'+new Date().toISOString().slice(2,10).replaceAll('-','')+'-'+String(Date.now()).slice(-5);
    const orderDate=new Date().toISOString().slice(0,10);
@@ -2867,7 +2873,7 @@ async function checkout(selectedOnly=false){
            product:x.p.id,
            product_name:x.p.name,
            name:x.p.name,
-           spec:x.p.spec,
+           spec:displayProductSpecV143(x.p),
            packaging_option_id:x.packagingOptionId||null,
            packaging_option_name:x.packagingOptionName||null,
            quantity:x.q,
@@ -3475,8 +3481,6 @@ function openClientEdit(i){
   <div class="field"><label>전화번호</label><input id="editPhone" value="${c.phone}"></div>
   <div class="field"><label>상태</label><select id="editStatus"><option ${c.status==='정상'?'selected':''}>정상</option><option ${c.status==='거래중지'?'selected':''}>거래중지</option></select></div>
  </div>`;
- const updateNewSpecPreview=()=>{const v=buildWJProductSpec(newPThickness.value,newPWidth.value,newPLength.value);document.getElementById('newPSpecPreview').textContent=v||'규격 미입력'};
- [newPThickness,newPWidth,newPLength].forEach(el=>el.addEventListener('input',updateNewSpecPreview));
  document.getElementById('modalSave').onclick=async()=>{const companyValue=editCompany.value.trim();c.company=companyValue;c.name=companyValue;c.code=editCode.value.trim();c.loginId=editId.value.trim();c.manager=editManager.value.trim();c.phone=editPhone.value.trim();c.status=editStatus.value;saveV7Data();closeModal();renderClients();renderPriceManagement();alert('거래처 정보가 저장되었습니다.')};
  document.getElementById('modalBg').classList.add('show');
 }
@@ -3530,25 +3534,24 @@ async function saveProductVisibilityV141(productId){
 async function openProductEdit(i){
  const p=products[i];
  let visibilityConfigV141={mode:'all',clientIds:[]};
- try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. V142 권한 보완 SQL을 Supabase SQL Editor에서 실행했는지 확인해 주세요.\n\n'+(e.message||e));return}
+ try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. V143 권한 보완 SQL을 Supabase SQL Editor에서 실행했는지 확인해 주세요.\n\n'+(e.message||e));return}
  document.getElementById('modalTitle').textContent='제품 정보 수정';
  wjPackagingDraftV129=getPackagingOptionsV129(p.id,false).map(o=>({...o,isNew:false}));
- document.getElementById('modalBody').innerHTML=`<div class="form-grid">
-  <div class="field"><label>제품명</label><input id="editPName" value="${p.name}"></div>
-  <div class="field"><label>제품 코드</label><input id="editPCode" value="${p.code}"></div>
-  <div class="field"><label>분류</label><select id="editPCat">${productCategories.map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}</select></div>
-  <div class="field"><label>기본 단가 (부가세 별도)</label><input id="editPBase" type="number" value="${p.base}"></div>
-  <div class="field full"><label>제품 규격</label><div class="form-grid" style="margin-top:0">
-    <div class="field"><label>두께</label><input id="editPThickness" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).thickness}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">μ</div></div>
-    <div class="field"><label>폭</label><input id="editPWidth" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).width}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">mm</div></div>
-    <div class="field"><label>길이</label><input id="editPLength" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).length}"><div style="font-size:10px;color:#94a3b8;margin-top:4px">m</div></div>
-  </div><div id="editPSpecPreview" style="margin-top:8px;padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px">${p.spec||'규격 미입력'}</div></div>
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid product-form-v143">
+  <div class="field"><label>제품명 *</label><input id="editPName" value="${escapeHtmlV8(p.name||'')}"></div>
+  <div class="field"><label>제품 코드 *</label><input id="editPCode" value="${escapeHtmlV8(p.code||'')}"></div>
+  <div class="field"><label>분류 *</label><select id="editPCat">${productCategories.map(c=>`<option ${p.cat===c?'selected':''}>${escapeHtmlV8(c)}</option>`).join('')}</select></div>
+  <div class="field"><label>기본 단가 * (부가세 별도)</label><input id="editPBase" type="number" value="${Number(p.base)||0}"><div class="vat-note-v126">부가세 10% 별도</div></div>
+  <div class="field full"><label>제품 규격 *</label><div class="form-grid product-dimensions-v143" style="margin-top:0">
+    <div class="field"><label>두께 (μ)</label><input id="editPThickness" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).thickness}"></div>
+    <div class="field"><label>폭 (mm)</label><input id="editPWidth" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).width}"></div>
+    <div class="field"><label>표기 길이 (m)</label><input id="editPLength" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).length}"></div>
+    <div class="field"><label>실길이 (m)</label><input id="editPActualLength" type="number" min="0" step="0.1" placeholder="예: 47" value="${escapeHtmlV8(p.actualLength||'')}"><div class="vat-note-v126">표기 길이와 실제 길이가 다를 때 입력</div></div>
+  </div></div>
  </div>${renderPackagingEditorV129(p)}${renderProductVisibilityEditorV141(visibilityConfigV141)}`;
  initProductVisibilityEditorV141(visibilityConfigV141);
- const updateEditSpecPreview=()=>{const v=buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value);document.getElementById('editPSpecPreview').textContent=v||'규격 미입력'};
- [editPThickness,editPWidth,editPLength].forEach(el=>el.addEventListener('input',updateEditSpecPreview));
  document.getElementById('modalSave').onclick=async()=>{
-   const next={name:editPName.value.trim(),code:editPCode.value.trim().toUpperCase(),cat:editPCat.value,base:Number(editPBase.value),spec:buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value)};
+   const next={name:editPName.value.trim(),code:editPCode.value.trim().toUpperCase(),cat:editPCat.value,base:Number(editPBase.value),spec:buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value),actualLength:String(document.getElementById('editPActualLength')?.value||'').trim()};
    if(!next.name||!next.code||!Number.isFinite(next.base)){alert('제품명, 제품 코드, 기본 단가를 확인해 주세요.');return}
    if(!supabaseERP){alert('Supabase 연결이 확인되지 않습니다.');return}
    if(await isProductCodeDuplicateV140(next.code,p.id)){alert('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');return}
@@ -3558,7 +3561,8 @@ async function openProductEdit(i){
      const probe=await supabaseERP.from('products').select('*').eq('id',p.id).maybeSingle();
      if(probe.error) throw probe.error;
      const row=probe.data||{};
-     for(const [k,v] of Object.entries({name:next.name,product_name:next.name,code:next.code,product_code:next.code,spec:next.spec,specification:next.spec,base_price:next.base,base:next.base,unit_price:next.base,price:next.base,category:next.cat,base_price_tax_type:'exclusive'})){if(Object.prototype.hasOwnProperty.call(row,k))payload[k]=v}
+     for(const [k,v] of Object.entries({name:next.name,product_name:next.name,code:next.code,product_code:next.code,spec:next.spec,specification:next.spec,actual_length:next.actualLength,base_price:next.base,base:next.base,unit_price:next.base,price:next.base,category:next.cat,base_price_tax_type:'exclusive'})){if(Object.prototype.hasOwnProperty.call(row,k))payload[k]=v}
+     if(Object.prototype.hasOwnProperty.call(row,'actual_length'))payload.actual_length=next.actualLength||null;
      const {error}=await supabaseERP.from('products').update(payload).eq('id',p.id);
      if(error) throw error;
      await savePackagingOptionsV129(p.id);
@@ -3758,17 +3762,19 @@ async function isProductCodeDuplicateV140(code,excludeId){
 }
 function openProductModal(){
  document.getElementById('modalTitle').textContent='제품 등록';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid product-create-form-v142">
-  <div class="field"><label>제품명 *</label><input id="newPName" placeholder="WJ 제품명"></div>
+ wjPackagingDraftV129=[];
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid product-form-v143">
+  <div class="field"><label>제품명 *</label><input id="newPName" placeholder="제품명 입력"></div>
   <div class="field"><label>제품 코드 *</label><div class="product-code-row-v142"><select id="newPCodeMode" onchange="setProductCodeModeV140(this.value)"><option value="auto">자동 생성</option><option value="manual">직접 입력</option></select><input id="newPCode" placeholder="WJ000001" readonly style="background:#f1f5f9;color:#64748b"></div><div id="newPCodeHint" class="vat-note-v126">WJ + 6자리 숫자로 자동 발급됩니다.</div></div>
-  <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
-  <div class="field"><label>기본 단가 * (부가세 별도)</label><input id="newPBase" type="number" placeholder="0"><div class="vat-note-v126">입력한 금액에 부가세 10%가 별도로 계산됩니다.</div></div>
-  <div class="field full"><label>제품 규격 *</label><div class="form-grid" style="margin-top:0">
-    <div class="field"><label>두께</label><input id="newPThickness" type="number" min="0" step="0.1" placeholder="예: 50" ><div style="font-size:10px;color:#94a3b8;margin-top:4px">μ</div></div>
-    <div class="field"><label>폭</label><input id="newPWidth" type="number" min="0" step="0.1" placeholder="예: 48"><div style="font-size:10px;color:#94a3b8;margin-top:4px">mm</div></div>
-    <div class="field"><label>길이</label><input id="newPLength" type="number" min="0" step="0.1" placeholder="예: 50"><div style="font-size:10px;color:#94a3b8;margin-top:4px">m</div></div>
-  </div><div id="newPSpecPreview" style="margin-top:8px;padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px">규격 미입력</div></div>
- </div>${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}`;
+  <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${escapeHtmlV8(c)}</option>`).join('')}</select></div>
+  <div class="field"><label>기본 단가 * (부가세 별도)</label><input id="newPBase" type="number" min="0" placeholder="0"><div class="vat-note-v126">부가세 10% 별도</div></div>
+  <div class="field full"><label>제품 규격 *</label><div class="form-grid product-dimensions-v143" style="margin-top:0">
+    <div class="field"><label>두께 (μ)</label><input id="newPThickness" type="number" min="0" step="0.1" placeholder="예: 50"></div>
+    <div class="field"><label>폭 (mm)</label><input id="newPWidth" type="number" min="0" step="0.1" placeholder="예: 48"></div>
+    <div class="field"><label>표기 길이 (m)</label><input id="newPLength" type="number" min="0" step="0.1" placeholder="예: 50"></div>
+    <div class="field"><label>실길이 (m)</label><input id="newPActualLength" type="number" min="0" step="0.1" placeholder="예: 47"><div class="vat-note-v126">표기 길이와 실제 길이가 다를 때 입력</div></div>
+  </div></div>
+ </div>${renderPackagingEditorV129({id:'__new_product__'})}${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}`;
  initProductVisibilityEditorV141({mode:'all',clientIds:[]});
  setProductCodeModeV140('auto');
  document.getElementById('modalSave').onclick=async()=>{
@@ -3779,13 +3785,17 @@ function openProductModal(){
    try{
      if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
      const visibilityReady=await supabaseERP.from('product_visibility_settings').select('product_id').limit(1);
-     if(visibilityReady.error)throw new Error('V142 권한 보완 SQL을 Supabase SQL Editor에서 실행해 주세요. '+(visibilityReady.error.message||''));
+     if(visibilityReady.error)throw new Error('V143 권한 보완 SQL을 Supabase SQL Editor에서 실행해 주세요. '+(visibilityReady.error.message||''));
      const finalCode=(document.getElementById('newPCodeMode')?.value==='auto')?await getNextWJProductCodeV140():String(newPCode.value||'').trim().toUpperCase();
      if(!finalCode)throw new Error('제품 코드를 입력해 주세요.');
      if(await isProductCodeDuplicateV140(finalCode))throw new Error('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');
      newPCode.value=finalCode;
-     const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:0,safety:0,warehouse:'미지정',prices:{},inventoryPublic:true};
-     const row=await ensureProductInSupabase(local);local.id=row.id;products.push(local);
+     const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,actualLength:String(document.getElementById('newPActualLength')?.value||'').trim(),base:Number(newPBase.value||0),stock:0,safety:0,warehouse:'미지정',prices:{},inventoryPublic:true};
+     const row=await ensureProductInSupabase(local);local.id=row.id;
+     const actualLengthValue=String(document.getElementById('newPActualLength')?.value||'').trim();
+     if(actualLengthValue){const actualSave=await supabaseERP.from('products').update({actual_length:actualLengthValue}).eq('id',local.id);if(actualSave.error)throw actualSave.error;local.actualLength=actualLengthValue;}
+     await savePackagingOptionsV129(local.id);
+     products.push(local);
      await saveProductVisibilityV141(local.id);
      try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
      await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderProducts();
@@ -4600,6 +4610,29 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 @media(max-width:900px){#adminNotices .notice-search-grid-v97{grid-template-columns:repeat(2,minmax(0,1fr))}#adminNotices .notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:520px){#adminNotices .notice-search-grid-v97{grid-template-columns:minmax(0,1fr)}#adminNotices .notice-search-grid-v97 .order-filter-actions{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}#adminNotices .notice-search-grid-v97 .order-filter-actions .small-btn{width:100%;padding:0 10px}}
 </style>
+
+
+<style id="v143-unified-product-form-and-real-length">
+#modalBg:has(.product-form-v143) .modal{width:min(820px,calc(100vw - 32px));max-height:92vh}
+#modalBg:has(.product-form-v143) .modal-body{padding:22px 24px 24px;overflow-y:auto}
+#modalBg:has(.product-form-v143) .product-form-v143{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}
+#modalBg:has(.product-form-v143) .product-form-v143 .field{min-width:0;margin:0}
+#modalBg:has(.product-form-v143) .product-form-v143 .field>label{display:block;margin:0 0 7px;font-size:14px;font-weight:700;color:#334155}
+#modalBg:has(.product-form-v143) .product-form-v143 input,#modalBg:has(.product-form-v143) .product-form-v143 select{box-sizing:border-box;width:100%;min-height:42px;height:42px;padding:8px 12px;font-size:14px;border-radius:8px}
+#modalBg:has(.product-form-v143) .product-form-v143 .field.full{grid-column:1/-1}
+#modalBg:has(.product-form-v143) .product-dimensions-v143{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#modalBg:has(.product-form-v143) .product-dimensions-v143 .field>label{font-size:13px}
+#modalBg:has(.product-form-v143) .vat-note-v126{font-size:11px;line-height:1.45;margin-top:5px}
+#modalBg:has(.product-form-v143) .product-visibility-box-v141{padding:13px 15px}
+#modalBg:has(.product-form-v143) .v129-packaging-wrap{margin-top:0;padding:14px 16px}
+#modalBg:has(.product-form-v143) .v129-packaging-note{font-size:12px}
+#modalBg:has(.product-form-v143) .v129-packaging-row input,#modalBg:has(.product-form-v143) .v129-packaging-row select{font-size:13px;height:40px}
+#modalBg:has(.product-form-v143) .v129-packaging-add input{font-size:14px;height:42px}
+@media(max-width:680px){#modalBg:has(.product-form-v143) .product-form-v143{grid-template-columns:1fr}#modalBg:has(.product-form-v143) .product-form-v143 .field.full{grid-column:1}#modalBg:has(.product-form-v143) .product-dimensions-v143{grid-template-columns:repeat(2,minmax(0,1fr))}#modalBg:has(.product-form-v143) .modal-body{padding:16px}}
+</style>
+<script id="v143-clean-login-stray-escape">
+document.addEventListener('DOMContentLoaded',()=>{for(const root of [document.body,document.getElementById('loginScreen')].filter(Boolean)){for(const node of [...root.childNodes]){if(node.nodeType===Node.TEXT_NODE&&/^\\n+$/.test(node.textContent.trim()))node.remove();}}});
+</script>
 
 </body>
 </html>
