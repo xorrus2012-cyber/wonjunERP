@@ -1713,10 +1713,10 @@ function getPackagingUnitPriceV129(product,optionId,clientId){
 }
 function renderPackagingEditorV129(product){
  const list=getPackagingOptionsV129(product.id,false);
- return `<div class="v129-packaging-wrap"><div class="v129-packaging-head"><b>포장 옵션 및 옵션별 기본 단가</b><span class="v129-packaging-pill">부가세 별도</span></div><p class="v129-packaging-note">제품 하나에 낱개·5개입·40개입 등 포장 단위를 여러 개 등록할 수 있습니다. 옵션을 판매중지하면 신규 주문에서 숨겨지며, 기존 주문 내역은 유지됩니다.</p><div id="v129PackagingRows">${list.map((o,i)=>`<div class="v129-packaging-row ${o.active?'':'v129-inactive'}" data-option-id="${escapeHtmlV8(o.id)}"><input class="v129-pack-name" value="${escapeHtmlV8(o.name)}" aria-label="포장 옵션명"><input class="v129-pack-price" type="number" min="0" step="1" value="${Number(o.basePrice)||0}" aria-label="옵션 기본 단가"><select class="v129-pack-active"><option value="true" ${o.active?'selected':''}>판매중</option><option value="false" ${!o.active?'selected':''}>판매중지</option></select><button type="button" class="small-btn v129-packaging-delete" onclick="removePackagingDraftV129('${escapeHtmlV8(o.id)}')">삭제</button></div>`).join('')||'<div style="padding:10px 0;color:#64748b;font-size:12px">등록된 포장 옵션이 없습니다. 아래에서 추가해 주세요.</div>'}</div><div class="v129-packaging-add"><input id="v129NewPackagingName" placeholder="예: 낱개 / 5개입 / 40개입"><button type="button" class="btn light" onclick="addPackagingDraftV129()">+ 옵션 추가</button></div></div>`;
+ return `<div class="v129-packaging-wrap"><div class="v129-packaging-head"><b>포장 옵션 및 옵션별 기본 단가</b><span class="v129-packaging-pill">부가세 별도</span></div><p class="v129-packaging-note">옵션명을 / 로 구분해 한 번에 추가할 수 있습니다. 옵션별 단가는 각 행에서 입력해 주세요. 옵션이 등록되면 가장 낮은 판매중 옵션 단가가 제품 기본단가로 자동 적용됩니다. 옵션을 판매중지하면 신규 주문에서 숨겨집니다.</p><div id="v129PackagingRows">${list.map((o,i)=>`<div class="v129-packaging-row ${o.active?'':'v129-inactive'}" data-option-id="${escapeHtmlV8(o.id)}"><input class="v129-pack-name" value="${escapeHtmlV8(o.name)}" aria-label="포장 옵션명"><input class="v129-pack-price" type="number" min="0" step="1" value="${Number(o.basePrice)||0}" aria-label="옵션 기본 단가"><select class="v129-pack-active"><option value="true" ${o.active?'selected':''}>판매중</option><option value="false" ${!o.active?'selected':''}>판매중지</option></select><button type="button" class="small-btn v129-packaging-delete" onclick="removePackagingDraftV129('${escapeHtmlV8(o.id)}')">삭제</button></div>`).join('')||'<div style="padding:10px 0;color:#64748b;font-size:12px">등록된 포장 옵션이 없습니다. 아래에서 추가해 주세요.</div>'}</div><div class="v129-packaging-add"><input id="v129NewPackagingName" placeholder="옵션명을 / 로 구분해 입력 (예: 낱개/5개입/40개입)"><button type="button" class="btn light" onclick="addPackagingDraftV129()">옵션 일괄 추가</button></div></div>`;
 }
 function capturePackagingDraftV129(){const box=document.getElementById('v129PackagingRows');if(!box)return;const live=[...box.querySelectorAll('.v129-packaging-row')].map((row,i)=>({id:row.dataset.optionId,name:row.querySelector('.v129-pack-name')?.value.trim()||'',basePrice:Number(row.querySelector('.v129-pack-price')?.value||0),active:row.querySelector('.v129-pack-active')?.value==='true',sortOrder:i,isNew:String(row.dataset.optionId).startsWith('new-')}));wjPackagingDraftV129=live}
-function addPackagingDraftV129(){capturePackagingDraftV129();const input=document.getElementById('v129NewPackagingName');const name=(input?.value||'').trim();if(!name)return;if(wjPackagingDraftV129.some(o=>o.name===name)){alert('같은 이름의 포장 옵션이 이미 있습니다.');return}wjPackagingDraftV129.push({id:'new-'+Date.now()+'-'+Math.random().toString(16).slice(2),name,basePrice:0,active:true,sortOrder:wjPackagingDraftV129.length,isNew:true});if(input)input.value='';renderPackagingDraftRowsV129()}
+function addPackagingDraftV129(){capturePackagingDraftV129();const input=document.getElementById('v129NewPackagingName');const raw=(input?.value||'').trim();if(!raw)return;const names=[...new Set(raw.split(/[\/、,，;；\n]+/).map(x=>x.trim()).filter(Boolean))];if(!names.length)return;const existing=new Set(wjPackagingDraftV129.map(o=>o.name.trim()));const duplicates=names.filter(name=>existing.has(name));if(duplicates.length){alert('이미 등록된 옵션은 건너뜁니다: '+duplicates.join(', '));}const added=names.filter(name=>!existing.has(name));added.forEach((name,i)=>wjPackagingDraftV129.push({id:'new-'+Date.now()+'-'+i+'-'+Math.random().toString(16).slice(2),name,basePrice:0,active:true,sortOrder:wjPackagingDraftV129.length,isNew:true}));if(input)input.value='';renderPackagingDraftRowsV129()}
 function removePackagingDraftV129(id){capturePackagingDraftV129();const o=wjPackagingDraftV129.find(x=>String(x.id)===String(id));if(!o)return;if(o.isNew){wjPackagingDraftV129=wjPackagingDraftV129.filter(x=>String(x.id)!==String(id));renderPackagingDraftRowsV129();return}o.active=false;renderPackagingDraftRowsV129()}
 function renderPackagingDraftRowsV129(){const box=document.getElementById('v129PackagingRows');if(!box)return;box.innerHTML=wjPackagingDraftV129.map(o=>`<div class="v129-packaging-row ${o.active?'':'v129-inactive'}" data-option-id="${escapeHtmlV8(o.id)}"><input class="v129-pack-name" value="${escapeHtmlV8(o.name)}"><input class="v129-pack-price" type="number" min="0" step="1" value="${Number(o.basePrice)||0}"><select class="v129-pack-active"><option value="true" ${o.active?'selected':''}>판매중</option><option value="false" ${!o.active?'selected':''}>판매중지</option></select><button type="button" class="small-btn v129-packaging-delete" onclick="removePackagingDraftV129('${escapeHtmlV8(o.id)}')">삭제</button></div>`).join('')||'<div style="padding:10px 0;color:#64748b;font-size:12px">등록된 포장 옵션이 없습니다.</div>'}
 function collectPackagingDraftV129(){const box=document.getElementById('v129PackagingRows');if(!box)return wjPackagingDraftV129;return [...box.querySelectorAll('.v129-packaging-row')].map((row,i)=>({id:row.dataset.optionId,name:row.querySelector('.v129-pack-name')?.value.trim()||'',basePrice:Number(row.querySelector('.v129-pack-price')?.value||0),active:row.querySelector('.v129-pack-active')?.value==='true',sortOrder:i,isNew:String(row.dataset.optionId).startsWith('new-')}))}
@@ -1731,6 +1731,8 @@ async function savePackagingOptionsV129(productId){
  const retained=new Set(rows.filter(o=>!o.isNew).map(o=>String(o.id)));
  for(const old of existing||[]){if(!retained.has(String(old.id))){const upd=await supabaseERP.from('product_packaging_options').update({is_active:false}).eq('id',old.id);if(upd.error)throw upd.error}}
  await loadPackagingOptionsV129();
+ const activeRows=rows.filter(o=>o.active);
+ if(activeRows.length){const lowest=Math.min(...activeRows.map(o=>Number(o.basePrice)||0));const probe=await supabaseERP.from('products').select('*').eq('id',String(productId)).maybeSingle();if(probe.error)throw probe.error;const productRow=probe.data||{};const baseColumn=['base_price','base','unit_price','price'].find(k=>Object.prototype.hasOwnProperty.call(productRow,k));if(baseColumn){const upd=await supabaseERP.from('products').update({[baseColumn]:lowest}).eq('id',String(productId));if(upd.error)throw upd.error;}const local=products.find(p=>String(p.id)===String(productId));if(local){local.base=lowest;local.basePrice=lowest;}}
 }
 function openPackagingPriceModalV129(clientId,productId){
  const c=clients.find(x=>String(x.id)===String(clientId)),p=products.find(x=>String(x.id)===String(productId));if(!c||!p)return;
@@ -3431,42 +3433,36 @@ function renderPriceClients(){
  sel.innerHTML=clients.map(c=>`<option value="${c.id}">${c.company} · ${c.code}</option>`).join('');
  if(clients.some(c=>c.id===prev))sel.value=prev;
 }
-function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));let entries=[];if(!cs.length){entries=list.map(p=>({p,c:null}))}else{const selectedClients=clients.filter(c=>cs.includes(String(c.id)));entries=selectedClients.flatMap(c=>list.map(p=>({p,c})))}const size=Math.max(1,Number(window.wjAdminPricePageSizeV91||20)),total=Math.max(1,Math.ceil(entries.length/size));window.wjAdminPricePageV91=Math.min(total,Math.max(1,Number(window.wjAdminPricePageV91||1)));const page=window.wjAdminPricePageV91,start=(page-1)*size,pageEntries=entries.slice(start,start+size);box.innerHTML=pageEntries.map(({p,c})=>{if(!c)return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status order-status-v54 s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`;const key=c.loginId,val=p.prices?.[key]??p.base,custom=p.prices?.[key]!==undefined;return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status order-status-v54 s-blue">개별단가</span>':'<span class="status order-status-v54 s-gray">기본단가</span>'}</td><td><button class="small-btn" type="button" data-price-client-id="${escapeHtmlV8(c.id)}" data-price-product-id="${escapeHtmlV8(p.id)}" onclick="openSinglePriceModal(this.dataset.priceClientId,this.dataset.priceProductId)">단가 수정</button> ${getPackagingOptionsV129(p.id,false).length?`<button class="small-btn" type="button" onclick="openPackagingPriceModalV129('${escapeHtmlV8(c.id)}','${escapeHtmlV8(p.id)}')">포장 옵션 단가</button>`:''}</td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>';renderAdminListPagerV91('adminPricePaginationV91',entries.length,start,size,page,total,'wjAdminPricePageSizeV91','wjAdminPricePageV91','renderPriceManagement','changeAdminPricePageV91')}
+function renderPriceManagement(){const box=document.getElementById('priceManagementRows');if(!box)return;const cs=smartGet('priceClientSmart');const ps=smartGet('priceProductSmart');const list=products.filter(p=>!ps.length||ps.includes(String(p.id)));let entries=[];if(!cs.length){entries=list.map(p=>({p,c:null}))}else{const selectedClients=clients.filter(c=>cs.includes(String(c.id)));entries=selectedClients.flatMap(c=>list.map(p=>({p,c})))}const size=Math.max(1,Number(window.wjAdminPricePageSizeV91||20)),total=Math.max(1,Math.ceil(entries.length/size));window.wjAdminPricePageV91=Math.min(total,Math.max(1,Number(window.wjAdminPricePageV91||1)));const page=window.wjAdminPricePageV91,start=(page-1)*size,pageEntries=entries.slice(start,start+size);box.innerHTML=pageEntries.map(({p,c})=>{if(!c)return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td><strong>${won(p.base)}</strong></td><td><strong class="admin-price">${won(p.base)}</strong></td><td><span class="status order-status-v54 s-gray">기본단가</span></td><td><span style="font-size:11px;color:#94a3b8">거래처 선택 후 수정</span></td></tr>`;const key=c.loginId,val=p.prices?.[key]??p.base,custom=p.prices?.[key]!==undefined;return `<tr><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td><strong class="admin-price">${won(val)}</strong></td><td>${custom?'<span class="status order-status-v54 s-blue">개별단가</span>':'<span class="status order-status-v54 s-gray">기본단가</span>'}</td><td><button class="small-btn" type="button" data-price-client-id="${escapeHtmlV8(c.id)}" data-price-product-id="${escapeHtmlV8(p.id)}" onclick="openSinglePriceModal(this.dataset.priceClientId,this.dataset.priceProductId)">단가 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">선택 조건에 맞는 제품이 없습니다.</td></tr>';renderAdminListPagerV91('adminPricePaginationV91',entries.length,start,size,page,total,'wjAdminPricePageSizeV91','wjAdminPricePageV91','renderPriceManagement','changeAdminPricePageV91')}
 
 function openSinglePriceModal(clientId,productId){
  const c=clients.find(x=>String(x.id)===String(clientId)),p=products.find(x=>String(x.id)===String(productId));
  if(!c||!p){alert('거래처 또는 제품 정보를 찾을 수 없습니다. 검색 조건을 다시 확인해 주세요.');return}
+ const options=getPackagingOptionsV129(p.id,false);
+ const currentBase=p.prices?.[c.loginId]??p.prices?.[String(c.id)]??p.base;
  document.getElementById('modalTitle').textContent='거래처 단가 수정';
  document.getElementById('modalBody').innerHTML=`
-  <div class="field"><label>거래처</label><input value="${c.company} · ${c.code}" disabled></div>
-  <div class="field"><label>제품</label><input value="${p.name} / ${p.spec}" disabled></div>
-  <div class="field"><label>기본 단가</label><input value="${won(p.base)}" disabled></div>
-  <div class="field"><label>적용 단가</label><input id="singlePriceValue" type="text" inputmode="numeric" autocomplete="off" value="${p.prices[c.loginId]??p.prices[String(c.id)]??p.base}" aria-label="적용 단가"></div>`;
+  <div class="field"><label>거래처</label><input value="${escapeHtmlV8(c.company||c.name)} · ${escapeHtmlV8(c.code||'')}" disabled></div>
+  <div class="field"><label>제품</label><input value="${escapeHtmlV8(p.name)} / ${escapeHtmlV8(p.spec)}" disabled></div>
+  <div class="field"><label>기본 단가 (부가세 별도)</label><input id="singlePriceValue" type="number" min="0" step="1" value="${Number(currentBase)||0}" aria-label="거래처 기본 단가"></div>
+  ${options.length?`<div class="v129-packaging-wrap"><div class="v129-packaging-head"><b>포장 옵션별 적용 단가</b><span class="v129-packaging-pill">부가세 별도</span></div><p class="v129-packaging-note">옵션별 가격은 기본단가에 더해지지 않고, 선택한 옵션의 판매 단가로 적용됩니다.</p>${options.map(o=>{const row=wjClientPackagingPricesV129.find(r=>String(r.client_id)===String(c.id)&&String(r.option_id)===String(o.id));return `<div class="v129-client-option-price"><div><b>${escapeHtmlV8(o.name)}</b><div class="v129-option-label">공통 옵션 단가 ${won(o.basePrice)}</div></div><input type="number" min="0" step="1" data-option-price-id="${escapeHtmlV8(o.id)}" value="${row?Number(row.price):Number(o.basePrice)}" aria-label="${escapeHtmlV8(o.name)} 거래처 단가"></div>`}).join('')}</div>`:''}`;
  document.getElementById('modalSave').onclick=async()=>{
    const saveBtn=document.getElementById('modalSave');
-   const rawValue=String(document.getElementById('singlePriceValue').value||'').replace(/[\s,₩]/g,'');
-   const value=rawValue===''?NaN:Number(rawValue);
-   if(!Number.isFinite(value)||value<0){alert('적용 단가를 올바르게 입력해 주세요.');return}
+   const value=Number(document.getElementById('singlePriceValue').value);
+   if(!Number.isFinite(value)||value<0){alert('기본 단가를 0 이상의 숫자로 입력해 주세요.');return}
+   const optionInputs=[...document.querySelectorAll('[data-option-price-id]')];
+   const optionValues=optionInputs.map(input=>({id:input.dataset.optionPriceId,value:Number(input.value)}));
+   if(optionValues.some(x=>!Number.isFinite(x.value)||x.value<0)){alert('옵션별 단가를 0 이상의 숫자로 입력해 주세요.');return}
    saveBtn.disabled=true;saveBtn.textContent='저장 중...';
    try{
-     // 관리자 화면의 단가 저장도 이제 반드시 Supabase client_prices에 직접 기록합니다.
      await saveClientPriceToSupabase(c.id,p.id,value);
-     p.prices=p.prices||{};
-     p.prices[c.loginId]=value;
-     p.prices[String(c.id)]=value;
-     await refreshClientPricesEverywhere();
-     const refreshedProduct=products.find(x=>String(x.id)===String(p.id));
-     if(refreshedProduct){refreshedProduct.prices=refreshedProduct.prices||{};refreshedProduct.prices[c.loginId]=value;refreshedProduct.prices[String(c.id)]=value;}
-     saveV7Data();
-     closeModal();
-     renderPriceManagement();
-     alert(`${c.company||c.name} · ${p.name} 단가가 저장되었습니다.`);
-   }catch(err){
-     console.error('거래처 단가 DB 저장 실패:',err);
-     alert('단가 저장에 실패했습니다.\n\n'+(err?.message||err));
-   }finally{
-     saveBtn.disabled=false;saveBtn.textContent='저장';
-   }
+     p.prices=p.prices||{};p.prices[c.loginId]=value;p.prices[String(c.id)]=value;
+     for(const item of optionValues){const found=wjClientPackagingPricesV129.find(r=>String(r.client_id)===String(c.id)&&String(r.option_id)===String(item.id));const option=getPackagingOptionsV129(p.id,false).find(o=>String(o.id)===String(item.id));const payload={client_id:String(c.id),product_id:String(p.id),option_id:String(item.id),price:item.value,price_tax_type:'exclusive'};const result=found?await supabaseERP.from('client_packaging_prices').update(payload).eq('id',found.id):await supabaseERP.from('client_packaging_prices').insert(payload);if(result.error)throw result.error;}
+     await refreshClientPricesEverywhere();await loadClientPackagingPricesV129();
+     const refreshedProduct=products.find(x=>String(x.id)===String(p.id));if(refreshedProduct){refreshedProduct.prices=refreshedProduct.prices||{};refreshedProduct.prices[c.loginId]=value;refreshedProduct.prices[String(c.id)]=value;}
+     saveV7Data();closeModal();renderPriceManagement();renderProducts();alert(`${c.company||c.name} · ${p.name} 기본단가 및 옵션단가가 저장되었습니다.`);
+   }catch(err){console.error('거래처 단가 DB 저장 실패:',err);alert('단가 저장에 실패했습니다.\n\n'+(err?.message||err));}
+   finally{saveBtn.disabled=false;saveBtn.textContent='저장';}
  };
  document.getElementById('modalBg').classList.add('show');
 }
@@ -4613,7 +4609,7 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 
 
 <style id="v143-unified-product-form-and-real-length">
-#modalBg:has(.product-form-v143) .modal{width:min(820px,calc(100vw - 32px));max-height:92vh}
+#modalBg:has(.product-form-v143) .modal{width:min(760px,calc(100vw - 32px));max-height:92vh}
 #modalBg:has(.product-form-v143) .modal-body{padding:22px 24px 24px;overflow-y:auto}
 #modalBg:has(.product-form-v143) .product-form-v143{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}
 #modalBg:has(.product-form-v143) .product-form-v143 .field{min-width:0;margin:0}
@@ -4831,3 +4827,5 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeQuoteR
 .product-visibility-box-v141 .pv-picker{margin-top:8px}
 .product-visibility-box-v141 .pv-picker.hidden{display:none}
 </style>
+
+<!-- V145: packaging options bulk entry, lowest active option becomes product base price, unified client base+option price editor -->
