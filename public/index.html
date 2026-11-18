@@ -3503,9 +3503,10 @@ function openProductEdit(i){
  const updateEditSpecPreview=()=>{const v=buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value);document.getElementById('editPSpecPreview').textContent=v||'규격 미입력'};
  [editPThickness,editPWidth,editPLength].forEach(el=>el.addEventListener('input',updateEditSpecPreview));
  document.getElementById('modalSave').onclick=async()=>{
-   const next={name:editPName.value.trim(),code:editPCode.value.trim(),cat:editPCat.value,base:Number(editPBase.value),spec:buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value)};
+   const next={name:editPName.value.trim(),code:editPCode.value.trim().toUpperCase(),cat:editPCat.value,base:Number(editPBase.value),spec:buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value)};
    if(!next.name||!next.code||!Number.isFinite(next.base)){alert('제품명, 제품 코드, 기본 단가를 확인해 주세요.');return}
    if(!supabaseERP){alert('Supabase 연결이 확인되지 않습니다.');return}
+   if(await isProductCodeDuplicateV140(next.code,p.id)){alert('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');return}
    const saveBtn=document.getElementById('modalSave'); saveBtn.disabled=true; saveBtn.textContent='저장 중...';
    try{
      const payload={};
@@ -3677,11 +3678,43 @@ function openClientModal(){
  };
  document.getElementById('modalBg').classList.add('show');
 }
+async function getNextWJProductCodeV140(){
+  let codes=(products||[]).map(p=>String(p.code||'').trim());
+  if(supabaseERP){
+    const q=await supabaseERP.from('products').select('code');
+    if(q.error)throw q.error;
+    codes=(q.data||[]).map(r=>String(r.code||'').trim());
+  }
+  let max=0;
+  codes.forEach(code=>{const m=code.match(/^WJ(\d{6})$/i);if(m)max=Math.max(max,Number(m[1]));});
+  let next=max+1;
+  let candidate='';
+  do{candidate='WJ'+String(next++).padStart(6,'0');}while(codes.some(c=>c.toUpperCase()===candidate));
+  return candidate;
+}
+function setProductCodeModeV140(mode){
+  const auto=mode==='auto',input=document.getElementById('newPCode'),hint=document.getElementById('newPCodeHint');
+  if(!input)return;
+  input.readOnly=auto;input.style.background=auto?'#f1f5f9':'#fff';input.style.color=auto?'#64748b':'#0f172a';
+  if(hint)hint.textContent=auto?'WJ + 6자리 숫자로 자동 발급됩니다.':'원하는 제품 코드를 직접 입력해 주세요. 예: GU000001';
+  if(auto)getNextWJProductCodeV140().then(code=>{if(document.getElementById('newPCodeMode')?.value==='auto'&&input.isConnected)input.value=code;}).catch(err=>{console.error('제품 코드 자동 발급 미리보기 실패:',err);if(hint)hint.textContent='자동 코드 확인에 실패했습니다. 저장 시 다시 확인합니다.';});
+}
+async function isProductCodeDuplicateV140(code,excludeId){
+  const normalized=String(code||'').trim().toUpperCase();
+  if(!normalized)return false;
+  if((products||[]).some(p=>String(p.code||'').trim().toUpperCase()===normalized&&String(p.id)!==String(excludeId||'')))return true;
+  if(supabaseERP){
+    const q=await supabaseERP.from('products').select('id,code').ilike('code',normalized).limit(2);
+    if(q.error)throw q.error;
+    return (q.data||[]).some(r=>String(r.id)!==String(excludeId||''));
+  }
+  return false;
+}
 function openProductModal(){
  document.getElementById('modalTitle').textContent='제품 등록';
  document.getElementById('modalBody').innerHTML=`<div class="form-grid">
   <div class="field"><label>제품명 *</label><input id="newPName" placeholder="WJ 제품명"></div>
-  <div class="field"><label>제품 코드 *</label><input id="newPCode" placeholder="WJ-XXXX"></div>
+  <div class="field"><label>제품 코드 *</label><select id="newPCodeMode" onchange="setProductCodeModeV140(this.value)" style="margin-bottom:7px"><option value="auto">자동 생성 (WJ000001)</option><option value="manual">직접 입력</option></select><input id="newPCode" placeholder="WJ000001" readonly style="background:#f1f5f9;color:#64748b"><div id="newPCodeHint" class="vat-note-v126">WJ + 6자리 숫자로 자동 발급됩니다.</div></div>
   <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
   <div class="field"><label>기본 단가 * (부가세 별도)</label><input id="newPBase" type="number" placeholder="0"><div class="vat-note-v126">입력한 금액에 부가세 10%가 별도로 계산됩니다.</div></div>
   <div class="field full"><label>제품 규격 *</label><div class="form-grid" style="margin-top:0">
@@ -3692,15 +3725,19 @@ function openProductModal(){
   <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
   <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
  </div>`;
+ setProductCodeModeV140('auto');
  document.getElementById('modalSave').onclick=async()=>{
    const save=document.getElementById('modalSave');
    const newSpec=buildWJProductSpec(newPThickness.value,newPWidth.value,newPLength.value);
-   if(!newPName.value||!newPCode.value||!newSpec){alert('제품명, 제품 코드, 두께, 폭, 길이를 모두 입력해 주세요.');return}
-   if(products.some(p=>String(p.code)===String(newPCode.value))){alert('이미 존재하는 제품 코드입니다.');return}
-   const local={id:'',code:newPCode.value.trim(),cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
+   if(!newPName.value||!newSpec){alert('제품명, 두께, 폭, 길이를 모두 입력해 주세요.');return}
    save.disabled=true;save.textContent='저장 중...';
    try{
      if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+     const finalCode=(document.getElementById('newPCodeMode')?.value==='auto')?await getNextWJProductCodeV140():String(newPCode.value||'').trim().toUpperCase();
+     if(!finalCode)throw new Error('제품 코드를 입력해 주세요.');
+     if(await isProductCodeDuplicateV140(finalCode))throw new Error('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');
+     newPCode.value=finalCode;
+     const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
      const row=await ensureProductInSupabase(local);local.id=row.id;products.push(local);
      try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
      await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();renderProducts();
