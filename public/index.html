@@ -749,6 +749,26 @@ html,body{overflow-x:hidden}
 </style>
 
 <!-- V139: client quote request pagination, 5 rows per page; based on V138 -->
+
+<style id="v142-product-modal-compact-and-hide-inventory">
+/* V142: 제품 등록창을 짧고 밀도 있게 정리 */
+#adminDash .kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#modalBg:has(#newPCodeMode) .modal{width:min(760px,calc(100vw - 32px));max-height:90vh}
+#modalBg:has(#newPCodeMode) .modal-body{padding:16px 20px 18px;overflow-y:auto}
+#modalBg:has(#newPCodeMode) .product-create-form-v142{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+#modalBg:has(#newPCodeMode) .product-create-form-v142 .field{min-width:0;margin:0}
+#modalBg:has(#newPCodeMode) .product-create-form-v142 .field>label{display:block;margin:0 0 5px;font-size:12px}
+#modalBg:has(#newPCodeMode) .product-create-form-v142 input,#modalBg:has(#newPCodeMode) .product-create-form-v142 select{box-sizing:border-box;width:100%;min-height:36px;height:36px;padding:7px 10px;font-size:12px}
+#modalBg:has(#newPCodeMode) .product-create-form-v142 .field.full{grid-column:1/-1}
+#modalBg:has(#newPCodeMode) .product-create-form-v142 .field.full .form-grid{gap:9px}
+#modalBg:has(#newPCodeMode) #newPSpecPreview{margin-top:5px!important;padding:7px 10px!important}
+#modalBg:has(#newPCodeMode) .product-code-row-v142{display:grid;grid-template-columns:112px minmax(0,1fr);gap:7px}
+#modalBg:has(#newPCodeMode) .vat-note-v126{margin-top:4px;font-size:10px;line-height:1.35}
+#modalBg:has(#newPCodeMode) .product-visibility-box-v141{padding:10px 12px;margin-top:0}
+#modalBg:has(#newPCodeMode) .product-visibility-box-v141 .pv-mode{margin:6px 0 7px;gap:12px}
+#modalBg:has(#newPCodeMode) .product-visibility-box-v141 .pv-help{margin-top:5px}
+@media(max-width:620px){#modalBg:has(#newPCodeMode) .product-create-form-v142{grid-template-columns:1fr}#modalBg:has(#newPCodeMode) .product-create-form-v142 .field.full{grid-column:1}#modalBg:has(#newPCodeMode) .product-code-row-v142{grid-template-columns:105px minmax(0,1fr)}}
+</style>
 </head>
 <body>
 
@@ -780,7 +800,6 @@ html,body{overflow-x:hidden}
       <button class="nav" data-page="products" onclick="go('products',this)">▤ &nbsp; 제품 주문</button>
       <button class="nav" data-page="cartPage" onclick="go('cartPage',this)">🛒 &nbsp; 장바구니 <span id="navCartCount"></span></button>
       <button class="nav" data-page="orders" onclick="go('orders',this)">☷ &nbsp; 발주/주문 현황</button>
-      <button class="nav" data-page="inventory" onclick="go('inventory',this)">▥ &nbsp; 재고 현황</button>
       <button class="nav" data-page="notices" onclick="go('notices',this)">● &nbsp; 공지사항</button>
       <button class="nav" data-page="account" onclick="go('account',this)">◎ &nbsp; 거래처 정보</button>
     </nav>
@@ -792,7 +811,6 @@ html,body{overflow-x:hidden}
       <button class="nav" data-page="adminClients" onclick="go('adminClients',this)">▤ &nbsp; 거래처 관리</button>
       <button class="nav" data-page="adminProducts" onclick="go('adminProducts',this)">▥ &nbsp; 제품 관리</button>
       <button class="nav" data-page="adminPrices" onclick="go('adminPrices',this)">₩ &nbsp; 단가 관리</button>
-      <button class="nav" data-page="adminInventory" onclick="go('adminInventory',this)">▦ &nbsp; 재고/창고 관리</button>
       <button class="nav" data-page="adminNotices" onclick="go('adminNotices',this)">● &nbsp; 공지사항 관리</button>
       <button class="nav" data-page="adminStats" onclick="go('adminStats',this)">◔ &nbsp; 매출/통계</button>
     </nav>
@@ -914,12 +932,6 @@ html,body{overflow-x:hidden}
         <div id="clientOrderPaginationV104" aria-label="발주 현황 페이지 이동"></div>
       </section>
 
-      <!-- CLIENT INVENTORY -->
-      <section id="inventory" class="page">
-        <div class="page-head"><div><h2>재고 현황</h2><p>현재 등록된 재고 현황과 출고 가능 여부를 확인합니다.</p></div></div>
-        <div class="card table-wrap"><table><thead><tr><th>제품코드</th><th>제품명</th><th>규격</th><th>현재고</th><th>재고상태</th><th>출고 가능</th></tr></thead><tbody id="clientInventoryRows"></tbody></table></div>
-      </section>
-
       <!-- CLIENT NOTICES -->
       <section id="notices" class="page">
         <div class="page-head"><div><h2>공지사항</h2><p>원준테이프에서 전달하는 거래 관련 안내입니다.</p></div></div>
@@ -948,16 +960,14 @@ html,body{overflow-x:hidden}
 
       <!-- ADMIN DASH -->
       <section id="adminDash" class="page">
-        <div class="page-head"><div><h2>통합 대시보드</h2><p>주문·재고·생산을 한 화면에서 확인합니다.</p></div></div>
+        <div class="page-head"><div><h2>통합 대시보드</h2><p>주문 현황을 한 화면에서 확인합니다.</p></div></div>
         <div class="kpi-grid">
           <div class="kpi"><div class="label">신규 발주</div><div class="num" id="adminKpiNew">0건</div><div class="note">주문 완료 · 관리자 접수 전</div></div>
           <div class="kpi"><div class="label">오늘 출고 예정</div><div class="num" id="adminKpiShip">0건</div><div class="note" id="adminKpiShipQty">총 0박스</div></div>
-          <div class="kpi"><div class="label">재고 주의 품목</div><div class="num" id="adminKpiStock">0개</div><div class="note">안전재고 이하</div></div>
           <div class="kpi"><div class="label">전체 발주</div><div class="num" id="adminKpiOrders">0건</div><div class="note">저장 데이터 기준</div></div>
         </div>
         <div class="grid2">
-          <div class="card pad"><div class="page-head"><h3 class="section-title">최근 수주</h3><button class="small-btn" onclick="go('adminOrders')">전체보기</button></div><div class="table-wrap"><table><thead><tr><th>선택</th><th>발주번호</th><th>거래처</th><th>품목</th><th>수량</th><th>상태</th></tr></thead><tbody id="adminDashOrders"></tbody></table></div></div>
-          <div class="card"><div class="pad"><h3 class="section-title">재고 주의 품목</h3></div><div id="stockWarnings"></div></div>
+          <div class="card pad" style="grid-column:1/-1"><div class="page-head"><h3 class="section-title">최근 수주</h3><button class="small-btn" onclick="go('adminOrders')">전체보기</button></div><div class="table-wrap"><table><thead><tr><th>선택</th><th>발주번호</th><th>거래처</th><th>품목</th><th>수량</th><th>상태</th></tr></thead><tbody id="adminDashOrders"></tbody></table></div></div>
         </div>
       </section>
 
@@ -1072,6 +1082,7 @@ html,body{overflow-x:hidden}
         </div>
       </section>
 
+      <!-- V142: 재고/창고 화면은 제거했으며 기존 Supabase 재고 데이터는 삭제하지 않습니다. -->
       <!-- ADMIN PRODUCTS -->
       <section id="adminProducts" class="page">
         <div class="page-head"><div><h2>제품 관리</h2><p>제품 자체의 정보와 기본 단가를 관리합니다. 거래처별 단가는 '단가 관리'에서 별도로 설정합니다.</p></div><div class="product-head-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn category-manage-trigger-v89" type="button" onclick="openCategoryModal()">분류 관리</button><button class="btn primary" type="button" onclick="openProductModal()">+ 제품 등록</button></div></div>
@@ -1080,7 +1091,7 @@ html,body{overflow-x:hidden}
           <div class="order-filter-field"><label class="order-filter-label" for="productAdminCat">제품 분류</label><select id="productAdminCat" onchange="window.wjAdminProductPageV91=1;renderAdminProducts()"><option>전체</option></select></div>
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminProductPageV91=1;renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
         </div></div>
-        <div class="bulk-v6 product-status-toolbar-v90"><button type="button" class="small-btn" onclick="openBulkProductStatusV89()">상태 변경</button><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span></div><div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminProductSelectAllV89" class="product-check-v89" type="checkbox" aria-label="현재 검색 결과 전체 선택" title="현재 검색 결과 전체 선택" onchange="toggleAllAdminProductsV89(this.checked)"></th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>재고</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div><div id="adminProductPaginationV91" aria-label="제품 목록 페이지 이동"></div>
+        <div class="bulk-v6 product-status-toolbar-v90"><button type="button" class="small-btn" onclick="openBulkProductStatusV89()">상태 변경</button><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span></div><div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminProductSelectAllV89" class="product-check-v89" type="checkbox" aria-label="현재 검색 결과 전체 선택" title="현재 검색 결과 전체 선택" onchange="toggleAllAdminProductsV89(this.checked)"></th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div><div id="adminProductPaginationV91" aria-label="제품 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN PRICES -->
@@ -1092,23 +1103,6 @@ html,body{overflow-x:hidden}
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminPricePageV91=1;renderPriceManagement()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminPriceFiltersV87()">초기화</button></div>
         </div></div>
         <div class="card table-wrap" style="margin-top:14px"><table><thead><tr><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가 (VAT 별도)</th><th>현재 적용 단가 (VAT 별도)</th><th>단가 상태</th><th>관리</th></tr></thead><tbody id="priceManagementRows"></tbody></table></div><div id="adminPricePaginationV91" aria-label="단가 목록 페이지 이동"></div>
-      </section>
-
-      <!-- ADMIN INVENTORY -->
-      <section id="adminInventory" class="page">
-        <div class="page-head"><div><h2>재고/창고 관리</h2><p>제품 코드·제품명 자동 검색과 두께·폭·길이별 규격 검색으로 품목을 찾은 뒤 재고, 안전재고, 거래처 공개 여부를 수정하고 저장합니다.</p></div></div>
-        <div class="order-filter-panel inventory-filter-panel admin-search-panel" aria-label="재고 검색 및 필터">
-          <div class="order-filter-grid inventory-filter-grid admin-search-grid inventory-search-grid-v87">
-            <div class="order-filter-field inventory-code-filter-v87"><label class="order-filter-label">제품 코드 / 제품명</label><div class="smartbox" id="inventorySearchSmart"></div></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySpecThickness">두께</label><input id="inventorySpecThickness" type="search" placeholder="μ" autocomplete="off"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySpecWidth">폭</label><input id="inventorySpecWidth" type="search" placeholder="mm" autocomplete="off"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySpecLength">길이</label><input id="inventorySpecLength" type="search" placeholder="m" autocomplete="off"></div>
-            <div class="order-filter-field"><label class="order-filter-label" for="inventorySpecBoxQty">입수량</label><input id="inventorySpecBoxQty" type="search" placeholder="입/박스" autocomplete="off"></div>
-            <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyInventoryFiltersV83()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="clearInventoryFiltersV83()">초기화</button></div>
-          </div>
-        </div>
-        <div class="bulk-v6 inventory-toolbar-v92"><div class="inventory-toolbar-left-v92"><span id="inventoryResultV83" class="result-v6"></span><span id="inventorySelectionCountV92" class="result-v6">0개 선택</span></div><div class="inventory-toolbar-actions-v92"><select id="inventoryBulkVisibilityV92" aria-label="선택 제품 공개 여부" onchange="applyInventoryBulkVisibilityV92()"><option value="" selected>공개 여부 선택</option><option value="public">공개</option><option value="private">비공개</option></select><button type="button" class="small-btn inventory-save-all-v92" onclick="saveSelectedInventoryV92()">선택 항목 저장</button></div></div>
-        <div class="card table-wrap"><table class="inventory-table-v83"><thead><tr><th class="order-head-check"><input id="adminInventorySelectAllV92" class="inventory-check-v92" type="checkbox" aria-label="현재 페이지 전체 선택" title="현재 페이지 전체 선택" onchange="toggleAllInventoryV92(this.checked)"></th><th>제품코드</th><th>제품명</th><th>규격</th><th>현재 재고</th><th>안전재고 기준</th><th>창고</th><th>공개 여부</th></tr></thead><tbody id="adminInventoryRows"></tbody></table></div><div id="adminInventoryPaginationV91" aria-label="재고 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN PRODUCTION -->
@@ -2523,7 +2517,7 @@ function go(page,btn){
  document.getElementById(page)?.classList.add('active');
  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
  if(btn)btn.classList.add('active');
- const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',inventory:'재고 현황',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminQuotesV130:'견적 요청 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminInventory:'재고/창고 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
+ const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminQuotesV130:'견적 요청 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
  if(page==='adminStats'){renderAdminStats();if(supabaseERP&&supabaseSyncReady)loadOrdersFromSupabase().then(renderAdminStats).catch(e=>console.error('월별 통계 주문 조회 실패:',e));}
  if(page==='products'){
@@ -3101,10 +3095,11 @@ function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classLis
 function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+active.title+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
 function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'박스';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
 function renderAdminDashboard(){
- const today=new Date().toISOString().slice(0,10),sw=products.filter(p=>p.stock<=p.safety),nw=orders.filter(o=>o.status==='주문 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));
- document.getElementById('adminDashOrders').innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${escapeHtmlV8(o.client)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';
- document.getElementById('stockWarnings').innerHTML=sw.map(p=>`<div class="notice"><b>${escapeHtmlV8(p.name)}</b><span>${Number(p.stock||0).toLocaleString()} / 안전 ${Number(p.safety||0).toLocaleString()}</span></div>`).join('')||'<div class="pad" style="color:#64748b;font-size:12px">재고 주의 품목이 없습니다.</div>';
- document.getElementById('adminKpiNew').textContent=nw.length+'건';document.getElementById('adminKpiShip').textContent=sh.length+'건';document.getElementById('adminKpiShipQty').textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';document.getElementById('adminKpiStock').textContent=sw.length+'개';document.getElementById('adminKpiOrders').textContent=orders.length+'건';
+ const today=new Date().toISOString().slice(0,10),nw=orders.filter(o=>o.status==='주문 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));
+ const dashRows=document.getElementById('adminDashOrders');
+ if(dashRows)dashRows.innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${escapeHtmlV8(o.client)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';
+ const kNew=document.getElementById('adminKpiNew'),kShip=document.getElementById('adminKpiShip'),kQty=document.getElementById('adminKpiShipQty'),kOrders=document.getElementById('adminKpiOrders');
+ if(kNew)kNew.textContent=nw.length+'건';if(kShip)kShip.textContent=sh.length+'건';if(kQty)kQty.textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';if(kOrders)kOrders.textContent=orders.length+'건';
 }
 // 체크 상태는 테이블 DOM이 아니라 별도 Set에 보관합니다.
 // 3초 폴링/Realtime으로 주문 표가 다시 그려져도 선택이 유지됩니다.
@@ -3421,7 +3416,7 @@ function renderClients(){
  renderAdminListPagerV91('adminClientPaginationV91',list.length,start,size,page,total,'wjAdminClientPageSizeV91','wjAdminClientPageV91','renderClients','changeAdminClientPageV91');
 }
 
-function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const size=Math.max(1,Number(window.wjAdminProductPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminProductPageV91=Math.min(total,Math.max(1,Number(window.wjAdminProductPageV91||1)));const page=window.wjAdminProductPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=pageList.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${Number(p.stock||0).toLocaleString()}</td><td>${productSaleStatusBadgeV89(st)}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="9" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`;renderAdminListPagerV91('adminProductPaginationV91',list.length,start,size,page,total,'wjAdminProductPageSizeV91','wjAdminProductPageV91','renderAdminProducts','changeAdminProductPageV91')}
+function renderAdminProducts(){const q=smartGet('productAdminSmart');const c=document.getElementById('productAdminCat')?.value||'전체';const list=products.filter(p=>(!q.length||q.includes(String(p.id)))&&(c==='전체'||p.cat===c));const size=Math.max(1,Number(window.wjAdminProductPageSizeV91||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminProductPageV91=Math.min(total,Math.max(1,Number(window.wjAdminProductPageV91||1)));const page=window.wjAdminProductPageV91,start=(page-1)*size,pageList=list.slice(start,start+size);const selected=new Set(window.wjSelectedProductIdsV89||[]);document.getElementById('adminProductRows').innerHTML=pageList.map(p=>{const i=products.indexOf(p),st=['판매중','판매중단','품절','단종'].includes(String(p.status||''))?String(p.status):'판매중',stCls={'판매중':'product-sale-active-v89','판매중단':'product-sale-paused-v89','품절':'product-sale-oos-v89','단종':'product-sale-discontinued-v89'}[st];return `<tr><td><input class="product-check-v89" type="checkbox" value="${escapeHtmlV8(p.id)}" ${selected.has(String(p.id))?'checked':''} onchange="updateProductSelectionV89()" aria-label="${escapeHtmlV8(p.name)} 선택"></td><td>${escapeHtmlV8(p.code)}</td><td>${escapeHtmlV8(p.cat)}</td><td><button type="button" class="product-admin-name-v126" onclick="openAdminProductPriceDetailV126('${String(p.id).replace(/'/g,'')}')">${escapeHtmlV8(p.name)}</button></td><td>${escapeHtmlV8(p.spec)}</td><td>${won(p.base)}</td><td>${productSaleStatusBadgeV89(st)}</td><td><button class="small-btn" onclick="openProductEdit(${i})">제품 수정</button></td></tr>`}).join('')||'<tr><td colspan="8" class="v4-empty">검색 결과가 없습니다.</td></tr>';const master=document.getElementById('adminProductSelectAllV89');if(master){master.checked=pageList.length>0&&pageList.every(p=>selected.has(String(p.id)));master.indeterminate=pageList.some(p=>selected.has(String(p.id)))&&!master.checked;}const count=document.getElementById('adminProductSelectionCountV89');if(count)count.textContent=`${selected.size}개 선택`;renderAdminListPagerV91('adminProductPaginationV91',list.length,start,size,page,total,'wjAdminProductPageSizeV91','wjAdminProductPageV91','renderAdminProducts','changeAdminProductPageV91')}
 
 function renderPriceClients(){
  const sel=document.getElementById('priceClientSelect');
@@ -3535,7 +3530,7 @@ async function saveProductVisibilityV141(productId){
 async function openProductEdit(i){
  const p=products[i];
  let visibilityConfigV141={mode:'all',clientIds:[]};
- try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. Supabase에 V141 SQL을 먼저 적용했는지 확인해 주세요.\n\n'+(e.message||e));return}
+ try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. V142 권한 보완 SQL을 Supabase SQL Editor에서 실행했는지 확인해 주세요.\n\n'+(e.message||e));return}
  document.getElementById('modalTitle').textContent='제품 정보 수정';
  wjPackagingDraftV129=getPackagingOptionsV129(p.id,false).map(o=>({...o,isNew:false}));
  document.getElementById('modalBody').innerHTML=`<div class="form-grid">
@@ -3763,9 +3758,9 @@ async function isProductCodeDuplicateV140(code,excludeId){
 }
 function openProductModal(){
  document.getElementById('modalTitle').textContent='제품 등록';
- document.getElementById('modalBody').innerHTML=`<div class="form-grid">
+ document.getElementById('modalBody').innerHTML=`<div class="form-grid product-create-form-v142">
   <div class="field"><label>제품명 *</label><input id="newPName" placeholder="WJ 제품명"></div>
-  <div class="field"><label>제품 코드 *</label><select id="newPCodeMode" onchange="setProductCodeModeV140(this.value)" style="margin-bottom:7px"><option value="auto">자동 생성 (WJ000001)</option><option value="manual">직접 입력</option></select><input id="newPCode" placeholder="WJ000001" readonly style="background:#f1f5f9;color:#64748b"><div id="newPCodeHint" class="vat-note-v126">WJ + 6자리 숫자로 자동 발급됩니다.</div></div>
+  <div class="field"><label>제품 코드 *</label><div class="product-code-row-v142"><select id="newPCodeMode" onchange="setProductCodeModeV140(this.value)"><option value="auto">자동 생성</option><option value="manual">직접 입력</option></select><input id="newPCode" placeholder="WJ000001" readonly style="background:#f1f5f9;color:#64748b"></div><div id="newPCodeHint" class="vat-note-v126">WJ + 6자리 숫자로 자동 발급됩니다.</div></div>
   <div class="field"><label>분류 *</label><select id="newPCat">${productCategories.map(c=>`<option>${c}</option>`).join('')}</select></div>
   <div class="field"><label>기본 단가 * (부가세 별도)</label><input id="newPBase" type="number" placeholder="0"><div class="vat-note-v126">입력한 금액에 부가세 10%가 별도로 계산됩니다.</div></div>
   <div class="field full"><label>제품 규격 *</label><div class="form-grid" style="margin-top:0">
@@ -3773,8 +3768,6 @@ function openProductModal(){
     <div class="field"><label>폭</label><input id="newPWidth" type="number" min="0" step="0.1" placeholder="예: 48"><div style="font-size:10px;color:#94a3b8;margin-top:4px">mm</div></div>
     <div class="field"><label>길이</label><input id="newPLength" type="number" min="0" step="0.1" placeholder="예: 50"><div style="font-size:10px;color:#94a3b8;margin-top:4px">m</div></div>
   </div><div id="newPSpecPreview" style="margin-top:8px;padding:10px 12px;border-radius:9px;background:#f8fafc;color:#475569;font-size:12px">규격 미입력</div></div>
-  <div class="field"><label>현재 재고</label><input id="newPStock" type="number" value="0"></div>
-  <div class="field"><label>안전 재고</label><input id="newPSafety" type="number" value="0"></div>
  </div>${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}`;
  initProductVisibilityEditorV141({mode:'all',clientIds:[]});
  setProductCodeModeV140('auto');
@@ -3786,16 +3779,16 @@ function openProductModal(){
    try{
      if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
      const visibilityReady=await supabaseERP.from('product_visibility_settings').select('product_id').limit(1);
-     if(visibilityReady.error)throw new Error('거래처별 제품 노출용 Supabase SQL을 먼저 적용해 주세요. '+(visibilityReady.error.message||''));
+     if(visibilityReady.error)throw new Error('V142 권한 보완 SQL을 Supabase SQL Editor에서 실행해 주세요. '+(visibilityReady.error.message||''));
      const finalCode=(document.getElementById('newPCodeMode')?.value==='auto')?await getNextWJProductCodeV140():String(newPCode.value||'').trim().toUpperCase();
      if(!finalCode)throw new Error('제품 코드를 입력해 주세요.');
      if(await isProductCodeDuplicateV140(finalCode))throw new Error('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');
      newPCode.value=finalCode;
-     const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:Number(newPStock.value||0),safety:Number(newPSafety.value||0),warehouse:'미지정',prices:{},inventoryPublic:true};
+     const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,base:Number(newPBase.value||0),stock:0,safety:0,warehouse:'미지정',prices:{},inventoryPublic:true};
      const row=await ensureProductInSupabase(local);local.id=row.id;products.push(local);
      await saveProductVisibilityV141(local.id);
      try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
-     await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderAdminInventory();renderProducts();
+     await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderProducts();
      alert('제품이 Supabase에 저장되었습니다. 관리자와 거래처가 같은 제품 목록을 사용합니다.');
    }catch(err){console.error('제품 등록 실패:',err);alert('제품 등록에 실패했습니다.\n\n'+(err?.message||err))}
    finally{save.disabled=false;save.textContent='저장'}
