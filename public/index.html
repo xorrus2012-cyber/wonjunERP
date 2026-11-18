@@ -1554,28 +1554,30 @@ function displayProductSpecV143(product){
 }
 async function ensureProductInSupabase(localProduct){
   if(!supabaseERP || !localProduct) return null;
-  const code=String(localProduct.code||'').trim(), name=String(localProduct.name||'').trim(), spec=String(localProduct.spec||'').trim();
+  const code=String(localProduct.code||'').trim().toUpperCase();
+  const name=String(localProduct.name||'').trim();
+  const spec=String(localProduct.spec||'').trim();
   if(!code || !name) throw new Error('제품 코드와 제품명이 필요합니다.');
-  let q=await supabaseERP.from('products').select('*').eq('code',code).limit(1).maybeSingle();
-  let existing=(!q.error&&q.data)?q.data:null;
-  if(!existing && name){
-    q=await supabaseERP.from('products').select('*').eq('name',name).limit(50);
-    if(!q.error && Array.isArray(q.data)) existing=q.data.find(x=>!spec || String(x.spec||x.specification||'').trim()===spec)||q.data[0]||null;
-  }
-  if(existing) return existing;
+
+  // 신규 등록은 제품명/규격이 기존 제품과 같아도 절대 기존 행을 재사용하지 않습니다.
+  // 제품 코드는 고유 식별자로만 검사하며, 중복이면 덮어쓰지 않고 중단합니다.
+  const duplicate=await supabaseERP.from('products').select('id').eq('code',code).limit(1).maybeSingle();
+  if(duplicate.error) throw duplicate.error;
+  if(duplicate.data?.id) throw new Error(`제품 코드 ${code}가 이미 등록되어 있습니다. 새 제품 코드로 등록해 주세요.`);
+
   const probe=await supabaseERP.from('products').select('*').limit(1);
   if(probe.error) throw probe.error;
-  const sample=probe.data?.[0]||{}, payload={};
-  const put=(k,v)=>{if(Object.prototype.hasOwnProperty.call(sample,k))payload[k]=v};
+  const sample=probe.data?.[0]||{};
+  const payload={};
+  const put=(k,v)=>{if(Object.keys(sample).length===0 || Object.prototype.hasOwnProperty.call(sample,k))payload[k]=v};
   put('code',code);put('product_code',code);put('name',name);put('product_name',name);put('spec',spec);put('specification',spec);
-  const base=Number(localProduct.base||0); put('base_price',base);put('base',base);put('unit_price',base);put('price',base);put('base_price_tax_type','exclusive');put('category',localProduct.cat||'');
-  if(Object.prototype.hasOwnProperty.call(sample,'category_id')){
+  const base=Number(localProduct.base||0);put('base_price',base);put('base',base);put('unit_price',base);put('price',base);put('base_price_tax_type','exclusive');put('category',localProduct.cat||'');
+  if(Object.keys(sample).length && Object.prototype.hasOwnProperty.call(sample,'category_id')){
     const cq=await supabaseERP.from('product_categories').select('id,name').eq('name',String(localProduct.cat||'')).limit(1).maybeSingle();
     if(!cq.error&&cq.data?.id)payload.category_id=cq.data.id;
   }
-  if(!Object.keys(payload).length)throw new Error('products 테이블에 저장할 제품 컬럼을 찾지 못했습니다.');
   const ins=await supabaseERP.from('products').insert(payload).select('*').single();
-  if(ins.error)throw ins.error;
+  if(ins.error) throw ins.error;
   return ins.data;
 }
 async function syncLocalProductsToSupabase(){
@@ -3787,7 +3789,7 @@ function openProductModal(){
      if(await isProductCodeDuplicateV140(finalCode))throw new Error('이미 사용 중인 제품 코드입니다. 다른 코드를 입력해 주세요.');
      newPCode.value=finalCode;
      const local={id:'',code:finalCode,cat:newPCat.value,name:newPName.value.trim(),spec:newSpec,actualLength:String(document.getElementById('newPActualLength')?.value||'').trim(),base:Number(newPBase.value||0),stock:0,safety:0,warehouse:'미지정',prices:{},inventoryPublic:true};
-     const row=await ensureProductInSupabase(local);local.id=row.id;
+     const row=await ensureProductInSupabase(local);if(!row?.id)throw new Error('신규 제품 행이 생성되지 않았습니다. 기존 제품은 수정하지 않았습니다.');local.id=row.id;
      const actualLengthValue=String(document.getElementById('newPActualLength')?.value||'').trim();
      if(actualLengthValue){const actualSave=await supabaseERP.from('products').update({actual_length:actualLengthValue}).eq('id',local.id);if(actualSave.error)throw actualSave.error;local.actualLength=actualLengthValue;}
      await savePackagingOptionsV129(local.id);
