@@ -935,7 +935,7 @@ html,body{overflow-x:hidden}
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyClientOrderFiltersV103()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetClientOrderFiltersV103()">초기화</button></div>
           </div>
         </div>
-        <div class="card table-wrap"><table><thead><tr><th>발주번호</th><th>접수일</th><th>품목</th><th>수량</th><th>금액</th><th>진행상태</th><th></th></tr></thead><tbody id="clientOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table><thead><tr><th>발주번호</th><th>접수일</th><th>품명 / 규격</th><th>수량</th><th>금액</th><th>진행상태</th><th>출고예정일</th><th>상세</th></tr></thead><tbody id="clientOrderRows"></tbody></table></div>
         <div id="clientOrderPaginationV104" aria-label="발주 현황 페이지 이동"></div>
       </section>
 
@@ -3036,16 +3036,26 @@ function renderClientOrders(){
  const pageSize=Math.max(1,Number(sizeEl?.value||20));
  const totalPages=Math.max(1,Math.ceil(arr.length/pageSize));
  window.wjClientOrderPageV104=Math.min(Math.max(1,Number(window.wjClientOrderPageV104||1)),totalPages);
- const page=window.wjClientOrderPageV104;
- const start=(page-1)*pageSize;
- const pageArr=arr.slice(start,start+pageSize);
- body.innerHTML=pageArr.map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${formatOrderDateTime(o)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td><td style="white-space:nowrap"><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button> <button class="small-btn doc-btn" onclick="generateOrderPDF('${escapeHtmlV8(o.no)}','client')">발주서 PDF</button> ${(['접수 완료','접수완료'].includes(String(o.status||'').trim()))?`<button class="small-btn" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(o.no)}')">발주 취소</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
+ const page=window.wjClientOrderPageV104,start=(page-1)*pageSize,pageArr=arr.slice(start,start+pageSize);
+ const html=[];
+ pageArr.forEach(o=>{
+   const items=Array.isArray(o.items)&&o.items.length?o.items:[{name:o.item||'-',qty:o.qty||0,amount:o.amount||0,itemStatus:o.status,expectedShipDate:''}];
+   const count=items.length;
+   items.forEach((it,index)=>{
+     const status=it.itemStatus||it.status||o.status||'접수 완료';
+     html.push(`<tr>
+       ${index===0?`<td rowspan="${count}" class="v151-client-order-group"><b>${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" class="v151-client-order-group">${formatOrderDateTime(o)}</td>`:''}
+       <td><b>${escapeHtmlV8(it.name||'-')}</b><div class="v151-client-spec">${escapeHtmlV8(it.spec||'')}</div></td>
+       <td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.totalAmount??it.amount??0))}</td>
+       <td>${orderStatusBadgeV54(status)}</td><td>${it.expectedShipDate?escapeHtmlV8(String(it.expectedShipDate).slice(0,10)):'미정'}</td>
+       ${index===0?`<td rowspan="${count}" class="v151-client-order-actions"><button class="small-btn" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')">상세</button> <button class="small-btn doc-btn" onclick="generateOrderPDF('${escapeHtmlV8(o.no)}','client')">발주서 PDF</button> ${(['접수 완료','접수완료'].includes(String(o.status||'').trim()))?`<button class="small-btn" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(o.no)}')">발주 취소</button>`:''}</td>`:''}
+     </tr>`);
+   });
+ });
+ body.innerHTML=html.join('')||'<tr><td colspan="8" class="v4-empty">검색 조건에 맞는 발주 내역이 없습니다.</td></tr>';
  const result=document.getElementById('clientOrderResultV103');if(result)result.textContent=`조회 결과 ${arr.length}건 · ${page}/${totalPages}페이지`;
  const pager=document.getElementById('clientOrderPaginationV104');
- if(pager){
-   const fromCount=arr.length?start+1:0,toCount=Math.min(start+pageSize,arr.length);
-   pager.innerHTML=`<div class="pagination-left"><span>총 <b>${arr.length.toLocaleString()}</b>건 중 <b>${fromCount.toLocaleString()}–${toCount.toLocaleString()}</b>건 표시</span><label for="clientOrderPageSizeV104">페이지당</label><select id="clientOrderPageSizeV104" onchange="window.wjClientOrderPageV104=1;renderClientOrders()"><option value="10" ${pageSize===10?'selected':''}>10개</option><option value="20" ${pageSize===20?'selected':''}>20개</option><option value="30" ${pageSize===30?'selected':''}>30개</option><option value="50" ${pageSize===50?'selected':''}>50개</option></select></div><div class="pagination-right"><button type="button" onclick="changeClientOrderPageV104(-1)" ${page<=1?'disabled':''}>이전</button><span class="page-current">${page} / ${totalPages} 페이지</span><button type="button" onclick="changeClientOrderPageV104(1)" ${page>=totalPages?'disabled':''}>다음</button></div>`;
- }
+ if(pager){const fromCount=arr.length?start+1:0,toCount=Math.min(start+pageSize,arr.length);pager.innerHTML=`<div class="pagination-left"><span>총 <b>${arr.length.toLocaleString()}</b>건 중 <b>${fromCount.toLocaleString()}–${toCount.toLocaleString()}</b>건 표시</span><label for="clientOrderPageSizeV104">페이지당</label><select id="clientOrderPageSizeV104" onchange="window.wjClientOrderPageV104=1;renderClientOrders()"><option value="10" ${pageSize===10?'selected':''}>10개</option><option value="20" ${pageSize===20?'selected':''}>20개</option><option value="30" ${pageSize===30?'selected':''}>30개</option><option value="50" ${pageSize===50?'selected':''}>50개</option></select></div><div class="pagination-right"><button type="button" onclick="changeClientOrderPageV104(-1)" ${page<=1?'disabled':''}>이전</button><span class="page-current">${page} / ${totalPages} 페이지</span><button type="button" onclick="changeClientOrderPageV104(1)" ${page>=totalPages?'disabled':''}>다음</button></div>`;}
 }
 async function cancelMyOrderV119(orderNo){
  const order=orders.find(o=>String(o.no)===String(orderNo)&&String(o.id)===String(currentUser));
@@ -3119,36 +3129,31 @@ function renderOrderStatusHistoryV121(history){
 
 async function showClientOrderDetail(no){
  const found=orders.find(o=>String(o.no)===String(no)&&String(o.id)===String(currentUser));
- if(!found){alert('해당 발주 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');return}
- let source={...found}, details=getWJOrderDetailItems(found);
- if(supabaseERP){try{let dq=supabaseERP.from('orders').select('*');if(source.dbId)dq=dq.eq('id',source.dbId);else dq=dq.eq('order_no',source.no);const dr=await dq.limit(1).maybeSingle();if(!dr.error&&dr.data){const d=dr.data;source={...source,deliveryMethod:firstValue(d,['delivery_method'],''),deliveryCarrier:firstValue(d,['delivery_carrier'],''),deliveryAddress:firstValue(d,['delivery_address'],''),deliveryAddressName:firstValue(d,['delivery_address_name'],''),deliveryContactName:firstValue(d,['delivery_contact_name'],''),deliveryContactPhone:firstValue(d,['delivery_contact_phone'],''),deliveryRequest:firstValue(d,['delivery_request'],'')};}}catch(e){console.warn('거래처 배송 정보 조회 실패:',e)}}
- // 목록에 품목 상세가 없으면 Supabase의 order_items에서 다시 조회합니다.
- if(!details.length&&supabaseERP){
+ if(!found){alert('해당 발주 정보를 찾을 수 없습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.');return;}
+ let source={...found},details=getWJOrderDetailItems(found);
+ if(supabaseERP){
    try{
-     let q=supabaseERP.from('order_items').select('*');
-     if(source.dbId)q=q.eq('order_id',source.dbId);
-     else q=q.eq('order_no',source.no);
+     let dq=supabaseERP.from('orders').select('*');if(source.dbId)dq=dq.eq('id',source.dbId);else dq=dq.eq('order_no',source.no);
+     const dr=await dq.limit(1).maybeSingle();
+     if(!dr.error&&dr.data){const d=dr.data;source={...source,deliveryMethod:firstValue(d,['delivery_method'],source.deliveryMethod||''),deliveryCarrier:firstValue(d,['delivery_carrier'],source.deliveryCarrier||''),deliveryAddress:firstValue(d,['delivery_address'],source.deliveryAddress||''),deliveryAddressName:firstValue(d,['delivery_address_name'],source.deliveryAddressName||''),deliveryContactName:firstValue(d,['delivery_contact_name'],source.deliveryContactName||''),deliveryContactPhone:firstValue(d,['delivery_contact_phone'],source.deliveryContactPhone||''),deliveryRequest:firstValue(d,['delivery_request'],source.deliveryRequest||''),clientMemo:firstValue(d,['client_memo'],source.clientMemo||'')};}
+   }catch(e){console.warn('거래처 배송 정보 조회 실패:',e);}
+   try{
+     let q=supabaseERP.from('order_items').select('*');if(source.dbId)q=q.eq('order_id',source.dbId);else q=q.eq('order_no',source.no);
      const {data,error}=await q;
      if(!error&&Array.isArray(data)&&data.length){
-       details=data.map(r=>({
-         rowId:firstValue(r,['id','order_item_id'],''),itemStatus:firstValue(r,['item_status','status'],''),expectedShipDate:firstValue(r,['expected_ship_date'],''),
-         name:firstValue(r,['product_name','name','item_name'],products.find(p=>String(p.id)===String(firstValue(r,['product_id','product'],'')))?.name||'-'),
-         spec:firstValue(r,['spec','product_spec'],products.find(p=>String(p.id)===String(firstValue(r,['product_id','product'],'')))?.spec||''),
-         qty:Number(firstValue(r,['quantity','qty'],0))||0,
-         amount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
-         boxType:firstValue(r,['box_type'],'기본 박스'),boxStamp:firstValue(r,['box_stamp'],''),
-         palletType:firstValue(r,['pallet_type'],'나무'),coreType:firstValue(r,['core_type'],'공용지관')
-       }));
+       const fresh=data.map(r=>({rowId:firstValue(r,['id','order_item_id'],''),itemStatus:firstValue(r,['item_status','status'],''),expectedShipDate:firstValue(r,['expected_ship_date'],''),name:firstValue(r,['product_name','name','item_name'],products.find(p=>String(p.id)===String(firstValue(r,['product_id','product'],'')))?.name||'-'),spec:firstValue(r,['spec','product_spec'],''),qty:Number(firstValue(r,['quantity','qty'],0))||0,unit:Number(firstValue(r,['unit_price','price'],0))||0,amount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,supplyAmount:Number(firstValue(r,['supply_amount'],firstValue(r,['total_price','total_amount','amount'],0)))||0,vatAmount:Number(firstValue(r,['vat_amount'],0))||0,totalAmount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,boxType:firstValue(r,['box_type'],'기본 박스'),boxStamp:firstValue(r,['box_stamp'],''),palletType:firstValue(r,['pallet_type'],'나무'),coreType:firstValue(r,['core_type'],'공용지관'),packagingOptionName:firstValue(r,['packaging_option_name'],'')}));
+       // 상세 화면은 서버의 개별 품목 데이터를 기준으로 표시해 출고예정일 최신값을 반영합니다.
+       details=fresh;
      }else if(error)console.warn('거래처 주문 상세 품목 조회 실패:',error);
-   }catch(e){console.warn('거래처 주문 상세 조회 중 오류:',e)}
+   }catch(e){console.warn('거래처 주문 상세 조회 중 오류:',e);}
  }
- const history=await loadOrderStatusHistoryV121(source);
- const historyHtml=renderOrderStatusHistoryV121(history);
- const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
- const rows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}${it.packagingOptionName?` · ${escapeHtmlV8(it.packagingOptionName)}`:''}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount||0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td>${escapeHtmlV8(it.boxStamp||'없음')}</td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td><td>${orderStatusBadgeV54(it.itemStatus||source.status||'접수 완료')}</td><td>${escapeHtmlV8(it.expectedShipDate||'미정')}</td></tr>`).join('');
+ const history=await loadOrderStatusHistoryV121(source),historyHtml=renderOrderStatusHistoryV121(history);
+ const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,supplyAmount:source.amount||0,vatAmount:0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관',expectedShipDate:''}];
+ const detailSupplyTotal=finalDetails.reduce((a,it)=>a+Number(it.supplyAmount??it.amount??0),0),detailVatTotal=finalDetails.reduce((a,it)=>a+Number(it.vatAmount||0),0);
+ const rows=finalDetails.map(it=>`<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}${it.packagingOptionName?` · ${escapeHtmlV8(it.packagingOptionName)}`:''}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.amount??it.totalAmount??0))}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td><td>${orderStatusBadgeV54(it.itemStatus||source.status||'접수 완료')}</td><td>${escapeHtmlV8(it.expectedShipDate?String(it.expectedShipDate).slice(0,10):'미정')}</td></tr>`).join('');
  document.getElementById('modalTitle').textContent='발주 상세';
  document.getElementById('modalBody').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','client')">발주서 PDF 다운로드</button> ${(['접수 완료','접수완료'].includes(String(source.status||'').trim()))?`<button type="button" class="btn light" style="color:#b91c1c;border-color:#fecaca" onclick="cancelMyOrderV119('${escapeHtmlV8(source.no)}')">발주 취소</button>`:''}</div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">공급가액</div><div>${won(detailSupplyTotal)}</div><div class="key">부가세</div><div>${won(detailVatTotal)}</div><div class="key">총 주문금액</div><div><b>${won(Number(source.amount||detailSupplyTotal+detailVatTotal))}</b></div><div class="key">진행 상태</div><div>${badge(source.status||'접수 완료')}</div></div><div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>금액</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th><th>진행 상태</th><th>출고 예정일</th></tr></thead><tbody>${rows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}<div style="margin-top:15px"><label style="font-size:11px;font-weight:700">요청 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'요청 메모가 없습니다.')}</div></div>${historyHtml}`;
- const save=document.getElementById('modalSave');if(save){save.style.display='none';save.onclick=null}
+ const save=document.getElementById('modalSave');if(save){save.style.display='none';save.onclick=null;}
  const cancel=document.getElementById('modalCancel');if(cancel)cancel.textContent='확인';
  document.getElementById('modalBg').classList.add('show');
 }
@@ -3229,7 +3234,7 @@ function renderAdminOrders(){
     <td>${orderStatusBadgeV54(status)}</td>
     <td><b>${escapeHtmlV8(it.name||'-')}</b></td><td>${escapeHtmlV8(spec)}</td><td>${qty.toLocaleString()}박스</td>
     <td>${escapeHtmlV8(it.packagingOptionName||it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${won(amount)}</td>
-    <td><input class="v149-expected-date" type="date" aria-label="출고예정일" value="${escapeHtmlV8(String(it.expectedShipDate||'').slice(0,10))}" onchange="setItemExpectedShipDateV148('${escapeHtmlV8(key)}',this.value)"></td>
+    <td class="v151-expected-cell"><div class="v151-expected-editor"><input id="v151ShipDate_${escapeHtmlV8(key)}" class="v149-expected-date" type="date" aria-label="출고예정일" value="${escapeHtmlV8(String(it.expectedShipDate||'').slice(0,10))}"><button type="button" class="small-btn v151-date-save" onclick="saveItemExpectedShipDateV151('${escapeHtmlV8(key)}','v151ShipDate_${escapeHtmlV8(key)}')">저장</button></div></td>
     <td class="v149-issued-date">${formatWorkIssuedDateV149(it.workIssuedAt)}</td>
     ${first?`<td rowspan="${count}" style="vertical-align:middle;text-align:center;background:#fafcff;white-space:nowrap"><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">주문 상세</button></td>`:''}
    </tr>`);
@@ -3256,6 +3261,16 @@ async function setItemExpectedShipDateV148(key,value){
  if(error||!data){alert('출고예정일을 저장하지 못했습니다. 먼저 Supabase SQL을 적용했는지 확인해 주세요.\n'+(error?.message||''));renderAdminOrders();return}
  ref.it.expectedShipDate=value||'';
  const result=document.getElementById('orderResultV6');if(result)result.textContent='출고예정일이 저장되었습니다.';
+}
+
+async function saveItemExpectedShipDateV151(key,inputId){
+ const input=document.getElementById(inputId);if(!input)return;
+ const value=input.value;
+ if(!value){alert('출고예정일을 선택해 주세요.');input.focus();return;}
+ if(!confirm(`출고예정일을 ${value}로 저장하시겠습니까?`))return;
+ await setItemExpectedShipDateV148(key,value);
+ const ref=(()=>{let found=null;orders.forEach(o=>(o.items||[]).forEach((it,i)=>{if(getWJOrderItemKeyV148(o,it,i)===key)found=it}));return found})();
+ if(ref&&String(ref.expectedShipDate||'').slice(0,10)===value){input.dataset.savedValue=value;renderClientOrders();}
 }
 
 async function issueWorkInstructionV148(keys){
@@ -4238,7 +4253,19 @@ function generateOrderPDF(no, audience='client'){
   w.document.open();
   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>발주서_${escapeHtmlV8(order.no)}</title><style>
   @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}html{background:#eef2f7}body{margin:0;color:#172033;font-family:'Malgun Gothic','Apple SD Gothic Neo',Arial,sans-serif;font-size:10pt;line-height:1.55;background:#eef2f7}.document-sheet{width:calc(100% - 48px);max-width:980px;min-height:calc(100vh - 82px);margin:24px auto 32px;padding:30px 38px;background:#fff;box-shadow:0 4px 22px rgba(15,23,42,.10);border:1px solid #e2e8f0}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #173b67;padding-bottom:14px;margin-bottom:18px}.brand{font-size:12pt;font-weight:800;letter-spacing:1.4px;color:#173b67}.doc-title{text-align:center;font-size:25pt;font-weight:800;letter-spacing:8px;margin:20px 0 22px;color:#142b46}.doc-no{font-size:9pt;color:#526176;text-align:right}.info{width:100%;border-collapse:collapse;margin:0 0 18px}.info th,.info td{border:1px solid #cbd5e1;padding:8px 10px;text-align:left}.info th{width:19%;background:#f1f5f9;font-weight:700}.items{width:100%;border-collapse:collapse;margin-top:8px;font-size:8pt;table-layout:fixed}.items th{background:#173b67;color:white;font-weight:700;padding:8px 5px;border:1px solid #173b67}.items td{padding:8px 6px;border:1px solid #cbd5e1}.items small{display:block;color:#64748b;font-size:8pt;margin-top:2px}.center{text-align:center}.right{text-align:right;white-space:nowrap}.total{margin:14px 0 18px;display:flex;justify-content:flex-end}.total table{width:48%;border-collapse:collapse}.total th,.total td{padding:10px;border:1px solid #cbd5e1}.total th{background:#f1f5f9;text-align:left}.total td{text-align:right;font-weight:800;font-size:13pt}.memo{border:1px solid #cbd5e1;min-height:62px;padding:10px;white-space:pre-wrap}.memo-title{font-weight:800;margin:12px 0 5px}.footer{margin-top:30px;border-top:1px solid #cbd5e1;padding-top:12px;display:flex;justify-content:space-between;color:#64748b;font-size:8.5pt}.sign{margin-top:28px;display:flex;justify-content:flex-end;gap:24px}.sign span{display:inline-block;min-width:95px;border-bottom:1px solid #94a3b8;padding:0 4px 6px}.actions{position:sticky;top:0;padding:10px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;justify-content:center;gap:8px}.actions button{border:0;border-radius:7px;padding:10px 18px;background:#173b67;color:white;font-weight:700;cursor:pointer}.actions button.secondary{background:#e2e8f0;color:#172033}@media(max-width:700px){.document-sheet{width:calc(100% - 24px);padding:22px 18px;margin:12px auto 20px}}@media print{html,body{background:#fff}.document-sheet{width:auto;max-width:none;min-height:0;margin:0;padding:0;border:0;box-shadow:none}.actions{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-  </style></head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:10%">단가</th><th style="width:12%">공급가액</th><th style="width:10%">부가세</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>공급가액 합계</th><td>${supplyTotal.toLocaleString()}원</td></tr><tr><th>부가세 (10%)</th><td>${vatTotal.toLocaleString()}원</td></tr><tr><th>총 합계</th><td>${(supplyTotal+vatTotal).toLocaleString()}원</td></tr></table></div><div class="memo-title">배송 정보</div><div class="memo">배송 방법: ${escapeHtmlV8(order.deliveryMethod||'-')}\n택배사 / 업체: ${escapeHtmlV8(order.deliveryCarrier||'-')}\n배송지: ${escapeHtmlV8(order.deliveryAddressName||'')} ${escapeHtmlV8(order.deliveryAddress||'-')}\n담당자: ${escapeHtmlV8(order.deliveryContactName||'-')} / ${escapeHtmlV8(order.deliveryContactPhone||'-')}\n추가 요청: ${escapeHtmlV8(order.deliveryRequest||'없음')}</div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
+  </style>
+<style id="v151-client-order-layout-and-date-save">
+#orders #clientOrderRows td.v151-client-order-group{vertical-align:middle;background:#fafcff;font-weight:700;white-space:nowrap;border-bottom:1px solid #dbe5f0}
+#orders #clientOrderRows td.v151-client-order-actions{vertical-align:middle;text-align:center;min-width:150px;background:#fafcff}
+#orders #clientOrderRows .v151-client-spec{font-size:11px;color:#64748b;margin-top:3px;white-space:normal}
+#orders #clientOrderRows td{vertical-align:middle}
+#adminOrders .v151-expected-editor{display:flex;align-items:center;gap:5px;min-width:175px}
+#adminOrders .v151-expected-editor input{min-width:0;width:126px;height:32px;box-sizing:border-box}
+#adminOrders .v151-date-save{height:32px;padding:0 9px;white-space:nowrap}
+#adminOrders .v151-expected-cell{min-width:185px}
+@media(max-width:850px){#orders .table-wrap{overflow-x:auto}#orders #clientOrderRows td.v151-client-order-actions{min-width:130px}}
+</style>
+</head><body><div class="actions"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button class="secondary" onclick="window.close()">닫기</button></div><main class="document-sheet"><header><div><div class="brand">WONJUN TAPE</div><div>원준테이프 · 발주 확인 문서</div></div><div class="doc-no">발주번호 <strong>${escapeHtmlV8(order.no)}</strong><br>발주일 ${escapeHtmlV8(date)}</div></header><div class="doc-title">발 주 서</div><table class="info"><tr><th>발주처(거래처)</th><td>${escapeHtmlV8(client?.name||order.client||'-')}</td><th>발주번호</th><td>${escapeHtmlV8(order.no)}</td></tr><tr><th>접수일</th><td>${escapeHtmlV8(date)}</td><th>진행 상태</th><td>${escapeHtmlV8(order.status||'접수 완료')}</td></tr><tr><th>공급처</th><td colspan="3">주식회사 원준커머스 (원준테이프)</td></tr></table><div style="font-weight:800;margin:0 0 5px">발주 품목 내역</div><table class="items"><thead><tr><th style="width:5%">No.</th><th style="width:24%">품명 / 규격</th><th style="width:9%">수량(박스)</th><th style="width:10%">단가</th><th style="width:12%">공급가액</th><th style="width:10%">부가세</th><th style="width:12%">박스 종류</th><th style="width:12%">도장 표기</th><th style="width:12%">파렛트</th><th style="width:12%">지관</th></tr></thead><tbody>${rows}</tbody></table><div class="total"><table><tr><th>공급가액 합계</th><td>${supplyTotal.toLocaleString()}원</td></tr><tr><th>부가세 (10%)</th><td>${vatTotal.toLocaleString()}원</td></tr><tr><th>총 합계</th><td>${(supplyTotal+vatTotal).toLocaleString()}원</td></tr></table></div><div class="memo-title">배송 정보</div><div class="memo">배송 방법: ${escapeHtmlV8(order.deliveryMethod||'-')}\n택배사 / 업체: ${escapeHtmlV8(order.deliveryCarrier||'-')}\n배송지: ${escapeHtmlV8(order.deliveryAddressName||'')} ${escapeHtmlV8(order.deliveryAddress||'-')}\n담당자: ${escapeHtmlV8(order.deliveryContactName||'-')} / ${escapeHtmlV8(order.deliveryContactPhone||'-')}\n추가 요청: ${escapeHtmlV8(order.deliveryRequest||'없음')}</div><div class="memo-title">납품 요청사항 / 발주 메모</div><div class="memo">${escapeHtmlV8(memo||'별도 요청사항 없음')}</div><div class="sign"><span>발주 확인</span><span>담당자</span></div><div class="footer"><span>본 발주서는 원준테이프 ERP 주문 정보를 기준으로 자동 생성되었습니다.</span><span>${escapeHtmlV8(order.no)}</span></div></main></body></html>`);
   w.document.close();
 }
 
@@ -4746,6 +4773,7 @@ async function applyProductStatusV89(){const choice=document.querySelector('inpu
 document.addEventListener('DOMContentLoaded',()=>{for(const root of [document.body,document.getElementById('loginScreen')].filter(Boolean)){for(const node of [...root.childNodes]){if(node.nodeType===Node.TEXT_NODE&&/^\\n+$/.test(node.textContent.trim()))node.remove();}}});
 </script>
 
+<!-- V151: client order item rows, expected ship date visibility, detail modal fix, explicit date save -->
 </body>
 </html>
 
