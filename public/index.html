@@ -3306,22 +3306,25 @@ async function saveItemExpectedShipDateV153(){
 }
 
 async function issueWorkInstructionV148(keys){
+ // V154: 취소 주문은 별도 확인 후 발행하며, 발행 성공 시 품목 상태를 생산 중으로 저장합니다.
  const keySet=new Set(keys||[]),refs=[];orders.forEach(o=>(o.items||[]).forEach((it,i)=>{const key=getWJOrderItemKeyV148(o,it,i);if(keySet.has(key))refs.push({o,it,index:i,key})}));
  if(!refs.length){alert('작업지시서를 발행할 품목을 선택해 주세요.');return}
  if(refs.some(x=>!x.it.rowId)){alert('선택한 품목 중 개별 저장 ID가 없는 항목이 있습니다. Supabase order_items 데이터를 먼저 확인해야 합니다.');return}
+ const cancelled=refs.filter(x=>['취소','주문 취소','취소됨'].includes(String(x.it.itemStatus||x.it.status||x.o.status||'').trim()));
+ if(cancelled.length&&!confirm(`주의: 선택한 품목 중 ${cancelled.length}개가 취소된 주문입니다.\n취소된 주문의 작업지시서를 발행하면 해당 품목 상태가 '생산 중'으로 변경됩니다.\n그래도 발행하시겠습니까?`))return;
  const reprints=refs.filter(x=>Number(x.it.workPrintCount||0)>0);
  if(reprints.length&&!confirm(`선택한 ${refs.length}개 품목 중 ${reprints.length}개는 이미 작업지시서가 발행되었습니다. 재발행 이력을 남기고 다시 출력하시겠습니까?`))return;
- if(!reprints.length&&!confirm(`선택한 ${refs.length}개 품목의 작업지시서를 발행 처리하고 인쇄 화면을 여시겠습니까?`))return;
+ if(!reprints.length&&!confirm(`선택한 ${refs.length}개 품목의 작업지시서를 발행 처리하고 상태를 '생산 중'으로 변경하시겠습니까?`))return;
  const printWindow=window.open('','_blank');if(!printWindow){alert('팝업이 차단되었습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.');return}
  try{
    // 발행 이력은 브라우저가 아니라 Supabase에 저장합니다. SQL의 로그 테이블/컬럼이 먼저 필요합니다.
    for(const ref of refs){
      const count=Number(ref.it.workPrintCount||0)+1,now=new Date().toISOString();
-     const upd=await supabaseERP.from('order_items').update({work_instruction_issued_at:ref.it.workIssuedAt||now,work_instruction_issued_by:currentUser||'admin',work_instruction_print_count:count}).eq('id',ref.it.rowId).select('*').maybeSingle();
+     const upd=await supabaseERP.from('order_items').update({item_status:'생산 중',work_instruction_issued_at:ref.it.workIssuedAt||now,work_instruction_issued_by:currentUser||'admin',work_instruction_print_count:count}).eq('id',ref.it.rowId).select('*').maybeSingle();
      if(upd.error||!upd.data)throw upd.error||new Error('발행 정보를 저장하지 못했습니다.');
      const log=await supabaseERP.from('work_instruction_print_logs').insert({order_item_id:String(ref.it.rowId),order_no:String(ref.o.no),action:count===1?'발행':'재발행',issued_by:String(currentUser||'admin')});
      if(log.error)throw log.error;
-     ref.it.workIssuedAt=ref.it.workIssuedAt||now;ref.it.workIssuedBy=currentUser||'admin';ref.it.workPrintCount=count;
+     ref.it.itemStatus='생산 중';ref.it.status='생산 중';ref.it.workIssuedAt=ref.it.workIssuedAt||now;ref.it.workIssuedBy=currentUser||'admin';ref.it.workPrintCount=count;
    }
    const esc=escapeHtmlV8;
    const grouped=new Map();refs.forEach(x=>{const k=String(x.o.no);if(!grouped.has(k))grouped.set(k,x.o)});
