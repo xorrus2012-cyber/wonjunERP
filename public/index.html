@@ -786,6 +786,12 @@ html,body{overflow-x:hidden}
 #v153ShipDateDialog .v152-date-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:14px}
 #v153ShipDateDialog .v152-date-actions .primary{background:#2563eb;color:#fff;border-color:#2563eb}
 </style>
+<style id="v155-work-instruction-admin-styles">
+#modalBg .wj-product-work-box-v155{grid-column:1/-1!important}
+#modalBg .wj-product-work-box-v155 input[type="text"],#modalBg .wj-product-work-box-v155 input:not([type]){width:100%;box-sizing:border-box}
+#adminWorkSettingsV155 .card{overflow:visible}
+@media(max-width:620px){#adminWorkSettingsV155 .form-grid{grid-template-columns:1fr!important}}
+</style>
 </head>
 <body>
 <div id="v153ShipDateOverlay" hidden onclick="if(event.target===this)closeShipDatePickerV153()">
@@ -836,6 +842,7 @@ html,body{overflow-x:hidden}
       <button class="nav" data-page="adminQuotesV130" onclick="go('adminQuotesV130',this)">₩ &nbsp; 견적 요청 관리 <span id="v130QuoteNavCount"></span></button>
       <button class="nav" data-page="adminClients" onclick="go('adminClients',this)">▤ &nbsp; 거래처 관리</button>
       <button class="nav" data-page="adminProducts" onclick="go('adminProducts',this)">▥ &nbsp; 제품 관리</button>
+      <button class="nav" data-page="adminWorkSettingsV155" onclick="go('adminWorkSettingsV155',this)">▧ &nbsp; 작업지시서 설정</button>
       <button class="nav" data-page="adminPrices" onclick="go('adminPrices',this)">₩ &nbsp; 단가 관리</button>
       <button class="nav" data-page="adminNotices" onclick="go('adminNotices',this)">● &nbsp; 공지사항 관리</button>
       <button class="nav" data-page="adminStats" onclick="go('adminStats',this)">◔ &nbsp; 매출/통계</button>
@@ -1118,6 +1125,21 @@ html,body{overflow-x:hidden}
           <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="window.wjAdminProductPageV91=1;renderAdminProducts()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetAdminProductFiltersV87()">초기화</button></div>
         </div></div>
         <div class="bulk-v6 product-status-toolbar-v90"><button type="button" class="small-btn" onclick="openBulkProductStatusV89()">상태 변경</button><span id="adminProductSelectionCountV89" class="result-v6">0개 선택</span></div><div class="card table-wrap"><table><thead><tr><th class="order-head-check"><input id="adminProductSelectAllV89" class="product-check-v89" type="checkbox" aria-label="현재 검색 결과 전체 선택" title="현재 검색 결과 전체 선택" onchange="toggleAllAdminProductsV89(this.checked)"></th><th>제품코드</th><th>분류</th><th>제품명</th><th>규격</th><th>기본 단가</th><th>판매 상태</th><th>관리</th></tr></thead><tbody id="adminProductRows"></tbody></table></div><div id="adminProductPaginationV91" aria-label="제품 목록 페이지 이동"></div>
+      </section>
+
+      <!-- V155: 작업지시서 전용 관리자 설정 -->
+      <section id="adminWorkSettingsV155" class="page">
+        <div class="page-head"><div><h2>작업지시서 설정</h2><p>현장 작업에 필요한 색상 팔레트를 관리합니다. 거래처 화면에는 노출되지 않습니다.</p></div></div>
+        <div class="card pad" style="max-width:900px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px"><div><h3 style="margin:0">색상 팔레트</h3><p style="margin:5px 0 0;color:#64748b;font-size:12px">색상값을 지정하지 않으면 일반 표기, 색상값을 지정하면 작업지시서의 해당 색상 칸에 색이 표시됩니다.</p></div><span id="wjColorPaletteCountV155" class="result-v6">0개</span></div>
+          <div class="form-grid" style="grid-template-columns:1.2fr 1fr auto;align-items:end;gap:10px">
+            <div class="field"><label for="wjNewColorNameV155">색상 이름</label><input id="wjNewColorNameV155" placeholder="예: 투명, 황색, 파란색"></div>
+            <div class="field"><label for="wjNewColorValueV155">색상값 (선택)</label><div style="display:flex;align-items:center;gap:8px"><input id="wjNewColorValueV155" type="color" value="#E8E8E8" style="width:58px;height:38px;padding:2px"><label style="display:flex;align-items:center;gap:5px;font-size:12px;margin:0"><input id="wjNewColorUseValueV155" type="checkbox"> 색상값 사용</label></div></div>
+            <button type="button" class="btn primary" onclick="addWJColorPaletteV155()">색상 추가</button>
+          </div>
+          <div id="wjColorPaletteRowsV155" style="margin-top:18px"></div>
+        </div>
+        <div class="card pad" style="max-width:900px;margin-top:14px"><h3 style="margin:0 0 8px">제품별 작업지시서 정보</h3><p style="margin:0;color:#64748b;font-size:12px;line-height:1.7">제품 관리 → 제품 수정에서 원단, 색상, 기본 생산용 이미지를 설정할 수 있습니다. 폭·도장·포장단위·지관·박스 종류·파렛트 등 거래처가 주문할 때 선택한 항목은 주문 정보에서 자동으로 가져옵니다.</p></div>
       </section>
 
       <!-- ADMIN PRICES -->
@@ -2582,7 +2604,7 @@ function go(page,btn){
  document.getElementById(page)?.classList.add('active');
  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
  if(btn)btn.classList.add('active');
- const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminQuotesV130:'견적 요청 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminPrices:'단가 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
+ const titles={home:'대시보드',products:'제품 주문',orders:'발주/주문 현황',notices:'공지사항',account:'거래처 정보',adminDash:'통합 대시보드',adminOrders:'주문/수주 관리',adminQuotesV130:'견적 요청 관리',adminClients:'거래처 관리',adminProducts:'제품 관리',adminWorkSettingsV155:'작업지시서 설정',adminPrices:'단가 관리',adminStats:'매출/통계',adminNotices:'공지사항 관리',adminClientDetail:'거래처 상세'};
  document.getElementById('pageTitle').textContent=titles[page]||'WONJUN B2B';
  if(page==='adminStats'){renderAdminStats();if(supabaseERP&&supabaseSyncReady)loadOrdersFromSupabase().then(renderAdminStats).catch(e=>console.error('월별 통계 주문 조회 실패:',e));}
  if(page==='products'){
@@ -2600,6 +2622,7 @@ function go(page,btn){
    }else renderAdminProducts();
  }
  if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
+ if(page==='adminWorkSettingsV155'){loadWJWorkInstructionSettingsV155().then(renderWJColorPaletteV155).catch(e=>{console.error(e);alert('작업지시서 설정을 불러오지 못했습니다. SQL 적용 여부를 확인해 주세요.\n'+(e.message||e))});}
 }
 function price(p){
  if(!p) return 0;
@@ -3327,14 +3350,44 @@ async function issueWorkInstructionV148(keys){
      ref.it.itemStatus='생산 중';ref.it.status='생산 중';ref.it.workIssuedAt=ref.it.workIssuedAt||now;ref.it.workIssuedBy=currentUser||'admin';ref.it.workPrintCount=count;
    }
    const esc=escapeHtmlV8;
-   const grouped=new Map();refs.forEach(x=>{const k=String(x.o.no);if(!grouped.has(k))grouped.set(k,x.o)});
-   const orderMeta=[...grouped.values()].map(o=>`<tr><th>발주번호</th><td>${esc(o.no)}</td><th>거래처</th><td>${esc(o.client||'-')}</td><th>접수일</th><td class="receipt-date">${esc(formatOrderDateTime(o))}</td></tr>`).join('');
-   const itemRows=refs.map((x,i)=>{const it=x.it;return `<tr><td>${i+1}</td><td><b>${esc(it.name||'-')}</b><br><small>${esc(it.productCode||'-')}</small></td><td>${esc(it.spec||'-')}<br><small>실길이 ${esc(it.actualLength||'-')}m</small></td><td><b>${Number(it.qty||0).toLocaleString()}</b> 박스</td><td>${esc(it.packagingOptionName||it.boxType||'기본 박스')}</td><td>${esc(it.boxStamp||'없음')}</td><td>${esc(it.palletType||'나무')}</td><td>${esc(it.coreType||'공용지관')}</td><td>${esc(it.expectedShipDate||'미정')}</td></tr>`}).join('');
-   const notes=[...grouped.values()].map(o=>`[${esc(o.no)} / ${esc(o.client||'-')}] 거래처 요청: ${esc(o.clientMemo||'없음')}\n관리자 메모: ${esc(o.adminMemo||'없음')}\n배송 요청: ${esc(o.deliveryRequest||'없음')}`).join('\n\n');
-   const pages=`<section class="sheet"><header><div><strong>WONJUN TAPE</strong><div>원준테이프 생산 작업지시서</div></div><div class="no">작업지시 품목 <b>${refs.length}개</b><br>발행일 ${new Date().toLocaleString('ko-KR')}</div></header><h1>작 업 지 시 서</h1><table class="meta">${orderMeta}</table><h3>생산 품목 및 작업 사양</h3><table class="items"><thead><tr><th>No.</th><th>품명 / 제품코드</th><th>규격 / 실길이</th><th>수량</th><th>포장 / 박스</th><th>도장 표기</th><th>파렛트</th><th>지관</th><th>출고 예정일</th></tr></thead><tbody>${itemRows}</tbody></table><h3>발주 요청 및 작업 메모</h3><div class="memo">${notes}</div><div class="check-title">작업 확인 체크리스트 (각 공정 확인 후 체크)</div><div class="check"><span>□ 원자재 규격 확인</span><span>□ 인쇄·도장 확인</span><span>□ 포장 확인</span><span>□ 수량 확인</span><span>□ 최종 검수</span></div><footer>선택 품목별 발행 이력이 저장되었습니다. 이미 발행된 품목은 재발행 확인을 거쳐 이력이 추가됩니다.</footer></section>`;
+   const productIds=[...new Set(refs.map(x=>String(x.it.productId||'')).filter(Boolean))];
+   const itemIds=refs.map(x=>String(x.it.rowId||'')).filter(Boolean);
+   const [productSettingsResult,paletteResult,orderSettingsResult]=await Promise.all([
+     productIds.length?supabaseERP.from('work_instruction_product_settings').select('*').in('product_id',productIds):Promise.resolve({data:[],error:null}),
+     supabaseERP.from('work_instruction_color_palette').select('*').order('sort_order',{ascending:true}),
+     itemIds.length?supabaseERP.from('work_instruction_order_item_settings').select('*').in('order_item_id',itemIds):Promise.resolve({data:[],error:null})
+   ]);
+   if(productSettingsResult.error)throw productSettingsResult.error;
+   if(paletteResult.error)throw paletteResult.error;
+   if(orderSettingsResult.error)throw orderSettingsResult.error;
+   const productSettings=new Map((productSettingsResult.data||[]).map(x=>[String(x.product_id),x]));
+   const paletteById=new Map((paletteResult.data||[]).map(x=>[String(x.id),x]));
+   const orderImageSettings=new Map((orderSettingsResult.data||[]).map(x=>[String(x.order_item_id),x]));
+   const colorHtml=(it,ps)=>{
+     const ids=Array.isArray(ps?.color_palette_ids)?ps.color_palette_ids.map(String):[];
+     let colors=ids.map(id=>paletteById.get(id)).filter(Boolean);
+     const itemColor=String(it.colorName||it.color_name||it.color||it.printColor||it.print_color||'').trim();
+     if(itemColor){const names=itemColor.split(/[;,/]/).map(x=>x.trim()).filter(Boolean);const matched=(paletteResult.data||[]).filter(c=>names.some(n=>n.toLowerCase()===String(c.name||'').toLowerCase()));colors=matched.length?matched:names.map(name=>({name,color_value:null}));}
+     if(!colors.length)return '-';
+     return colors.map(c=>c.color_value?`<span class="color-chip" style="background:${esc(c.color_value)}">${esc(c.name)}</span>`:`<span class="color-text">${esc(c.name)}</span>`).join(' ');
+   };
+   const rows=[];const imageRows=[];
+   for(let i=0;i<refs.length;i++){
+     const x=refs[i],it=x.it,ps=productSettings.get(String(it.productId||''))||{};
+     const orderImage=orderImageSettings.get(String(it.rowId||''));
+     const imagePath=orderImage?.production_image_path||ps.default_image_path||'';
+     const imageUrl=imagePath?await getWJPrivateImageUrlV155(imagePath):'';
+     const width=String(it.width||it.productWidth||parseWJProductSpec(it.spec||'').width||'').trim();
+     const realLength=String(it.actualLength||products.find(p=>String(p.id)===String(it.productId))?.actualLength||'').trim();
+     const packaging=it.packagingOptionName||it.packagingUnit||it.boxType||'';
+     const note=[it.memo||it.itemMemo||'',x.o.clientMemo||'',x.o.adminMemo||'',x.o.deliveryRequest||''].map(v=>String(v||'').trim()).filter(Boolean).join(' / ');
+     rows.push(`<tr><td>${i+1}</td><td>${esc(x.o.client||'-')}</td><td>${esc(formatOrderDateTime(x.o))}</td><td>${esc(ps.raw_material||'-')}</td><td>${colorHtml(it,ps)}</td><td>${width?esc(width)+'mm':'-'}</td><td>${realLength?esc(realLength)+'m':'-'}</td><td>${esc(it.boxStamp||it.stamp||'')}</td><td>${esc(packaging||'')}</td><td><b>${Number(it.qty||0).toLocaleString()} 박스</b></td><td>${esc(it.coreType||it.core_type||'공용지관')}</td><td>${esc(it.boxType||'기본 박스')}</td><td>${esc(it.palletType||'나무')}</td><td>${esc(note||'')}</td></tr>`);
+     if(imageUrl)imageRows.push(`<div class="production-image"><div class="image-label">NO. ${i+1} · ${esc(x.o.client||'')} · ${esc(formatOrderDateTime(x.o))}</div><img src="${imageUrl}" alt="생산용 이미지"></div>`);
+   }
+   const itemRows=rows.join('');
+   const pages=`<section class="sheet"><header><div><strong>WONJUN TAPE</strong><div>WORK INSTRUCTION</div></div><div class="no">ITEMS <b>${refs.length}</b><br>ISSUED ${new Date().toLocaleDateString('ko-KR')}</div></header><h1>작 업 지 시 서</h1><table class="items"><thead><tr><th>NO.</th><th>거래처</th><th>접수일</th><th>원단</th><th>색상</th><th>폭</th><th>실길이</th><th>도장</th><th>포장단위</th><th>수량</th><th>지관</th><th>박스종류</th><th>파렛트</th><th>비고</th></tr></thead><tbody>${itemRows}</tbody></table>${imageRows.length?`<h3>PRODUCTION IMAGE</h3><div class="image-grid">${imageRows.join('')}</div>`:''}<div class="check-title">CHECK</div><div class="check"><span>□ 원자재 확인</span><span>□ 인쇄·도장 확인</span><span>□ 포장 확인</span><span>□ 수량 확인</span><span>□ 최종검수</span></div></section>`;
    const w=printWindow;
-   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>원준테이프 작업지시서</title><style>@page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,'Malgun Gothic',sans-serif;color:#111;margin:0}.sheet{min-height:270mm;page-break-after:always;padding:3mm}.sheet:last-child{page-break-after:auto}header{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:12px}header strong{font-size:20px}.no{text-align:right;font-size:11px;line-height:1.7}h1{text-align:center;letter-spacing:10px;font-size:25px;margin:22px 0}table{width:100%;border-collapse:collapse;font-size:12px}.meta th,.meta td{border:1px solid #555;padding:8px}.items th,.items td{border:1px solid #555;padding:6px;text-align:center;font-size:9px}.items th{background:#f1f5f9}.items small{font-size:9px;color:#555}.meta th{background:#f1f5f9;width:10%;text-align:center;white-space:nowrap}.meta td{width:20%}.meta td.receipt-date{width:30%;min-width:180px;white-space:nowrap}.meta th:nth-child(5){width:10%}h3{font-size:14px;margin:22px 0 8px}.memo{border:1px solid #555;min-height:70px;padding:12px;white-space:pre-wrap;font-size:12px;line-height:1.8}.check-title{font-size:12px;font-weight:700;margin-top:22px}.check{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px;padding:12px 8px;border:1px solid #555;font-size:12px}.check span{white-space:nowrap}footer{border-top:1px solid #999;margin-top:28px;padding-top:8px;text-align:right;font-size:10px;color:#555}.actions{position:sticky;top:0;background:#fff;padding:10px;text-align:right}.actions button{padding:9px 16px}@media print{.actions{display:none}.sheet{break-after:page}}</style></head><body><div class="actions"><button onclick="window.print()">PDF 저장 / 인쇄</button></div>${pages}<!-- V150: saved delivery address delete, courier dropdown-only, remove phantom print column, order-level detail button -->
-</body></html>`);w.document.close();
+   w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>원준테이프 작업지시서</title><style>@page{size:A4 landscape;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,'Malgun Gothic',sans-serif;color:#111;margin:0}.sheet{min-height:190mm;page-break-after:always;padding:2mm}.sheet:last-child{page-break-after:auto}header{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:7px}header strong{font-size:17px}.no{text-align:right;font-size:9px;line-height:1.5}h1{text-align:center;letter-spacing:7px;font-size:21px;margin:12px 0}table{width:100%;border-collapse:collapse;table-layout:fixed}.items th,.items td{border:1px solid #555;padding:5px 3px;text-align:center;font-size:8px;line-height:1.4;overflow-wrap:anywhere}.items th{background:#f1f5f9;font-weight:800}.items th:nth-child(1){width:3%}.items th:nth-child(2){width:8%}.items th:nth-child(3){width:8%}.items th:nth-child(4){width:8%}.items th:nth-child(5){width:9%}.items th:nth-child(6),.items th:nth-child(7){width:5%}.items th:nth-child(8){width:8%}.items th:nth-child(9){width:8%}.items th:nth-child(10){width:7%}.items th:nth-child(11),.items th:nth-child(12),.items th:nth-child(13){width:7%}.items th:nth-child(14){width:10%}.color-chip{display:inline-block;min-width:34px;padding:4px 5px;border:1px solid #777;border-radius:3px;color:#111;font-weight:700;print-color-adjust:exact;-webkit-print-color-adjust:exact}.color-text{display:inline-block;padding:3px 5px}.check-title{font-size:10px;font-weight:700;margin-top:13px}.check{display:flex;justify-content:space-around;gap:6px;flex-wrap:wrap;margin-top:6px;padding:8px;border:1px solid #555;font-size:9px}.check span{white-space:nowrap}h3{font-size:12px;margin:12px 0 6px}.image-grid{display:flex;flex-wrap:wrap;gap:10px}.production-image{width:31%;border:1px solid #555;padding:6px;break-inside:avoid}.production-image .image-label{font-size:9px;font-weight:700;margin-bottom:5px}.production-image img{display:block;max-width:100%;max-height:90mm;object-fit:contain;margin:auto}.actions{position:sticky;top:0;background:#fff;padding:10px;text-align:right}.actions button{padding:9px 16px}@media print{.actions{display:none}.sheet{break-after:page}.color-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="actions"><button onclick="window.print()">PDF 저장 / 인쇄</button></div>${pages}</body></html>`);w.document.close();
    window.wjSelectedOrderItemsV148.clear();renderAdminOrders();
  }catch(e){try{printWindow.close()}catch(_){}console.error('작업지시서 발행 처리 실패',e);alert('작업지시서 발행 정보를 저장하지 못했습니다. Supabase SQL 적용 여부와 관리자 권한을 확인해 주세요.\n'+(e?.message||''));}
 }
@@ -3676,10 +3729,103 @@ async function saveProductVisibilityV141(productId){
  if(ins.error)throw ins.error;
 }
 
+const WJ_WORK_BUCKET_V155='work-instruction-assets';
+let wjWorkColorPaletteV155=[];
+async function loadWJWorkInstructionSettingsV155(){
+ if(!supabaseERP)throw new Error('Supabase 연결이 확인되지 않습니다.');
+ const r=await supabaseERP.from('work_instruction_color_palette').select('*').order('sort_order',{ascending:true}).order('name',{ascending:true});
+ if(r.error)throw r.error;
+ wjWorkColorPaletteV155=r.data||[];
+ return wjWorkColorPaletteV155;
+}
+function renderWJColorPaletteV155(){
+ const root=document.getElementById('wjColorPaletteRowsV155');if(!root)return;
+ const rows=wjWorkColorPaletteV155.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e2e8f0"><div style="width:34px;height:30px;border:1px solid #cbd5e1;border-radius:6px;background:${c.color_value?escapeHtmlV8(c.color_value):'#fff'};flex:0 0 auto"></div><div style="flex:1;min-width:0"><b>${escapeHtmlV8(c.name||'')}</b><div style="font-size:11px;color:#64748b">${c.color_value?escapeHtmlV8(c.color_value):'색상값 없음 · 글자만 표시'}</div></div><button type="button" class="small-btn" onclick="editWJColorPaletteV155('${escapeHtmlV8(c.id)}')">수정</button><button type="button" class="small-btn" style="color:#b91c1c;border-color:#fecaca" onclick="deleteWJColorPaletteV155('${escapeHtmlV8(c.id)}')">삭제</button></div>`).join('');
+ root.innerHTML=rows||'<div style="padding:18px;text-align:center;color:#64748b;font-size:12px">등록된 색상이 없습니다. 위에서 색상을 추가해 주세요.</div>';
+ const count=document.getElementById('wjColorPaletteCountV155');if(count)count.textContent=wjWorkColorPaletteV155.length+'개';
+}
+async function addWJColorPaletteV155(){
+ const name=String(document.getElementById('wjNewColorNameV155')?.value||'').trim();if(!name){alert('색상 이름을 입력해 주세요.');return}
+ const use=!!document.getElementById('wjNewColorUseValueV155')?.checked;
+ const color=use?String(document.getElementById('wjNewColorValueV155')?.value||'').toUpperCase():null;
+ const r=await supabaseERP.from('work_instruction_color_palette').insert({name,color_value:color,sort_order:wjWorkColorPaletteV155.length}).select('*').single();
+ if(r.error){alert('색상 추가 실패: '+r.error.message);return}
+ document.getElementById('wjNewColorNameV155').value='';document.getElementById('wjNewColorUseValueV155').checked=false;
+ await loadWJWorkInstructionSettingsV155();renderWJColorPaletteV155();
+}
+async function editWJColorPaletteV155(id){
+ const c=wjWorkColorPaletteV155.find(x=>String(x.id)===String(id));if(!c)return;
+ const name=prompt('색상 이름',c.name||'');if(name===null)return;if(!name.trim()){alert('색상 이름을 입력해 주세요.');return}
+ const use=confirm('색상값을 지정하시겠습니까?\\n확인을 누르면 색상값을 입력하고, 취소를 누르면 글자만 표시합니다.');
+ let color=null;if(use){const val=prompt('HEX 색상값을 입력해 주세요. 예: #E8E8E8',c.color_value||'#E8E8E8');if(val===null)return;if(!/^#[0-9a-fA-F]{6}$/.test(val.trim())){alert('# 포함 6자리 색상값을 입력해 주세요.');return}color=val.trim().toUpperCase()}
+ const r=await supabaseERP.from('work_instruction_color_palette').update({name:name.trim(),color_value:color,updated_at:new Date().toISOString()}).eq('id',id);
+ if(r.error){alert('색상 수정 실패: '+r.error.message);return}await loadWJWorkInstructionSettingsV155();renderWJColorPaletteV155();
+}
+async function deleteWJColorPaletteV155(id){
+ const c=wjWorkColorPaletteV155.find(x=>String(x.id)===String(id));if(!c)return;
+ if(!confirm(`'${c.name}' 색상을 삭제하시겠습니까?\\n기존 제품 설정에서 이 색상은 더 이상 선택되지 않습니다.`))return;
+ const r=await supabaseERP.from('work_instruction_color_palette').delete().eq('id',id);if(r.error){alert('색상 삭제 실패: '+r.error.message);return}
+ await loadWJWorkInstructionSettingsV155();renderWJColorPaletteV155();
+}
+async function loadWJProductWorkSettingV155(productId){
+ if(!productId||!supabaseERP)return {raw_material:'',color_palette_ids:[],default_image_path:null};
+ const r=await supabaseERP.from('work_instruction_product_settings').select('*').eq('product_id',productId).maybeSingle();
+ if(r.error)throw r.error;
+ return r.data||{raw_material:'',color_palette_ids:[],default_image_path:null};
+}
+async function getWJPrivateImageUrlV155(path){
+ if(!path||!supabaseERP)return '';
+ const r=await supabaseERP.storage.from(WJ_WORK_BUCKET_V155).createSignedUrl(path,3600);
+ if(r.error){console.warn('작업 이미지 URL 생성 실패:',r.error);return ''}
+ return r.data?.signedUrl||'';
+}
+async function uploadWJWorkImageV155(file,folder){
+ if(!file)return null;
+ if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw new Error('PNG, JPG, WEBP, GIF 이미지 파일만 첨부할 수 있습니다.');
+ if(file.size>10*1024*1024)throw new Error('이미지는 10MB 이하로 첨부해 주세요.');
+ const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+ const uid=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);
+ const path=`${folder}/${uid}.${ext}`;
+ const r=await supabaseERP.storage.from(WJ_WORK_BUCKET_V155).upload(path,file,{upsert:false,contentType:file.type,cacheControl:'3600'});
+ if(r.error)throw r.error;return path;
+}
+function renderWJProductWorkFieldsV155(config,previewUrl){
+ const cfg=config||{},selected=new Set((cfg.color_palette_ids||[]).map(String));
+ const palette=wjWorkColorPaletteV155.map(c=>`<label style="display:inline-flex;align-items:center;gap:7px;border:1px solid #e2e8f0;border-radius:8px;padding:7px 9px;margin:0 6px 6px 0;font-size:12px;cursor:pointer"><input type="checkbox" class="wj-product-color-v155" value="${escapeHtmlV8(c.id)}" ${selected.has(String(c.id))?'checked':''}> <span style="width:16px;height:16px;border:1px solid #cbd5e1;border-radius:4px;background:${c.color_value?escapeHtmlV8(c.color_value):'#fff'}"></span>${escapeHtmlV8(c.name)}${c.color_value?'':' <small style="color:#94a3b8">(글자)</small>'}</label>`).join('');
+ return `<div class="field full wj-product-work-box-v155" style="border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;padding:13px;margin-top:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:13px">작업지시서 전용 정보</b><span style="font-size:10px;color:#2563eb;font-weight:700">관리자 전용 · 거래처 비노출</span></div><div class="field" style="margin-top:12px"><label for="wjProductRawMaterialV155">원단</label><input id="wjProductRawMaterialV155" value="${escapeHtmlV8(cfg.raw_material||'')}" placeholder="예: 라바 / 아크릴 / 63mic / 57mic"></div><div class="field" style="margin-top:10px"><label>색상 표시</label><div>${palette||'<span style="font-size:11px;color:#64748b">등록된 색상이 없습니다. 작업지시서 설정 메뉴에서 먼저 추가해 주세요.</span>'}</div><div style="font-size:10px;color:#64748b;margin-top:4px">제품에 사용할 색상을 선택합니다. 색상값이 없는 색상은 글자로만, 색상값이 있는 색상은 해당 색으로 표시됩니다.</div></div><div class="field" style="margin-top:10px"><label>기본 생산용 이미지</label>${previewUrl?`<img src="${previewUrl}" alt="기본 생산용 이미지" style="display:block;max-width:220px;max-height:130px;object-fit:contain;border:1px solid #dbe3ec;border-radius:7px;background:#fff;padding:4px;margin:6px 0">`:''}<input id="wjProductDefaultImageV155" type="file" accept="image/*"><div style="font-size:10px;color:#64748b;margin-top:4px">실제 인쇄에 필요한 로고·도안만 있는 이미지입니다. 거래처가 보내는 주문 시안과 별도로 보관합니다. 최대 10MB.</div>${cfg.default_image_path?'<label style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px"><input id="wjProductRemoveImageV155" type="checkbox"> 기존 기본 이미지 삭제</label>':''}</div></div>`;
+}
+async function saveWJProductWorkSettingV155(productId,existing){
+ const raw=String(document.getElementById('wjProductRawMaterialV155')?.value||'').trim();
+ const ids=[...document.querySelectorAll('.wj-product-color-v155:checked')].map(x=>String(x.value));
+ let path=existing?.default_image_path||null;
+ const remove=!!document.getElementById('wjProductRemoveImageV155')?.checked;
+ if(remove)path=null;
+ const file=document.getElementById('wjProductDefaultImageV155')?.files?.[0];
+ if(file)path=await uploadWJWorkImageV155(file,`products/${productId}`);
+ const payload={product_id:productId,raw_material:raw,color_palette_ids:ids,default_image_path:path,updated_at:new Date().toISOString()};
+ const r=await supabaseERP.from('work_instruction_product_settings').upsert(payload,{onConflict:'product_id'});
+ if(r.error)throw r.error;
+}
+async function loadWJOrderItemImageSettingsV155(rowIds){
+ const ids=(rowIds||[]).filter(Boolean).map(String);if(!ids.length)return new Map();
+ const r=await supabaseERP.from('work_instruction_order_item_settings').select('*').in('order_item_id',ids);
+ if(r.error)throw r.error;
+ return new Map((r.data||[]).map(x=>[String(x.order_item_id),x]));
+}
+async function saveWJOrderItemImageV155(rowId,orderNo,inputId){
+ const file=document.getElementById(inputId)?.files?.[0];if(!file){alert('첨부할 생산용 이미지를 선택해 주세요.');return}
+ try{const path=await uploadWJWorkImageV155(file,`order-items/${rowId}`);const r=await supabaseERP.from('work_instruction_order_item_settings').upsert({order_item_id:rowId,production_image_path:path,updated_at:new Date().toISOString()},{onConflict:'order_item_id'});if(r.error)throw r.error;alert('해당 주문 품목의 생산용 이미지가 저장되었습니다. 기본 이미지 대신 이 이미지가 작업지시서에 사용됩니다.');await showOrderDetail(orderNo)}catch(e){alert('생산용 이미지 저장 실패: '+(e.message||e))}
+}
+async function removeWJOrderItemImageV155(rowId,orderNo){if(!confirm('이 주문 품목의 별도 생산용 이미지를 삭제하고 제품 기본 이미지를 사용하시겠습니까?'))return;try{const r=await supabaseERP.from('work_instruction_order_item_settings').delete().eq('order_item_id',rowId);if(r.error)throw r.error;alert('주문별 이미지가 삭제되었습니다. 제품 기본 이미지가 사용됩니다.');await showOrderDetail(orderNo)}catch(e){alert('이미지 삭제 실패: '+(e.message||e))}}
+async function renderWJOrderImageManagerV155(items,orderNo){
+ const rowIds=items.map(x=>x.rowId).filter(Boolean);let settings=new Map();try{settings=await loadWJOrderItemImageSettingsV155(rowIds)}catch(e){console.warn('주문별 작업 이미지 조회 실패:',e)}
+ return `<div style="margin-top:16px;border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;padding:12px"><b style="font-size:12px">생산용 이미지 (관리자 전용)</b><div style="font-size:10px;color:#64748b;margin:4px 0 10px">제품 기본 이미지가 자동 사용됩니다. 특별 주문이면 아래에서 주문 품목별 이미지를 첨부해 기본 이미지를 대체할 수 있습니다. 거래처 화면에는 표시되지 않습니다.</div>${items.map((it,i)=>{const rowId=String(it.rowId||'');const saved=settings.get(rowId);const id=`wjOrderImageFileV155_${i}`;return `<div style="padding:9px 0;border-top:1px solid #e2e8f0"><div style="font-size:11px;font-weight:700;margin-bottom:6px">${escapeHtmlV8(it.name||'품목 '+(i+1))} · ${Number(it.qty||0).toLocaleString()}박스</div>${saved?.production_image_path?'<span style="font-size:10px;color:#047857">주문별 이미지 등록됨 (기본 이미지보다 우선)</span>':'<span style="font-size:10px;color:#64748b">주문별 이미지 없음 · 제품 기본 이미지 사용</span>'}${rowId?`<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px"><input id="${id}" type="file" accept="image/*" style="max-width:260px;font-size:11px"><button type="button" class="small-btn" onclick="saveWJOrderItemImageV155('${escapeHtmlV8(rowId)}','${escapeHtmlV8(orderNo)}','${id}')">이미지 저장</button>${saved?.production_image_path?`<button type="button" class="small-btn" onclick="removeWJOrderItemImageV155('${escapeHtmlV8(rowId)}','${escapeHtmlV8(orderNo)}')">기본 이미지로 복귀</button>`:''}</div>`:'<div style="font-size:10px;color:#b45309;margin-top:5px">개별 품목 ID가 없어 이미지 첨부를 사용할 수 없습니다.</div>'}</div>`}).join('')}</div>`;
+}
+
 async function openProductEdit(i){
  const p=products[i];
- let visibilityConfigV141={mode:'all',clientIds:[]};
- try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id)}catch(e){alert('거래처별 노출 설정을 불러오지 못했습니다. V143 권한 보완 SQL을 Supabase SQL Editor에서 실행했는지 확인해 주세요.\n\n'+(e.message||e));return}
+ let visibilityConfigV141={mode:'all',clientIds:[]},workSettingV155={raw_material:'',color_palette_ids:[],default_image_path:null},workImageUrlV155='';
+ try{visibilityConfigV141=await loadProductVisibilityConfigV141(p.id);await loadWJWorkInstructionSettingsV155();workSettingV155=await loadWJProductWorkSettingV155(p.id);workImageUrlV155=await getWJPrivateImageUrlV155(workSettingV155.default_image_path)}catch(e){alert('제품/작업지시서 설정을 불러오지 못했습니다. V155 SQL을 실행했는지 확인해 주세요.\n\n'+(e.message||e));return}
  document.getElementById('modalTitle').textContent='제품 정보 수정';
  wjPackagingDraftV129=getPackagingOptionsV129(p.id,false).map(o=>({...o,isNew:false}));
  document.getElementById('modalBody').innerHTML=`<div class="form-grid product-form-v143">
@@ -3693,7 +3839,7 @@ async function openProductEdit(i){
     <div class="field"><label>표기 길이 (m)</label><input id="editPLength" type="number" min="0" step="0.1" value="${parseWJProductSpec(p.spec).length}"></div>
     <div class="field"><label>실길이 (m)</label><input id="editPActualLength" type="number" min="0" step="0.1" placeholder="예: 47" value="${escapeHtmlV8(p.actualLength||'')}"><div class="vat-note-v126">표기 길이와 실제 길이가 다를 때 입력</div></div>
   </div></div>
- </div>${renderPackagingEditorV129(p)}${renderProductVisibilityEditorV141(visibilityConfigV141)}`;
+ </div>${renderPackagingEditorV129(p)}${renderProductVisibilityEditorV141(visibilityConfigV141)}${renderWJProductWorkFieldsV155(workSettingV155,workImageUrlV155)}`;
  initProductVisibilityEditorV141(visibilityConfigV141);
  document.getElementById('modalSave').onclick=async()=>{
    const next={name:editPName.value.trim(),code:editPCode.value.trim().toUpperCase(),cat:editPCat.value,base:Number(editPBase.value),spec:buildWJProductSpec(editPThickness.value,editPWidth.value,editPLength.value),actualLength:String(document.getElementById('editPActualLength')?.value||'').trim()};
@@ -3712,6 +3858,7 @@ async function openProductEdit(i){
      if(error) throw error;
      await savePackagingOptionsV129(p.id);
      await saveProductVisibilityV141(p.id);
+     await saveWJProductWorkSettingV155(p.id,workSettingV155);
      await loadProductsFromSupabase();
      closeModal(); renderAdminProducts(); renderPriceManagement(); renderProducts();
      alert('제품 정보가 Supabase에 저장되었습니다.');
@@ -3905,7 +4052,8 @@ async function isProductCodeDuplicateV140(code,excludeId){
   }
   return false;
 }
-function openProductModal(){
+async function openProductModal(){
+ try{await loadWJWorkInstructionSettingsV155()}catch(e){alert('작업지시서 설정을 불러오지 못했습니다. V155 SQL 적용 여부를 확인해 주세요.\n'+(e.message||e));return}
  document.getElementById('modalTitle').textContent='제품 등록';
  wjPackagingDraftV129=[];
  document.getElementById('modalBody').innerHTML=`<div class="form-grid product-form-v143">
@@ -3919,7 +4067,7 @@ function openProductModal(){
     <div class="field"><label>표기 길이 (m)</label><input id="newPLength" type="number" min="0" step="0.1" placeholder="예: 50"></div>
     <div class="field"><label>실길이 (m)</label><input id="newPActualLength" type="number" min="0" step="0.1" placeholder="예: 47"><div class="vat-note-v126">표기 길이와 실제 길이가 다를 때 입력</div></div>
   </div></div>
- </div>${renderPackagingEditorV129({id:'__new_product__'})}${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}`;
+ </div>${renderPackagingEditorV129({id:'__new_product__'})}${renderProductVisibilityEditorV141({mode:'all',clientIds:[]})}${renderWJProductWorkFieldsV155({raw_material:'',color_palette_ids:[],default_image_path:null},'')}`;
  initProductVisibilityEditorV141({mode:'all',clientIds:[]});
  setProductCodeModeV140('auto');
  document.getElementById('modalSave').onclick=async()=>{
@@ -3942,6 +4090,7 @@ function openProductModal(){
      await savePackagingOptionsV129(local.id);
      products.push(local);
      await saveProductVisibilityV141(local.id);
+     await saveWJProductWorkSettingV155(local.id,{default_image_path:null});
      try{localStorage.setItem('wonjun_v7_products',JSON.stringify(products))}catch(e){}
      await loadProductsFromSupabase();closeModal();renderAdminProducts();renderPriceManagement();renderProducts();
      alert('제품이 Supabase에 저장되었습니다. 관리자와 거래처가 같은 제품 목록을 사용합니다.');
@@ -4406,7 +4555,9 @@ async function showOrderDetail(no){
           totalAmount:Number(firstValue(r,['total_price','total_amount','amount'],0))||0,
           boxType:firstValue(r,['box_type'],'기본 박스'),
           boxStamp:firstValue(r,['box_stamp'],''),
-          palletType:firstValue(r,['pallet_type'],'나무'),coreType:firstValue(r,['core_type'],'공용지관')
+          palletType:firstValue(r,['pallet_type'],'나무'),coreType:firstValue(r,['core_type'],'공용지관'),
+          packagingOptionName:firstValue(r,['packaging_option_name','packaging_unit','packaging_option'],''),
+          colorName:firstValue(r,['color_name','color'],''),width:firstValue(r,['width','product_width'],'')
         }));
         source._directOrderItems=direct;
       }
@@ -4419,14 +4570,15 @@ async function showOrderDetail(no){
   const jsonItems=getWJOrderDetailItems(source);
   const directItems=Array.isArray(source._directOrderItems)?source._directOrderItems:[];
   // 상세에서는 가장 구체적인 구조화 데이터 중 '행 수가 더 많은 쪽'을 사용한다.
-  const details=(directItems.length>jsonItems.length?directItems:jsonItems);
-  const finalDetails=details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}];
+  const details=(directItems.length>=jsonItems.length&&directItems.length?directItems:jsonItems);
+  const finalDetails=(details.length?details:[{name:source.item||'-',spec:'',qty:source.qty||0,amount:source.amount||0,boxType:source.boxType||'기본 박스',boxStamp:source.boxStamp||'',palletType:source.palletType||'나무',coreType:source.coreType||'공용지관'}]).map((it,i)=>({...it,rowId:it.rowId||directItems[i]?.rowId||'',productId:it.productId||directItems[i]?.productId||''}));
   const detailRows=finalDetails.map(it=>{const supply=Number(it.supplyAmount??it.amount??0),vat=Number(it.vatAmount??0),unit=Number(it.unit||0);return `<tr><td><b>${escapeHtmlV8(it.name||'-')}</b><div style="font-size:10px;color:#64748b;margin-top:3px">${escapeHtmlV8(it.spec||'')}${it.packagingOptionName?` · ${escapeHtmlV8(it.packagingOptionName)}`:''}</div></td><td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(unit)}</td><td>${won(supply)}</td><td>${won(vat)}</td><td>${escapeHtmlV8(it.boxType||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||'없음')}</b></td><td>${escapeHtmlV8(it.palletType||'나무')}</td><td>${escapeHtmlV8(it.coreType||'공용지관')}</td><td>${orderStatusBadgeV54(it.itemStatus||it.status||source.status||'접수 완료')}</td><td>${escapeHtmlV8(it.expectedShipDate||'미정')}</td></tr>`}).join('');
+  const orderImageManagerV155=await renderWJOrderImageManagerV155(finalDetails,source.no);
   const detailSupplyTotal=finalDetails.reduce((a,it)=>a+Number(it.supplyAmount??it.amount??0),0);const detailVatTotal=finalDetails.reduce((a,it)=>a+Number(it.vatAmount??0),0);
   document.getElementById('modalTitle').textContent='주문 상세';
   document.getElementById('modalBody').innerHTML=`
   <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button type="button" class="btn primary" onclick="generateOrderPDF('${escapeHtmlV8(source.no)}','admin')">발주서 PDF 다운로드</button></div><div class="info-list"><div class="key">발주번호</div><div>${escapeHtmlV8(source.no)}</div><div class="key">거래처</div><div>${escapeHtmlV8(c?.name||source.client||'-')}</div><div class="key">접수일</div><div>${escapeHtmlV8(formatOrderDateTime(source))}</div><div class="key">공급가액</div><div>${won(detailSupplyTotal)}</div><div class="key">부가세</div><div>${won(detailVatTotal)}</div><div class="key">총 주문금액</div><div><b>${won(Number(source.amount||detailSupplyTotal+detailVatTotal))}</b></div><div class="key">상태</div><div>${badge(source.status||'접수 완료')}</div></div>
-  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th><th>진행 상태</th><th>출고 예정일</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>${renderWjDeliveryInfo(source)}
+  <div style="margin-top:18px"><label style="font-size:11px;font-weight:800">발주 품목 <span style="color:#2563eb">${finalDetails.length}건</span></label><div class="table-wrap" style="margin-top:7px"><table><thead><tr><th>품명 / 규격</th><th>수량</th><th>단가</th><th>공급가액</th><th>부가세</th><th>박스 종류</th><th>도장 표기</th><th>파렛트</th><th>지관</th><th>진행 상태</th><th>출고 예정일</th></tr></thead><tbody>${detailRows}</tbody></table></div></div>${orderImageManagerV155}${renderWjDeliveryInfo(source)}
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">거래처 메모</label><div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:11px;margin-top:6px;font-size:12px;line-height:1.7">${escapeHtmlV8(source.clientMemo||'거래처 메모가 없습니다.')}</div></div>
   <div style="margin-top:15px"><label style="font-size:11px;font-weight:700">관리자 메모</label><textarea class="memo-v6" id="orderMemoV6" placeholder="주문 관련 관리자 메모를 입력해 주세요.">${escapeHtmlV8(source.adminMemo||'')}</textarea></div>${historyHtml}`;
   const save=document.getElementById('modalSave');save.style.display='';save.textContent='관리자 메모 저장';save.onclick=()=>{o.adminMemo=document.getElementById('orderMemoV6').value;saveV7Data();closeModal();renderAdminOrders();renderAdminDashboard();alert('관리자 메모가 저장되었습니다.')};
