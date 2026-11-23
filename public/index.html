@@ -896,6 +896,70 @@ body{font-size:14px}
   text-align:center !important;
 }
 </style>
+
+<style id="v169-unified-table-full-width-fix">
+/* V169: 모든 관리자/거래처 표의 카드와 표 너비를 같은 기준으로 통일.
+   이전 V165~V168의 width:max-content 규칙이 짧은 표를 카드 중간에서 끝내는 원인이 될 수 있어 최종 재정의합니다. */
+.page .card.table-wrap,
+.page .table-wrap.card,
+.page .table-wrap {
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  flex:1 1 100% !important;
+  align-self:stretch !important;
+  margin-left:0;
+  margin-right:0;
+  overflow-x:auto !important;
+  overflow-y:visible !important;
+  -webkit-overflow-scrolling:touch;
+}
+.page .table-wrap > table,
+.page .card.table-wrap > table {
+  display:table !important;
+  width:100% !important;
+  min-width:100% !important;
+  max-width:none !important;
+  table-layout:auto !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+}
+.page .table-wrap > table th,
+.page .table-wrap > table td,
+.page .card.table-wrap > table th,
+.page .card.table-wrap > table td {
+  box-sizing:border-box;
+  text-align:center !important;
+  vertical-align:middle !important;
+}
+/* 주문/수주 관리처럼 열이 많은 표는 전체 열을 유지하고 카드 안에서 가로 스크롤 */
+#adminOrders .table-wrap > table,
+#adminOrders .card.table-wrap > table {
+  width:100% !important;
+  min-width:2050px !important;
+  table-layout:auto !important;
+}
+/* 제품 주문/견적 현황도 카드 폭은 꽉 채우고, 표가 길 때만 내부 스크롤 */
+#products .table-wrap > table,
+#products .card.table-wrap > table {
+  width:100% !important;
+  min-width:100% !important;
+  table-layout:auto !important;
+}
+/* 긴 텍스트를 말줄임표로 감추지 않고 셀 너비/표 너비가 늘어나도록 */
+.page .table-wrap > table th,
+.page .table-wrap > table td {
+  max-width:none !important;
+  text-overflow:clip !important;
+  overflow:visible !important;
+  white-space:nowrap;
+  word-break:keep-all;
+  overflow-wrap:normal;
+}
+</style>
+
 </head>
 <body>
 <div id="v153ShipDateOverlay" hidden onclick="if(event.target===this)closeShipDatePickerV153()">
