@@ -186,6 +186,33 @@ tr:last-child td{border-bottom:0}
 #v130AdminQuotePagination select{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:7px 8px}
 #v130AdminQuotePagination .page-current{font-weight:700;color:#1d4ed8;min-width:75px;text-align:center}
 .order-item-group-cell-v148{background:#f8fafc;vertical-align:middle;border-right:2px solid #e2e8f0!important;font-weight:700}
+
+/* V163 발주 옵션 관리: 제품 관리 화면을 축약한 단일 목록형 */
+#orderOptionModalBg .order-option-modal-body.order-option-manager-body-v163{display:block!important;padding:20px 26px!important;background:#f7f9fc!important}
+#orderOptionModalBg .order-option-tabs-v163{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:14px}
+#orderOptionModalBg .order-option-tabs-v163 button{height:42px;border:1px solid #dbe3ec;border-radius:8px;background:#fff;color:#475569;font-size:12px;font-weight:800;cursor:pointer}
+#orderOptionModalBg .order-option-tabs-v163 button.active{background:#eaf2ff;border-color:#8db4f5;color:#1d4ed8}
+#orderOptionModalBg .order-option-manager-panel-v163{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:17px;min-height:360px}
+#orderOptionModalBg .order-option-manager-title-v163{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}
+#orderOptionModalBg .order-option-manager-title-v163 h4{margin:0;font-size:15px;color:#1e293b}
+#orderOptionModalBg .order-option-manager-title-v163 p{margin:5px 0 0;font-size:11px;color:#94a3b8}
+#orderOptionModalBg .option-add-row-v163{margin:0 0 12px!important}
+#orderOptionModalBg .option-add-row-v163 .btn{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}
+#orderOptionModalBg .option-manager-search-v163{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:10px;background:#f8fafc;border:1px solid #edf1f5;border-radius:8px}
+#orderOptionModalBg .option-manager-search-v163 input{height:36px;flex:1;min-width:0;border:1px solid #dbe3ec;border-radius:7px;padding:0 10px;font-size:12px}
+#orderOptionModalBg .option-manager-search-v163 span{font-size:10px;color:#94a3b8;white-space:nowrap}
+#orderOptionModalBg .option-manager-row-v163{border:1px solid #e5eaf0;border-radius:9px;padding:11px 12px;margin:7px 0;background:#fff}
+#orderOptionModalBg .option-manager-row-main-v163{display:flex;align-items:center;gap:10px}
+#orderOptionModalBg .option-manager-row-main-v163 b{flex:1;font-size:13px;color:#334155}
+#orderOptionModalBg .option-manager-row-main-v163 .small-btn{flex:0 0 auto}
+#orderOptionModalBg .option-manager-client-v163{border-top:1px solid #f1f5f9;margin-top:9px;padding-top:8px}
+#orderOptionModalBg .option-manager-client-v163 summary{font-size:11px;font-weight:800;color:#475569;cursor:pointer}
+#orderOptionModalBg .option-manager-client-list-v163{display:flex;flex-wrap:wrap;gap:7px 13px;margin-top:9px}
+#orderOptionModalBg .option-manager-client-list-v163 label{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#475569}
+#orderOptionModalBg .option-manager-pager-v163{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:11px;color:#64748b}
+#orderOptionModalBg .option-manager-pager-v163 button{border:1px solid #dbe3ec;background:#fff;border-radius:6px;padding:6px 10px;font-size:11px}
+#orderOptionModalBg .option-manager-pager-v163 button:disabled{opacity:.4}
+@media(max-width:600px){#orderOptionModalBg .order-option-tabs-v163{grid-template-columns:repeat(2,minmax(0,1fr))}#orderOptionModalBg .order-option-modal-body.order-option-manager-body-v163{padding:14px!important}#orderOptionModalBg .option-manager-search-v163{align-items:stretch;flex-direction:column}}
 </style>
 <style id="v4-enhancements">
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d9dee8;border-radius:8px;background:#fff}.search-input{min-width:260px}.category-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d9dee8;border-radius:999px;background:#fff;margin:4px}.inventory-qty{width:110px;padding:8px;border:1px solid #d9dee8;border-radius:7px}.status-select{padding:8px 10px;border:1px solid #d9dee8;border-radius:7px;background:#fff}.v4-empty{text-align:center;padding:28px;color:#8a93a3}
@@ -256,7 +283,7 @@ tr:last-child td{border-bottom:0}
 @media(max-width:520px){#adminQuotesV130 .order-filter-grid{grid-template-columns:minmax(0,1fr);gap:12px;}#adminQuotesV130 .order-filter-client,#adminQuotesV130 .order-filter-product,#adminQuotesV130 .order-filter-status,#adminQuotesV130 .order-filter-date,#adminQuotesV130 .order-filter-actions{grid-column:1/-1;}#adminQuotesV130 .order-filter-actions{display:grid;grid-template-columns:1fr 1fr;}#adminQuotesV130 .order-filter-actions .small-btn{width:100%;padding:0 10px;}#adminQuotesV130 .date-range-v6{gap:5px;}#adminQuotesV130 .date-range-v6 input{font-size:12px;padding:0 6px;}#adminQuotesV130 .quick-v6{gap:4px;}#adminQuotesV130 .quick-v6 button{padding:4px 7px;}}
 
 
-/* V162: ERP table readability — keep cell content on one line and expand horizontally */
+/* V163: ERP table readability — keep cell content on one line and expand horizontally */
 .table-wrap{overflow-x:auto!important;overflow-y:visible!important;max-width:100%;-webkit-overflow-scrolling:touch}
 .table-wrap table{width:max-content;min-width:100%;table-layout:auto}
 .table-wrap th,.table-wrap td{white-space:nowrap;word-break:keep-all;overflow-wrap:normal;font-size:13px;line-height:1.35}
@@ -806,7 +833,7 @@ html,body{overflow-x:hidden}
 @media(max-width:620px){#adminWorkSettingsV155 .form-grid{grid-template-columns:1fr!important}}
 </style>
 <style id="v162-final-overrides">
-/* V162: ERP table readability — keep cell content on one line and expand horizontally */
+/* V163: ERP table readability — keep cell content on one line and expand horizontally */
 .table-wrap{overflow-x:auto!important;overflow-y:visible!important;max-width:100%;-webkit-overflow-scrolling:touch}
 .table-wrap table{width:max-content;min-width:100%;table-layout:auto}
 .table-wrap th,.table-wrap td{white-space:nowrap;word-break:keep-all;overflow-wrap:normal;font-size:13px;line-height:1.35}
@@ -1228,11 +1255,20 @@ body{font-size:14px}
       <div><div class="order-option-modal-eyebrow">ORDER SETTINGS</div><h3 id="orderOptionModalTitle">발주 옵션 관리</h3><p>거래처가 제품을 장바구니에 담을 때 선택할 옵션을 관리합니다.</p></div>
       <button class="order-option-modal-close" type="button" onclick="closeOrderOptionModal()" aria-label="닫기"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
     </div>
-    <div class="order-option-modal-body">
-      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">박스 종류</div><div class="order-option-setting-desc">거래처 발주 시 선택할 박스 종류입니다.</div></div><span class="order-option-count" id="boxOptionCount">0</span></div><div id="adminBoxTypeOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newBoxTypeOption" placeholder="예: 기본 박스, 수출용 박스"><button class="btn light" type="button" onclick="addOrderOptionDraft('box')">+ 추가</button></div></div>
-      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">파렛트 종류</div><div class="order-option-setting-desc">거래처 발주 시 선택할 파렛트 종류입니다.</div></div><span class="order-option-count" id="palletOptionCount">0</span></div><div id="adminPalletTypeOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newPalletTypeOption" placeholder="예: 나무, 플라스틱, KPP"><button class="btn light" type="button" onclick="addOrderOptionDraft('pallet')">+ 추가</button></div></div>
-      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">지관 종류</div><div class="order-option-setting-desc">추가한 지관 옵션마다 노출할 거래처를 지정할 수 있습니다. 거래처를 선택하지 않으면 모든 거래처에 표시됩니다.</div></div><span class="order-option-count" id="coreOptionCount">0</span></div><div id="adminCoreTypeOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newCoreTypeOption" placeholder="예: 소형 지관, 대형 지관"><button class="btn light" type="button" onclick="addOrderOptionDraft('core')">+ 추가</button></div></div>
-      <div class="order-option-setting-box order-option-setting-box-modern"><div class="order-option-setting-heading"><div><div class="order-option-setting-title">택배사 목록</div><div class="order-option-setting-desc">거래처 주문 시 선택할 택배사입니다. 기본값은 롯데택배와 대신택배입니다.</div></div><span class="order-option-count" id="carrierOptionCount">0</span></div><div id="adminCarrierOptions" class="option-chip-list option-chip-list-modern"></div><div class="option-add-row option-add-row-modern"><input id="newCarrierOption" placeholder="예: 한진택배"><button class="btn light" type="button" onclick="addOrderOptionDraft('carrier')">+ 추가</button></div></div>
+    <div class="order-option-modal-body order-option-manager-body-v163">
+      <div class="order-option-tabs-v163" role="tablist" aria-label="발주 옵션 종류">
+        <button type="button" class="active" data-option-tab="box" onclick="switchOrderOptionTypeV163('box')">박스 종류</button>
+        <button type="button" data-option-tab="pallet" onclick="switchOrderOptionTypeV163('pallet')">파렛트 종류</button>
+        <button type="button" data-option-tab="core" onclick="switchOrderOptionTypeV163('core')">지관 종류</button>
+        <button type="button" data-option-tab="carrier" onclick="switchOrderOptionTypeV163('carrier')">택배사 목록</button>
+      </div>
+      <section class="order-option-manager-panel-v163">
+        <div class="order-option-manager-title-v163"><div><h4 id="optionManagerTitleV163">박스 종류</h4><p id="optionManagerDescV163">거래처 발주 시 선택할 박스 종류를 관리합니다.</p></div><span id="optionManagerCountV163" class="order-option-count">0</span></div>
+        <div class="option-add-row-modern option-add-row-v163"><input id="optionManagerNewNameV163" placeholder="새 항목 이름 입력 후 추가" onkeydown="if(event.key==='Enter'){event.preventDefault();addOrderOptionV163()}"><button class="btn primary" type="button" onclick="addOrderOptionV163()">+ 항목 추가</button></div>
+        <div class="option-manager-search-v163"><input id="optionManagerSearchV163" placeholder="목록 검색" oninput="renderOrderOptionManagerV163()"><span>검색 결과에서 최대 5개씩 표시</span></div>
+        <div id="optionManagerRowsV163" class="option-manager-rows-v163"></div>
+        <div id="optionManagerPagerV163" class="option-manager-pager-v163"></div>
+      </section>
     </div>
     <div class="order-option-modal-foot"><div class="order-option-save-note">추가/삭제 후 <b>저장</b>해야 거래처 화면에 반영됩니다.</div><div class="order-option-modal-actions"><button class="btn light" type="button" onclick="closeOrderOptionModal()">취소</button><button class="btn primary" type="button" onclick="saveOrderOptionSettings()">저장</button></div></div>
   </div>
@@ -1251,7 +1287,8 @@ body{font-size:14px}
 <script>
 const productCategories=['OPP 테이프','컬러 테이프','포장자재'];
 let orderOptionSettings={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주'],carrier:['롯데택배','대신택배'],core:['공용지관'],coreClientVisibility:{}};
-let orderOptionDraft={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주'],carrier:['롯데택배','대신택배'],core:['공용지관'],coreClientVisibility:{}};
+let orderOptionDraft={box:['기본 박스','일반 박스','특수 박스'],pallet:['나무','플라스틱','KPP','아주'],carrier:['롯데택배','대신택배'],core:['공용지관'],coreClientVisibility:{},clientVisibility:{}};
+let wjOrderOptionTypeV163='box';let wjOrderOptionPageV163=1;
 let wjPackagingOptionsV129=[];
 let wjClientPackagingPricesV129=[];
 let wjPackagingDraftV129=[];
@@ -2705,10 +2742,12 @@ function openAdminProductPriceDetailV126(productId){
  const save=document.getElementById('modalSave');save.style.display='none';document.getElementById('modalCancel').textContent='닫기';document.getElementById('modalBg').classList.add('show');
 }
 
+function getVisibleCarrierOptionsV163(){const c=currentUser&&currentUser!=='admin'?(clients||[]).find(x=>String(x.loginId)===String(currentUser)):null;const rows=(orderOptionSettings.carrier||['롯데택배','대신택배']).filter(name=>{const allowed=orderOptionSettings.clientVisibility?.[`carrier|${name}`]||[];return !allowed.length||!c||allowed.map(String).includes(String(c.id))});return rows.length?rows:['롯데택배'];}
 function getOrderOptionLists(){
  const currentClient=currentUser&&currentUser!=='admin'?(clients||[]).find(c=>String(c.loginId)===String(currentUser)):null;
- const core=(orderOptionSettings.core||['공용지관']).filter(name=>{const allowed=orderOptionSettings.coreClientVisibility?.[name]||[];return !allowed.length||!currentClient||allowed.map(String).includes(String(currentClient.id))});
- return {box:(orderOptionSettings.box||['기본 박스']).filter(Boolean),pallet:(orderOptionSettings.pallet||['나무']).filter(Boolean),core:core.length?core:['공용지관']};
+ const visible=(type,name)=>{const allowed=orderOptionSettings.clientVisibility?.[`${type}|${name}`]||(type==='core'?(orderOptionSettings.coreClientVisibility?.[name]||[]):[]);return !allowed.length||!currentClient||allowed.map(String).includes(String(currentClient.id))};
+ const box=(orderOptionSettings.box||['기본 박스']).filter(n=>visible('box',n));const pallet=(orderOptionSettings.pallet||['나무']).filter(n=>visible('pallet',n));const core=(orderOptionSettings.core||['공용지관']).filter(n=>visible('core',n));
+ return {box:box.length?box:['기본 박스'],pallet:pallet.length?pallet:['나무'],core:core.length?core:['공용지관']};
 }
 function openAddCartOptionModal(id,qty){
  const p=products.find(x=>String(x.id)===String(id)); if(!p)return false;
@@ -2824,10 +2863,10 @@ async function openDeliveryInfoModal(client){
   wjDeliveryModalResolver=resolve;
   const first=wjDeliveryAddresses.find(x=>x.is_default)||wjDeliveryAddresses[0]||null;
   const opts=wjDeliveryAddresses.map(a=>`<option value="${escapeDelivery(a.id)}" ${String(a.id)===String(first?.id)?'selected':''}>${escapeDelivery(a.address_name||'배송지')} · ${escapeDelivery(a.address||'')}</option>`).join('');
-  const html=`<div id="wjDeliveryOverlay" style="position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div style="width:min(620px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.28)"><div style="padding:20px 22px;border-bottom:1px solid #e2e8f0"><div style="font-size:18px;font-weight:800;color:#172033">배송 정보 확인</div><div style="font-size:12px;color:#64748b;margin-top:5px">주문 품목을 확인한 뒤 배송 방법과 받으실 주소를 선택해 주세요.</div></div><div style="padding:20px 22px;display:grid;gap:14px"><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송 방법</label><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><button type="button" id="wjDeliveryParcel" class="btn primary" onclick="setWjDeliveryMethod('택배')">택배</button><button type="button" id="wjDeliveryTruck" class="btn light" onclick="setWjDeliveryMethod('용차')">용차</button><button type="button" id="wjDeliveryOther" class="btn light" onclick="setWjDeliveryMethod('기타')">기타</button></div><input id="wjDeliveryMethod" type="hidden" value="택배"><div id="wjDeliveryOtherWrap" style="display:none;margin-top:8px"><input id="wjDeliveryOtherText" placeholder="수령 방법을 직접 입력해 주세요. 예: 직접 방문 수령" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송지 선택</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="wjDeliverySavedSelect" class="wj-address-input" style="flex:1;min-width:220px;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px" onchange="deliveryAddressChanged(this.value)"><option value="">새 배송지 입력</option>${opts}</select><button type="button" class="btn light wj-address-input" onclick="resetWjDeliveryAddressForm()">새 주소</button><button type="button" class="btn light wj-address-input" id="wjDeliveryDeleteAddressBtn" onclick="deleteSelectedDeliveryAddress()" ${first?'':'disabled'} style="color:#b91c1c;border-color:#fecaca">선택 배송지 삭제</button></div><label id="wjDeliveryNoAddressWrap" style="display:none;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:#334155;font-weight:600"><input id="wjDeliveryNoAddress" type="checkbox" onchange="setWjNoDeliveryAddress(this.checked)"> 배송지 불필요 (직수령 등)</label></div><div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송지 이름</label><input id="wjDeliveryAddressName" class="wj-address-input" placeholder="예: 물류센터" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송 주소</label><input id="wjDeliveryAddress" class="wj-address-input" placeholder="도로명 또는 지번 주소" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">현장 담당자</label><input id="wjDeliveryContactName" class="wj-address-input" placeholder="담당자 이름" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">담당자 연락처</label><input id="wjDeliveryContactPhone" class="wj-address-input" type="tel" placeholder="010-0000-0000" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div id="wjParcelDetails" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label id="wjDeliveryCarrierLabel" style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">택배사</label><select id="wjDeliveryCarrier" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;background:#fff"><option value="">택배사 선택</option>${(orderOptionSettings.carrier||['롯데택배','대신택배']).map(x=>`<option value="${escapeDelivery(x)}">${escapeDelivery(x)}</option>`).join('')}</select></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">택배비 부담</label><select id="wjDeliveryPayment" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;background:#fff"><option value="선불">선불</option><option value="착불">착불</option></select></div></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">추가 배송 요청사항 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><textarea id="wjDeliveryRequest" rows="2" placeholder="예: 경투 74 70박스 / 상차 및 하차 관련 요청" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;resize:vertical"></textarea></div><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliverySaveAddress" class="wj-address-input" type="checkbox" checked> 이 배송지를 거래처 배송지 목록에 저장</label><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliveryMakeDefault" class="wj-address-input" type="checkbox"> 기본 배송지로 지정</label></div><div style="padding:14px 22px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn light" onclick="finishDeliveryModal(null)">취소</button><button type="button" class="btn primary" onclick="confirmWjDeliveryInfo()">배송 정보 확인</button></div></div></div>`;
+  const html=`<div id="wjDeliveryOverlay" style="position:fixed;inset:0;z-index:12000;background:rgba(15,23,42,.52);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div style="width:min(620px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.28)"><div style="padding:20px 22px;border-bottom:1px solid #e2e8f0"><div style="font-size:18px;font-weight:800;color:#172033">배송 정보 확인</div><div style="font-size:12px;color:#64748b;margin-top:5px">주문 품목을 확인한 뒤 배송 방법과 받으실 주소를 선택해 주세요.</div></div><div style="padding:20px 22px;display:grid;gap:14px"><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송 방법</label><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px"><button type="button" id="wjDeliveryParcel" class="btn primary" onclick="setWjDeliveryMethod('택배')">택배</button><button type="button" id="wjDeliveryTruck" class="btn light" onclick="setWjDeliveryMethod('용차')">용차</button><button type="button" id="wjDeliveryOther" class="btn light" onclick="setWjDeliveryMethod('기타')">기타</button></div><input id="wjDeliveryMethod" type="hidden" value="택배"><div id="wjDeliveryOtherWrap" style="display:none;margin-top:8px"><input id="wjDeliveryOtherText" placeholder="수령 방법을 직접 입력해 주세요. 예: 직접 방문 수령" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div><label style="display:block;font-size:12px;font-weight:700;margin-bottom:7px">배송지 선택</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="wjDeliverySavedSelect" class="wj-address-input" style="flex:1;min-width:220px;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px" onchange="deliveryAddressChanged(this.value)"><option value="">새 배송지 입력</option>${opts}</select><button type="button" class="btn light wj-address-input" onclick="resetWjDeliveryAddressForm()">새 주소</button><button type="button" class="btn light wj-address-input" id="wjDeliveryDeleteAddressBtn" onclick="deleteSelectedDeliveryAddress()" ${first?'':'disabled'} style="color:#b91c1c;border-color:#fecaca">선택 배송지 삭제</button></div><label id="wjDeliveryNoAddressWrap" style="display:none;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:#334155;font-weight:600"><input id="wjDeliveryNoAddress" type="checkbox" onchange="setWjNoDeliveryAddress(this.checked)"> 배송지 불필요 (직수령 등)</label></div><div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송지 이름</label><input id="wjDeliveryAddressName" class="wj-address-input" placeholder="예: 물류센터" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">배송 주소</label><input id="wjDeliveryAddress" class="wj-address-input" placeholder="도로명 또는 지번 주소" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">현장 담당자</label><input id="wjDeliveryContactName" class="wj-address-input" placeholder="담당자 이름" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">담당자 연락처</label><input id="wjDeliveryContactPhone" class="wj-address-input" type="tel" placeholder="010-0000-0000" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px"></div></div><div id="wjParcelDetails" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label id="wjDeliveryCarrierLabel" style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">택배사</label><select id="wjDeliveryCarrier" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;background:#fff"><option value="">택배사 선택</option>${getVisibleCarrierOptionsV163().map(x=>`<option value="${escapeDelivery(x)}">${escapeDelivery(x)}</option>`).join('')}</select></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">택배비 부담</label><select id="wjDeliveryPayment" style="width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:0 10px;background:#fff"><option value="선불">선불</option><option value="착불">착불</option></select></div></div><div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">추가 배송 요청사항 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><textarea id="wjDeliveryRequest" rows="2" placeholder="예: 경투 74 70박스 / 상차 및 하차 관련 요청" style="width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px;resize:vertical"></textarea></div><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliverySaveAddress" class="wj-address-input" type="checkbox" checked> 이 배송지를 거래처 배송지 목록에 저장</label><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#334155"><input id="wjDeliveryMakeDefault" class="wj-address-input" type="checkbox"> 기본 배송지로 지정</label></div><div style="padding:14px 22px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px"><button type="button" class="btn light" onclick="finishDeliveryModal(null)">취소</button><button type="button" class="btn primary" onclick="confirmWjDeliveryInfo()">배송 정보 확인</button></div></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
   if(first)deliveryAddressChanged(first.id);
-  const carrierInput=document.getElementById('wjDeliveryCarrier');if(carrierInput)carrierInput.value=(orderOptionSettings.carrier||['롯데택배'])[0]||'롯데택배';
+  const carrierInput=document.getElementById('wjDeliveryCarrier');if(carrierInput)carrierInput.value=getVisibleCarrierOptionsV163()[0]||'롯데택배';
   setWjDeliveryMethod('택배');
  });
 }
@@ -3329,7 +3368,7 @@ function renderAdminOrders(){
  updateOrderSelectAllV71();
  const pager=document.getElementById('adminOrderPagination');if(pager){const fromCount=totalRows?startIndex+1:0,toCount=Math.min(startIndex+pageSize,totalRows);pager.innerHTML=`<div class="pagination-left"><span>총 <b>${totalRows.toLocaleString()}</b>개 품목 중 <b>${fromCount.toLocaleString()}–${toCount.toLocaleString()}</b>개 표시</span><label for="adminOrderPageSizeV76">페이지당</label><select id="adminOrderPageSizeV76" onchange="window.wjOrderPageV76=1;renderAdminOrders()"><option value="10" ${pageSize===10?'selected':''}>10개</option><option value="20" ${pageSize===20?'selected':''}>20개</option><option value="30" ${pageSize===30?'selected':''}>30개</option><option value="50" ${pageSize===50?'selected':''}>50개</option></select></div><div class="pagination-right"><button type="button" onclick="changeOrderPageV76(-1)" ${currentPage<=1?'disabled':''}>이전</button><span class="page-current">${currentPage} / ${totalPages} 페이지</span><button type="button" onclick="changeOrderPageV76(1)" ${currentPage>=totalPages?'disabled':''}>다음</button></div>`;}
 }
-function formatWorkInstructionDateTimeV162(order){const raw=order?.createdAt||order?.created_at||order?.date||'';if(!raw)return {date:'',time:''};const d=new Date(raw);if(Number.isNaN(d.getTime())){const m=String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?{date:`${m[1].slice(-2)}.${m[2]}.${m[3]}`,time:String(raw).slice(11,16)}:{date:String(raw).slice(0,10),time:String(raw).slice(11,16)}};const p=n=>String(n).padStart(2,'0');return {date:`${String(d.getFullYear()).slice(-2)}.${p(d.getMonth()+1)}.${p(d.getDate())}`,time:`${p(d.getHours())}:${p(d.getMinutes())}`};}
+function formatWorkInstructionDateTimeV163(order){const raw=order?.createdAt||order?.created_at||order?.date||'';if(!raw)return {date:'',time:''};const d=new Date(raw);if(Number.isNaN(d.getTime())){const m=String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?{date:`${m[1].slice(-2)}.${m[2]}.${m[3]}`,time:String(raw).slice(11,16)}:{date:String(raw).slice(0,10),time:String(raw).slice(11,16)}};const p=n=>String(n).padStart(2,'0');return {date:`${String(d.getFullYear()).slice(-2)}.${p(d.getMonth()+1)}.${p(d.getDate())}`,time:`${p(d.getHours())}:${p(d.getMinutes())}`};}
 function issueSelectedWorkInstructionsV148(){const refs=getSelectedOrderItemRefsV148();if(!refs.length){alert('작업지시서를 발행할 품목을 선택해 주세요.');return}issueWorkInstructionV148(refs.map(x=>x.key))}
 function getSelectedOrderItemRefsV148(){
  const keys=new Set(window.wjSelectedOrderItemsV148||[]);document.querySelectorAll('#adminOrderRows .order-check-v6:checked').forEach(x=>keys.add(String(x.value)));
@@ -3373,10 +3412,10 @@ async function saveItemExpectedShipDateV153(){
  alert('출고예정일이 저장되었습니다.');
 }
 
-function showWorkInstructionPreflightV162(refs){
+function showWorkInstructionPreflightV163(refs){
  return new Promise(resolve=>{
-  const old=document.getElementById('wjWorkPreflightV162');if(old)old.remove();
-  const overlay=document.createElement('div');overlay.id='wjWorkPreflightV162';
+  const old=document.getElementById('wjWorkPreflightV163');if(old)old.remove();
+  const overlay=document.createElement('div');overlay.id='wjWorkPreflightV163';
   overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:20px;';
   const card=document.createElement('div');card.style.cssText='width:min(560px,100%);background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.28);padding:24px;color:#111827;font-family:Arial,"Malgun Gothic",sans-serif;';
   const heading=document.createElement('div');heading.textContent='작업지시서 발행 전 확인';heading.style.cssText='font-size:21px;font-weight:800;margin-bottom:8px;';
@@ -3394,7 +3433,7 @@ function showWorkInstructionPreflightV162(refs){
  });
 }
 async function issueWorkInstructionV148(keys){
- // V162: 최초 발행만 생산중으로 전환. 재발행은 현재 상태를 유지합니다.
+ // V163: 최초 발행만 생산중으로 전환. 재발행은 현재 상태를 유지합니다.
  const keySet=new Set(keys||[]),refs=[];orders.forEach(o=>(o.items||[]).forEach((it,i)=>{const key=getWJOrderItemKeyV148(o,it,i);if(keySet.has(key))refs.push({o,it,index:i,key})}));
  if(!refs.length){alert('작업지시서를 발행할 품목을 선택해 주세요.');return}
  if(refs.some(x=>!x.it.rowId)){alert('선택한 품목 중 개별 저장 ID가 없는 항목이 있습니다. Supabase order_items 데이터를 먼저 확인해야 합니다.');return}
@@ -3451,23 +3490,23 @@ async function issueWorkInstructionV148(keys){
      const productForLength=products.find(p=>String(p.id)===String(it.productId))||{};
      const realLength=String(it.actualLength||it.actual_length||productForLength.actualLength||productForLength.actual_length||'').trim();
      const packOption=getPackagingOptionsV129(it.productId,false).find(o=>String(o.id)===String(it.packagingOptionId||''));
-     const packaging=it.packagingOptionName||packOption?.name||it.packagingUnit||'';
-     const workDate=formatWorkInstructionDateTimeV162(x.o);
-     // V162: 비고는 주문/거래처 메모를 가져오지 않고 현장 수기 작성용으로 비워둡니다.
+     const packaging=it.packagingOptionName||it.packaging_option_name||packOption?.name||it.packagingUnit||it.packaging_unit||'';
+     const workDate=formatWorkInstructionDateTimeV163(x.o);
+     // V163: 비고는 주문/거래처 메모를 가져오지 않고 현장 수기 작성용으로 비워둡니다.
      const customerKey=String(x.o.client||'미지정 거래처');if(!customerGroups.has(customerKey))customerGroups.set(customerKey,[]);
      customerGroups.get(customerKey).push(`<tr><td>${i+1}</td><td>${esc(x.o.client||'-')}</td><td class="receipt-date">${esc(workDate.date)} <span class="receipt-time">${esc(workDate.time)}</span></td><td>${esc(ps.raw_material||'-')}</td><td>${colorHtml(it,ps)}</td><td>${width?esc(width)+'mm':'-'}</td><td>${realLength?esc(realLength)+'m':'-'}</td><td>${esc(it.boxStamp||it.stamp||'')}</td><td>${esc(packaging||'미지정')}</td><td><b>${Number(it.qty||0).toLocaleString()} 박스</b></td><td>${esc(it.coreType||it.core_type||'공용지관')}</td><td>${esc(it.boxType||'기본 박스')}</td><td>${esc(it.palletType||'나무')}</td><td class="blank-note"><div class="note-entry"><textarea class="wj-item-note-v162" data-item-no="${i+1}" aria-label="비고" oninput="this.style.color=this.nextElementSibling.value"></textarea><input class="note-color" type="color" value="#111111" title="비고 글자색" onchange="this.previousElementSibling.style.color=this.value"></div></td></tr>`);
      if(imageUrl)imageRows.push(`<div class="production-image"><div class="image-label">NO. ${i+1} · ${esc(x.o.client||'')} · ${esc(formatOrderDateTime(x.o))}</div><img src="${imageUrl}" alt="생산용 이미지"></div>`);
    }
-   const tableHead=`<table class="items"><thead><tr><th>NO.</th><th>거래처</th><th>접수일</th><th>원단</th><th>색상</th><th>폭</th><th>실길이</th><th>도장</th><th>옵션명</th><th>수량</th><th>지관</th><th>박스종류</th><th>파렛트</th><th>비고</th></tr></thead><tbody>`;
+   const tableHead=`<table class="items"><thead><tr><th>NO.</th><th>거래처</th><th>접수일</th><th>원단</th><th>색상</th><th>폭</th><th>실길이</th><th>도장</th><th>포장단위</th><th>수량</th><th>지관</th><th>박스종류</th><th>파렛트</th><th>비고</th></tr></thead><tbody>`;
    const customerTables=[...customerGroups.entries()].map(([name,items])=>`<div class="customer-group"><div class="customer-heading">거래처 : ${esc(name)}</div>${tableHead}${items.join('')}</tbody></table></div>`).join('');
    const issuedAt=new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
    const instructionHtml=managerInstruction?`<div class="manager-note"><strong>생산 전달사항</strong><div>${esc(managerInstruction).replace(/\n/g,'<br>')}</div></div>`:'';
    const pages=`<section class="sheet"><header><div><strong>WONJUN TAPE</strong><div>WORK INSTRUCTION</div></div><div class="no">ITEMS <b>${refs.length}</b><br>발행일시 <b>${esc(issuedAt)}</b></div></header><h1>작 업 지 시 서</h1>${instructionHtml}${customerTables}${imageRows.length?`<h3>PRODUCTION IMAGE</h3><div class="image-grid">${imageRows.join('')}</div>`:''}<div class="check-title">CHECK</div><div class="check"><span>□ 원자재 확인</span><span>□ 인쇄·도장 확인</span><span>□ 포장 확인</span><span>□ 수량 확인</span><span>□ 최종검수</span></div></section>`;
    const printDocHtml=`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>원준테이프 작업지시서</title><style>@page{size:A4 landscape;margin:1mm}*{box-sizing:border-box}body{font-family:Arial,'Malgun Gothic',sans-serif;color:#111;margin:0}.sheet{min-height:190mm;page-break-after:always;padding:0}.sheet:last-child{page-break-after:auto}header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #111;padding-bottom:9px}header strong{font-size:22px}header div div{font-size:13px;font-weight:700;letter-spacing:1px}.no{text-align:right;font-size:12px;line-height:1.7}h1{text-align:center;letter-spacing:8px;font-size:30px;margin:13px 0 16px}.manager-note{border:2px solid #111;padding:10px 14px;margin:0 0 12px;display:flex;gap:16px;align-items:flex-start;font-size:16px;line-height:1.5}.manager-note strong{white-space:nowrap;font-size:17px}.manager-note div{font-weight:800;font-size:18px}.items{width:100%;border-collapse:collapse;table-layout:fixed}.items th,.items td{border:1.5px solid #333;padding:0;text-align:center;font-size:13px;line-height:1.12;overflow-wrap:anywhere;vertical-align:middle}.items th{background:#e9eef5;font-size:13px;font-weight:900}.items td{font-size:13px;font-weight:600;vertical-align:middle}.items th:nth-child(1){width:3%}.items th:nth-child(2){width:8%}.items th:nth-child(3){width:9%}.items th:nth-child(4){width:7%}.items th:nth-child(5){width:8%}.items th:nth-child(6),.items th:nth-child(7){width:5%}.items th:nth-child(8){width:7%}.items th:nth-child(9){width:8%}.items th:nth-child(10){width:7%}.items th:nth-child(11),.items th:nth-child(12),.items th:nth-child(13){width:7%}.items th:nth-child(14){width:9%}.blank-note{height:auto;min-height:0;vertical-align:middle!important}.note-entry{display:flex;align-items:center;justify-content:center;gap:3px;min-height:0;height:auto}.blank-note textarea{display:block;width:calc(100% - 18px);height:22px;min-height:22px;max-height:22px;line-height:16px;border:0;resize:none;overflow:hidden;font:700 12px Arial,'Malgun Gothic',sans-serif;padding:2px;background:transparent;text-align:center;vertical-align:middle;color:#111;align-self:center}.note-color{width:15px;height:18px;padding:0;border:0;background:transparent;cursor:pointer}.receipt-date{white-space:nowrap;word-break:keep-all;font-variant-numeric:tabular-nums}.receipt-time{color:#9ca3af}.items th:first-child{background:#cbd9ea;color:#17365d}.items td:first-child{background:#eaf1f8;color:#17365d;font-weight:900}.customer-group{margin:0 0 14px;break-inside:avoid}.customer-heading{font-size:15px;font-weight:900;padding:7px 9px;background:#e9eef5;border:1.5px solid #333;border-bottom:0;text-align:left}.color-chip{display:inline-block;min-width:42px;padding:6px 5px;border:1px solid #555;border-radius:3px;color:#111;font-weight:900;font-size:12px;print-color-adjust:exact;-webkit-print-color-adjust:exact}.color-text{display:inline-block;padding:4px 5px;font-weight:800;font-size:13px}.check-title{font-size:14px;font-weight:900;margin-top:15px}.check{display:flex;justify-content:space-around;gap:8px;flex-wrap:wrap;margin-top:7px;padding:11px;border:1.5px solid #333;font-size:13px;font-weight:700}.check span{white-space:nowrap}h3{font-size:16px;margin:14px 0 8px}.image-grid{display:flex;flex-wrap:wrap;gap:12px}.production-image{width:31%;border:1.5px solid #333;padding:8px;break-inside:avoid}.production-image .image-label{font-size:12px;font-weight:800;margin-bottom:7px}.production-image img{display:block;max-width:100%;max-height:85mm;object-fit:contain;margin:auto}@media print{.note-color{display:none}.blank-note textarea{width:100%;height:18px;min-height:18px;max-height:18px;line-height:14px;border:0;resize:none;overflow:hidden}.sheet{break-after:page}.customer-group{break-inside:avoid}.color-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${pages}</body></html>`;
-   const modal=document.createElement('div');modal.id='wjWorkPreviewModalV162';modal.style.cssText='position:fixed;inset:0;z-index:2147483500;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;padding:18px';
-   modal.innerHTML=`<div style="width:min(1400px,98vw);height:min(94vh,1000px);background:#f1f5f9;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #e2e8f0"><div><b style="font-size:16px">작업지시서 미리보기</b><div style="font-size:12px;color:#64748b;margin-top:3px">비고는 필요할 때만 입력하세요.</div></div><div style="display:flex;gap:8px"><button type="button" id="wjWorkPreviewCloseV162" class="small-btn">닫기</button><button type="button" id="wjWorkPreviewPrintV162" class="small-btn" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8">인쇄 / PDF 저장</button></div></div><iframe title="작업지시서 미리보기" id="wjWorkPreviewFrameV162" style="border:0;flex:1;width:100%;background:#fff"></iframe></div>`;
-   document.body.append(modal);const frame=modal.querySelector('#wjWorkPreviewFrameV162');frame.srcdoc=printDocHtml;
-   modal.querySelector('#wjWorkPreviewCloseV162').onclick=()=>modal.remove();modal.querySelector('#wjWorkPreviewPrintV162').onclick=()=>{try{frame.contentWindow.focus();frame.contentWindow.print()}catch(e){alert('인쇄창을 열지 못했습니다. '+(e.message||''))}};
+   const modal=document.createElement('div');modal.id='wjWorkPreviewModalV163';modal.style.cssText='position:fixed;inset:0;z-index:2147483500;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;padding:18px';
+   modal.innerHTML=`<div style="width:min(1400px,98vw);height:min(94vh,1000px);background:#f1f5f9;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #e2e8f0"><div><b style="font-size:16px">작업지시서 미리보기</b><div style="font-size:12px;color:#64748b;margin-top:3px">비고는 필요할 때만 입력하세요.</div></div><div style="display:flex;gap:8px"><button type="button" id="wjWorkPreviewCloseV163" class="small-btn">닫기</button><button type="button" id="wjWorkPreviewPrintV163" class="small-btn" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8">인쇄 / PDF 저장</button></div></div><iframe title="작업지시서 미리보기" id="wjWorkPreviewFrameV163" style="border:0;flex:1;width:100%;background:#fff"></iframe></div>`;
+   document.body.append(modal);const frame=modal.querySelector('#wjWorkPreviewFrameV163');frame.srcdoc=printDocHtml;
+   modal.querySelector('#wjWorkPreviewCloseV163').onclick=()=>modal.remove();modal.querySelector('#wjWorkPreviewPrintV163').onclick=()=>{try{frame.contentWindow.focus();frame.contentWindow.print()}catch(e){alert('인쇄창을 열지 못했습니다. '+(e.message||''))}};
    window.wjSelectedOrderItemsV148.clear();renderAdminOrders();
  }catch(e){console.error('작업지시서 발행 처리 실패',e);alert('작업지시서 발행 정보를 저장하지 못했습니다. Supabase SQL 적용 여부와 관리자 권한을 확인해 주세요.\n'+(e?.message||''));}
 }
@@ -3875,7 +3914,7 @@ function renderWJProductWorkFieldsV155(config,previewUrl){
 }
 async function saveWJProductWorkSettingV155(productId,existing){
  const raw=String(document.getElementById('wjProductRawMaterialV155')?.value||'').trim();
- const colorBoxes=[...document.querySelectorAll('.wj-product-color-v155')];const ids=colorBoxes.length?colorBoxes.filter(x=>x.checked).map(x=>String(x.value)):(window.wjProductColorSelectedV162||[]).map(String);
+ const colorBoxes=[...document.querySelectorAll('.wj-product-color-v155')];const ids=colorBoxes.length?colorBoxes.filter(x=>x.checked).map(x=>String(x.value)):(window.wjProductColorSelectedV163||[]).map(String);
  let path=existing?.default_image_path||null;
  const remove=!!document.getElementById('wjProductRemoveImageV155')?.checked;
  if(remove)path=null;
@@ -4666,136 +4705,58 @@ async function showOrderDetail(no){
 
 let v9Channel=null;try{v9Channel=new BroadcastChannel('wonjun_v9_sync')}catch(e){}function notifyV9Sync(){try{localStorage.setItem('wonjun_v9_sync',String(Date.now()))}catch(e){}try{v9Channel?.postMessage('refresh')}catch(e){}}const _saveV7DataV9=saveV7Data;saveV7Data=function(){_saveV7DataV9();notifyV9Sync()};async function refreshFromV9(){if(supabaseERP&&supabaseSyncReady){await loadAllERPDataFromSupabase()}else{loadV7Data()}if(currentUser){loadCartV8();renderAll();setTimeout(initV6Smart,20)}}window.addEventListener('storage',e=>{if(e.key==='wonjun_v9_sync'||['wonjun_v7_orders','wonjun_v7_notices','wonjun_v7_clients','wonjun_v7_products'].includes(e.key))refreshFromV9()});try{v9Channel?.addEventListener('message',refreshFromV9)}catch(e){}
 async function loadOrderOptionSettings(){
-  try{
-    if(!supabaseERP) return;
-    const {data,error}=await supabaseERP.from('order_option_settings').select('*').order('sort_order',{ascending:true});
-    if(error){
-      console.warn('발주 옵션 설정 조회 실패:',error);
-      return;
-    }
-    const next={box:[],pallet:[],core:[],coreClientVisibility:{}};
-    (data||[]).forEach(r=>{
-      const type=String(r.option_type||'');
-      const name=String(r.option_name||'').trim();
-      if(!name)return;
-      if(type==='box')next.box.push(name);
-      if(type==='pallet')next.pallet.push(name);
-      if(type==='core')next.core.push(name);
-      if(type.startsWith('core_client:')){const cid=type.slice('core_client:'.length);(next.coreClientVisibility[name] ||= []).push(cid)}
-    });
-    if(next.box.length)orderOptionSettings.box=[...next.box];
-    if(next.pallet.length)orderOptionSettings.pallet=[...next.pallet];
-    if(next.core.length)orderOptionSettings.core=[...next.core];
-    orderOptionSettings.coreClientVisibility=next.coreClientVisibility;
-    const carrierResult=await supabaseERP.from('delivery_carrier_options').select('*').eq('is_active',true).order('sort_order',{ascending:true});
-    if(!carrierResult.error&&carrierResult.data?.length)orderOptionSettings.carrier=carrierResult.data.map(x=>String(x.name||'').trim()).filter(Boolean);
-  }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
+ try{
+  if(!supabaseERP)return;
+  const {data,error}=await supabaseERP.from('order_option_settings').select('*').order('sort_order',{ascending:true});
+  if(error){console.warn('발주 옵션 설정 조회 실패:',error);return;}
+  const next={box:[],pallet:[],core:[],coreClientVisibility:{},clientVisibility:{}};
+  (data||[]).forEach(r=>{const type=String(r.option_type||''),name=String(r.option_name||'').trim();if(!name)return;
+   if(['box','pallet','core'].includes(type))next[type].push(name);
+   const m=type.match(/^(box|pallet|core|carrier)_client:(.+)$/);
+   if(m){const [,kind,cid]=m;(next.clientVisibility[`${kind}|${name}`] ||= []).push(String(cid));if(kind==='core')(next.coreClientVisibility[name] ||= []).push(String(cid));}
+   else if(type.startsWith('core_client:')){const cid=type.slice(12);(next.coreClientVisibility[name] ||= []).push(cid);(next.clientVisibility[`core|${name}`] ||= []).push(cid);}
+  });
+  ['box','pallet','core'].forEach(k=>{if(next[k].length)orderOptionSettings[k]=next[k]});
+  orderOptionSettings.coreClientVisibility=next.coreClientVisibility;orderOptionSettings.clientVisibility=next.clientVisibility;
+  const carrierResult=await supabaseERP.from('delivery_carrier_options').select('*').eq('is_active',true).order('sort_order',{ascending:true});
+  if(!carrierResult.error&&carrierResult.data?.length)orderOptionSettings.carrier=carrierResult.data.map(x=>String(x.name||'').trim()).filter(Boolean);
+ }catch(e){console.warn('발주 옵션 설정 불러오기 실패:',e)}
 }
-
 function openOrderOptionModal(){
-  orderOptionDraft={
-    box:[...(orderOptionSettings.box||['기본 박스'])],
-    pallet:[...(orderOptionSettings.pallet||['나무'])],
-    carrier:[...(orderOptionSettings.carrier||['롯데택배','대신택배'])],
-    core:[...(orderOptionSettings.core||['공용지관'])],
-    coreClientVisibility:JSON.parse(JSON.stringify(orderOptionSettings.coreClientVisibility||{}))
-  };
-  renderOrderOptionSettings();
-  const bg=document.getElementById('orderOptionModalBg');
-  if(!bg)return;
-  bg.classList.add('show');
-  bg.style.display='flex';
-  bg.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
+ orderOptionDraft={box:[...(orderOptionSettings.box||['기본 박스'])],pallet:[...(orderOptionSettings.pallet||['나무'])],carrier:[...(orderOptionSettings.carrier||['롯데택배','대신택배'])],core:[...(orderOptionSettings.core||['공용지관'])],coreClientVisibility:JSON.parse(JSON.stringify(orderOptionSettings.coreClientVisibility||{})),clientVisibility:JSON.parse(JSON.stringify(orderOptionSettings.clientVisibility||{}))};
+ wjOrderOptionTypeV163='box';wjOrderOptionPageV163=1;const search=document.getElementById('optionManagerSearchV163');if(search)search.value='';const input=document.getElementById('optionManagerNewNameV163');if(input)input.value='';
+ renderOrderOptionManagerV163();const bg=document.getElementById('orderOptionModalBg');if(!bg)return;bg.classList.add('show');bg.style.display='flex';bg.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
 }
-function closeOrderOptionModal(){
-  const bg=document.getElementById('orderOptionModalBg');
-  if(bg){
-    bg.classList.remove('show');
-    bg.style.display='none';
-    bg.setAttribute('aria-hidden','true');
-  }
-  document.body.style.overflow='';
+function closeOrderOptionModal(){const bg=document.getElementById('orderOptionModalBg');if(bg){bg.classList.remove('show');bg.style.display='none';bg.setAttribute('aria-hidden','true')}document.body.style.overflow='';}
+function switchOrderOptionTypeV163(type){if(!['box','pallet','core','carrier'].includes(type))return;wjOrderOptionTypeV163=type;wjOrderOptionPageV163=1;const search=document.getElementById('optionManagerSearchV163');if(search)search.value='';const input=document.getElementById('optionManagerNewNameV163');if(input)input.value='';renderOrderOptionManagerV163();}
+function renderOrderOptionManagerV163(){
+ const type=wjOrderOptionTypeV163,labels={box:'박스 종류',pallet:'파렛트 종류',core:'지관 종류',carrier:'택배사 목록'},descs={box:'거래처 발주 시 선택할 박스 종류를 관리합니다.',pallet:'거래처 발주 시 선택할 파렛트 종류를 관리합니다.',core:'지관 종류별로 노출할 거래처를 지정할 수 있습니다.',carrier:'택배 배송 시 거래처가 선택할 택배사 목록입니다.'};
+ document.querySelectorAll('[data-option-tab]').forEach(b=>b.classList.toggle('active',b.dataset.optionTab===type));
+ document.getElementById('optionManagerTitleV163').textContent=labels[type];document.getElementById('optionManagerDescV163').textContent=descs[type];
+ const list=(orderOptionDraft[type]||[]),q=(document.getElementById('optionManagerSearchV163')?.value||'').trim().toLowerCase(),filtered=list.map((name,index)=>({name,index})).filter(x=>x.name.toLowerCase().includes(q));
+ document.getElementById('optionManagerCountV163').textContent=String(list.length);
+ const size=5,total=Math.max(1,Math.ceil(filtered.length/size));wjOrderOptionPageV163=Math.min(total,Math.max(1,wjOrderOptionPageV163));const pageRows=filtered.slice((wjOrderOptionPageV163-1)*size,wjOrderOptionPageV163*size);
+ const activeClients=(clients||[]).filter(c=>String(c.status||'정상')!=='거래중지');const visibility=orderOptionDraft.clientVisibility||{};
+ const el=document.getElementById('optionManagerRowsV163');el.innerHTML=pageRows.map(({name,index})=>{const selected=visibility[`${type}|${name}`]||[];const limited=selected.length>0;return `<div class="option-manager-row-v163"><div class="option-manager-row-main-v163"><b>${escapeHtmlV8(name)}</b><span style="font-size:10px;color:#64748b">${limited?`선택 거래처 ${selected.length}곳`:'전체 거래처 공개'}</span><button type="button" class="small-btn" onclick="removeOrderOptionV163(${index})">삭제</button></div><details class="option-manager-client-v163"><summary>거래처별 노출 설정 ${limited?'· 제한 적용 중':'· 전체 공개'}</summary><div class="option-manager-client-list-v163">${activeClients.map(c=>`<label><input type="checkbox" ${selected.map(String).includes(String(c.id))?'checked':''} onchange="setOrderOptionClientV163('${type}',${index},'${String(c.id).replace(/'/g,"\'")}',this.checked)">${escapeHtmlV8(c.company||c.name||c.code||'거래처')}</label>`).join('')}</div><div style="font-size:10px;color:#94a3b8;margin-top:7px">아무 거래처도 선택하지 않으면 모든 거래처에 표시됩니다.</div></details></div>`}).join('')||'<div style="padding:28px;text-align:center;color:#94a3b8;font-size:12px">등록된 항목이 없습니다.</div>';
+ const from=filtered.length?(wjOrderOptionPageV163-1)*size+1:0,to=Math.min(wjOrderOptionPageV163*size,filtered.length);document.getElementById('optionManagerPagerV163').innerHTML=`<span>총 ${filtered.length}개 중 ${from}–${to}개 · ${wjOrderOptionPageV163}/${total} 페이지</span><div><button type="button" onclick="changeOrderOptionPageV163(-1)" ${wjOrderOptionPageV163<=1?'disabled':''}>이전</button> <button type="button" onclick="changeOrderOptionPageV163(1)" ${wjOrderOptionPageV163>=total?'disabled':''}>다음</button></div>`;
 }
-function renderOrderOptionSettings(){
-  const draw=(id,type,countId)=>{
-    const el=document.getElementById(id);if(!el)return;
-    const list=(orderOptionDraft[type]||[]).filter(Boolean);
-    el.innerHTML=list.map((x,i)=>`<span class="option-chip">${escapeHtmlV8(x)} <button type="button" onclick="removeOrderOptionDraft('${type}',${i})" title="삭제" aria-label="${escapeHtmlV8(x)} 삭제"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6l8 8M14 6l-8 8"/></svg></button></span>`).join('');
-    const count=document.getElementById(countId);if(count)count.textContent=String(list.length);
-  };
-  draw('adminBoxTypeOptions','box','boxOptionCount');
-  draw('adminPalletTypeOptions','pallet','palletOptionCount');
-  draw('adminCarrierOptions','carrier','carrierOptionCount');
-  const coreEl=document.getElementById('adminCoreTypeOptions');
-  if(coreEl){
-    const activeClients=(clients||[]).filter(c=>String(c.status||'정상')!=='거래중지');
-    coreEl.innerHTML=(orderOptionDraft.core||[]).map((name,i)=>{
-      const selected=orderOptionDraft.coreClientVisibility?.[name]||[];
-      const restricted=selected.length>0;
-      return `<div class="core-option-rule" style="display:block;width:100%;padding:9px 10px;border:1px solid #dbe3ec;border-radius:9px;margin:5px 0;background:#fff"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b>${escapeHtmlV8(name)}</b><button type="button" class="btn light" style="padding:4px 10px;min-width:54px" onclick="removeOrderOptionDraft('core',${i})">삭제</button></div><div style="font-size:11px;color:#64748b;margin:7px 0 5px">${restricted?'선택한 거래처에만 표시':'모든 거래처에 표시'}</div><div style="display:flex;gap:8px;flex-wrap:wrap">${activeClients.map(c=>`<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" ${selected.includes(String(c.id))?'checked':''} onchange="setCoreOptionClientVisibility(${i},'${String(c.id)}',this.checked)">${escapeHtmlV8(c.company||c.name||c.code||'거래처')}</label>`).join('')}</div></div>`;
-    }).join('')||'<div style="font-size:12px;color:#64748b">등록된 지관 옵션이 없습니다.</div>';
-    const count=document.getElementById('coreOptionCount');if(count)count.textContent=String((orderOptionDraft.core||[]).length);
-  }
-}
-function addOrderOptionDraft(type){
-  const input=document.getElementById(type==='box'?'newBoxTypeOption':type==='pallet'?'newPalletTypeOption':type==='core'?'newCoreTypeOption':'newCarrierOption');
-  const v=(input?.value||'').trim();
-  if(!v)return;
-  orderOptionDraft[type]=orderOptionDraft[type]||[];
-  if(orderOptionDraft[type].includes(v)){alert('이미 등록된 항목입니다.');return}
-  orderOptionDraft[type].push(v);
-  if(input)input.value='';
-  renderOrderOptionSettings();
-  input?.focus();
-}
-function setCoreOptionClientVisibility(index,clientId,checked){
- const name=(orderOptionDraft.core||[])[index];if(!name)return;
- orderOptionDraft.coreClientVisibility=orderOptionDraft.coreClientVisibility||{};
- const list=orderOptionDraft.coreClientVisibility[name]||[];
- const next=checked?[...new Set([...list,String(clientId)])]:list.filter(x=>String(x)!==String(clientId));
- if(next.length)orderOptionDraft.coreClientVisibility[name]=next;else delete orderOptionDraft.coreClientVisibility[name];
- const el=document.getElementById('adminCoreTypeOptions');
- if(el){const y=el.scrollTop;renderOrderOptionSettings();el.scrollTop=y;}
-}
-function removeOrderOptionDraft(type,index){
-  const list=orderOptionDraft[type]||[];
-  if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}
-  const name=list[index];
-  if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;
-  list.splice(index,1);
-  if(type==='core'){const nameToRemove=name;delete (orderOptionDraft.coreClientVisibility||{})[nameToRemove]}
-  renderOrderOptionSettings();
-}
+function changeOrderOptionPageV163(delta){wjOrderOptionPageV163+=delta;renderOrderOptionManagerV163()}
+function addOrderOptionV163(){const type=wjOrderOptionTypeV163,input=document.getElementById('optionManagerNewNameV163'),name=(input?.value||'').trim();if(!name)return;orderOptionDraft[type]||=[];if(orderOptionDraft[type].includes(name)){alert('이미 등록된 항목입니다.');return}orderOptionDraft[type].push(name);if(input)input.value='';wjOrderOptionPageV163=Math.ceil(orderOptionDraft[type].length/5);renderOrderOptionManagerV163();input?.focus()}
+function removeOrderOptionV163(index){const type=wjOrderOptionTypeV163,list=orderOptionDraft[type]||[],name=list[index];if(!name)return;if(list.length<=1){alert('최소 1개 항목은 남겨두어야 합니다.');return}if(!confirm(`'${name}' 항목을 삭제하시겠습니까?`))return;list.splice(index,1);delete (orderOptionDraft.clientVisibility||{})[`${type}|${name}`];if(type==='core')delete (orderOptionDraft.coreClientVisibility||{})[name];renderOrderOptionManagerV163()}
+function setOrderOptionClientV163(type,index,clientId,checked){const name=(orderOptionDraft[type]||[])[index];if(!name)return;orderOptionDraft.clientVisibility||={};const key=`${type}|${name}`,old=orderOptionDraft.clientVisibility[key]||[],next=checked?[...new Set([...old.map(String),String(clientId)])]:old.filter(x=>String(x)!==String(clientId));if(next.length)orderOptionDraft.clientVisibility[key]=next;else delete orderOptionDraft.clientVisibility[key];if(type==='core'){orderOptionDraft.coreClientVisibility||={};if(next.length)orderOptionDraft.coreClientVisibility[name]=next;else delete orderOptionDraft.coreClientVisibility[name]}renderOrderOptionManagerV163()}
 async function saveOrderOptionSettings(){
-  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
-  if(!(orderOptionDraft.box||[]).length||!(orderOptionDraft.pallet||[]).length||!(orderOptionDraft.carrier||[]).length){alert('박스 종류, 파렛트 종류, 택배사 목록은 각각 1개 이상 필요합니다.');return}
-  if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;
-  try{
-    const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet','core']);
-    if(del.error)throw del.error;
-    const coreOld=await supabaseERP.from('order_option_settings').delete().like('option_type','core_client:%');
-    if(coreOld.error)throw coreOld.error;
-    const rows=[
-      ...(orderOptionDraft.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),
-      ...(orderOptionDraft.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i})),
-      ...(orderOptionDraft.core||[]).map((x,i)=>({option_type:'core',option_name:x,sort_order:i})),
-      ...Object.entries(orderOptionDraft.coreClientVisibility||{}).flatMap(([name,ids])=>(ids||[]).map((cid,i)=>({option_type:`core_client:${cid}`,option_name:name,sort_order:i})))
-    ];
-    const ins=await supabaseERP.from('order_option_settings').insert(rows);
-    if(ins.error)throw ins.error;
-    const carrierDel=await supabaseERP.from('delivery_carrier_options').delete().neq('id','00000000-0000-0000-0000-000000000000');
-    if(carrierDel.error)throw carrierDel.error;
-    const carrierIns=await supabaseERP.from('delivery_carrier_options').insert((orderOptionDraft.carrier||[]).map((name,i)=>({name,sort_order:i,is_active:true})));
-    if(carrierIns.error)throw carrierIns.error;
-    orderOptionSettings={box:[...orderOptionDraft.box],pallet:[...orderOptionDraft.pallet],carrier:[...orderOptionDraft.carrier],core:[...(orderOptionDraft.core||[])],coreClientVisibility:JSON.parse(JSON.stringify(orderOptionDraft.coreClientVisibility||{}))};
-    closeOrderOptionModal();
-    renderProducts();
-    alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.');
-  }catch(e){
-    console.error('발주 옵션 설정 저장 실패:',e);
-    alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e));
-  }
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요.');return}
+ if(['box','pallet','carrier'].some(k=>!(orderOptionDraft[k]||[]).length)){alert('박스 종류, 파렛트 종류, 택배사 목록은 각각 1개 이상 필요합니다.');return}
+ if(!confirm('발주 옵션 설정을 저장하시겠습니까?'))return;
+ try{
+  const del=await supabaseERP.from('order_option_settings').delete().in('option_type',['box','pallet','core']);if(del.error)throw del.error;
+  const oldVis=await supabaseERP.from('order_option_settings').delete().or('option_type.like.box_client:%,option_type.like.pallet_client:%,option_type.like.core_client:%,option_type.like.carrier_client:%');if(oldVis.error)throw oldVis.error;
+  const rows=[...(orderOptionDraft.box||[]).map((x,i)=>({option_type:'box',option_name:x,sort_order:i})),...(orderOptionDraft.pallet||[]).map((x,i)=>({option_type:'pallet',option_name:x,sort_order:i})),...(orderOptionDraft.core||[]).map((x,i)=>({option_type:'core',option_name:x,sort_order:i})),...Object.entries(orderOptionDraft.clientVisibility||{}).flatMap(([key,ids])=>{const [kind,name]=key.split('|');return (ids||[]).map((cid,i)=>({option_type:`${kind}_client:${cid}`,option_name:name,sort_order:i}))})];
+  const ins=await supabaseERP.from('order_option_settings').insert(rows);if(ins.error)throw ins.error;
+  const carrierDel=await supabaseERP.from('delivery_carrier_options').delete().neq('id','00000000-0000-0000-0000-000000000000');if(carrierDel.error)throw carrierDel.error;
+  const carrierIns=await supabaseERP.from('delivery_carrier_options').insert((orderOptionDraft.carrier||[]).map((name,i)=>({name,sort_order:i,is_active:true})));if(carrierIns.error)throw carrierIns.error;
+  orderOptionSettings={box:[...orderOptionDraft.box],pallet:[...orderOptionDraft.pallet],carrier:[...orderOptionDraft.carrier],core:[...(orderOptionDraft.core||[])],coreClientVisibility:JSON.parse(JSON.stringify(orderOptionDraft.coreClientVisibility||{})),clientVisibility:JSON.parse(JSON.stringify(orderOptionDraft.clientVisibility||{}))};closeOrderOptionModal();renderProducts();alert('발주 옵션 설정이 저장되었습니다. 거래처 화면에도 적용됩니다.');
+ }catch(e){console.error('발주 옵션 설정 저장 실패:',e);alert('발주 옵션 설정 저장에 실패했습니다.\n\n'+(e.message||e))}
 }
 
 document.getElementById('orderOptionModalBg')?.addEventListener('click',function(e){if(e.target===this)closeOrderOptionModal()});
@@ -5077,31 +5038,31 @@ document.addEventListener('DOMContentLoaded',()=>{for(const root of [document.bo
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
 window.addEventListener('focus',()=>{if(supabaseERP&&supabaseSyncReady)loadAllERPDataFromSupabase()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeQuoteRequestModalV134();}});
-/* V162: 제품 등록 화면 안에서 색상 선택/관리 */
-async function openWJInlineColorPickerV162(){
+/* V163: 제품 등록 화면 안에서 색상 선택/관리 */
+async function openWJInlineColorPickerV163(){
  try{if(!wjWorkColorPaletteV155.length)await loadWJWorkInstructionSettingsV155();}catch(e){alert('색상 목록을 불러오지 못했습니다. '+(e.message||e));return}
- const old=document.getElementById('wjInlineColorModalV162');if(old)old.remove();
- const selected=new Set([...document.querySelectorAll('.wj-product-color-v155:checked')].map(x=>String(x.value)));if(!selected.size&&Array.isArray(window.wjProductColorSelectedV162))window.wjProductColorSelectedV162.forEach(x=>selected.add(String(x)));
- const overlay=document.createElement('div');overlay.id='wjInlineColorModalV162';overlay.style.cssText='position:fixed;inset:0;z-index:2147482500;background:rgba(15,23,42,.48);display:flex;align-items:center;justify-content:center;padding:18px';
+ const old=document.getElementById('wjInlineColorModalV163');if(old)old.remove();
+ const selected=new Set([...document.querySelectorAll('.wj-product-color-v155:checked')].map(x=>String(x.value)));if(!selected.size&&Array.isArray(window.wjProductColorSelectedV163))window.wjProductColorSelectedV163.forEach(x=>selected.add(String(x)));
+ const overlay=document.createElement('div');overlay.id='wjInlineColorModalV163';overlay.style.cssText='position:fixed;inset:0;z-index:2147482500;background:rgba(15,23,42,.48);display:flex;align-items:center;justify-content:center;padding:18px';
  const panel=document.createElement('div');panel.style.cssText='width:min(620px,100%);max-height:85vh;overflow:auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25)';
  const draw=()=>{const rows=wjWorkColorPaletteV155.map(c=>`<label style="display:flex;align-items:center;gap:9px;border:1px solid #e2e8f0;border-radius:8px;padding:9px;cursor:pointer"><input type="checkbox" class="wj-product-color-v157" value="${escapeHtmlV8(c.id)}" ${selected.has(String(c.id))?'checked':''}><span style="width:23px;height:23px;border:1px solid #cbd5e1;border-radius:5px;background:${c.color_value||'#fff'}"></span><span style="flex:1;font-weight:700">${escapeHtmlV8(c.name)}</span><small style="color:#64748b">${c.color_value||'글자만 표시'}</small><button type="button" class="small-btn" data-edit="${escapeHtmlV8(c.id)}">수정</button><button type="button" class="small-btn" data-del="${escapeHtmlV8(c.id)}" style="color:#b91c1c">삭제</button></label>`).join('');
- panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><h3 style="margin:0">색상 선택</h3><div style="font-size:12px;color:#64748b;margin-top:4px">제품 작업지시서에 표시할 색상을 선택하세요.</div></div><button type="button" id="wjColorCloseV162" class="small-btn">닫기</button></div><div style="display:grid;gap:7px">${rows||'<div style="color:#64748b;padding:15px">등록된 색상이 없습니다.</div>'}</div><div style="border-top:1px solid #e2e8f0;margin-top:15px;padding-top:14px"><b style="font-size:13px">색상 추가</b><div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><input id="wjColorNewNameV162" placeholder="색상 이름" style="flex:1;min-width:130px;padding:9px;border:1px solid #cbd5e1;border-radius:7px"><label style="font-size:12px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="wjColorUseHexV162"> 색상값</label><input type="color" id="wjColorHexV162" value="#E8E8E8"><button type="button" id="wjColorAddV162" class="small-btn">추가</button></div></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" id="wjColorCancelV162" class="small-btn">취소</button><button type="button" id="wjColorApplyV162" class="small-btn" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8">선택 적용</button></div>`;};
+ panel.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div><h3 style="margin:0">색상 선택</h3><div style="font-size:12px;color:#64748b;margin-top:4px">제품 작업지시서에 표시할 색상을 선택하세요.</div></div><button type="button" id="wjColorCloseV163" class="small-btn">닫기</button></div><div style="display:grid;gap:7px">${rows||'<div style="color:#64748b;padding:15px">등록된 색상이 없습니다.</div>'}</div><div style="border-top:1px solid #e2e8f0;margin-top:15px;padding-top:14px"><b style="font-size:13px">색상 추가</b><div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><input id="wjColorNewNameV163" placeholder="색상 이름" style="flex:1;min-width:130px;padding:9px;border:1px solid #cbd5e1;border-radius:7px"><label style="font-size:12px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="wjColorUseHexV163"> 색상값</label><input type="color" id="wjColorHexV163" value="#E8E8E8"><button type="button" id="wjColorAddV163" class="small-btn">추가</button></div></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" id="wjColorCancelV163" class="small-btn">취소</button><button type="button" id="wjColorApplyV163" class="small-btn" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8">선택 적용</button></div>`;};
  panel.querySelectorAll('.wj-product-color-v157').forEach(el=>el.addEventListener('change',()=>{el.checked?selected.add(el.value):selected.delete(el.value)}));
  panel.querySelectorAll('[data-edit]').forEach(b=>b.onclick=async()=>{const c=wjWorkColorPaletteV155.find(x=>String(x.id)===b.dataset.edit);if(!c)return;const name=prompt('색상 이름',c.name||'');if(name===null)return;let color=null;if(confirm('색상값을 지정할까요? 확인을 누르면 색상값을 입력합니다.')){color=prompt('HEX 색상값 (# 포함)',c.color_value||'#E8E8E8');if(color===null)return;if(!/^#[0-9a-fA-F]{6}$/.test(color)){alert('예: #E8E8E8 형식으로 입력해 주세요.');return}}const r=await supabaseERP.from('work_instruction_color_palette').update({name:name.trim(),color_value:color,updated_at:new Date().toISOString()}).eq('id',c.id);if(r.error){alert(r.error.message);return}await loadWJWorkInstructionSettingsV155();draw()});
  panel.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const c=wjWorkColorPaletteV155.find(x=>String(x.id)===b.dataset.del);if(!c||!confirm(`'${c.name}' 색상을 삭제할까요?`))return;const r=await supabaseERP.from('work_instruction_color_palette').delete().eq('id',c.id);if(r.error){alert(r.error.message);return}selected.delete(String(c.id));await loadWJWorkInstructionSettingsV155();draw()});
- panel.querySelector('#wjColorAddV162').onclick=async()=>{const name=panel.querySelector('#wjColorNewNameV162').value.trim();if(!name){alert('색상 이름을 입력해 주세요.');return}const color=panel.querySelector('#wjColorUseHexV162').checked?panel.querySelector('#wjColorHexV162').value:null;const r=await supabaseERP.from('work_instruction_color_palette').insert({name,color_value:color,sort_order:wjWorkColorPaletteV155.length});if(r.error){alert(r.error.message);return}await loadWJWorkInstructionSettingsV155();draw()};
- const close=()=>overlay.remove();panel.querySelector('#wjColorCloseV162').onclick=close;panel.querySelector('#wjColorCancelV162').onclick=close;panel.querySelector('#wjColorApplyV162').onclick=()=>{const box=document.querySelector('.wj-product-work-box-v155');if(box){box.querySelectorAll('.wj-product-color-v155').forEach(el=>el.remove());wjWorkColorPaletteV155.forEach(c=>{const el=document.createElement('input');el.type='checkbox';el.className='wj-product-color-v155';el.value=String(c.id);el.checked=selected.has(String(c.id));el.style.display='none';box.append(el)})}window.wjProductColorSelectedV162=[...selected];overlay.remove();refreshWJProductColorSummaryV162()};
+ panel.querySelector('#wjColorAddV163').onclick=async()=>{const name=panel.querySelector('#wjColorNewNameV163').value.trim();if(!name){alert('색상 이름을 입력해 주세요.');return}const color=panel.querySelector('#wjColorUseHexV163').checked?panel.querySelector('#wjColorHexV163').value:null;const r=await supabaseERP.from('work_instruction_color_palette').insert({name,color_value:color,sort_order:wjWorkColorPaletteV155.length});if(r.error){alert(r.error.message);return}await loadWJWorkInstructionSettingsV155();draw()};
+ const close=()=>overlay.remove();panel.querySelector('#wjColorCloseV163').onclick=close;panel.querySelector('#wjColorCancelV163').onclick=close;panel.querySelector('#wjColorApplyV163').onclick=()=>{const box=document.querySelector('.wj-product-work-box-v155');if(box){box.querySelectorAll('.wj-product-color-v155').forEach(el=>el.remove());wjWorkColorPaletteV155.forEach(c=>{const el=document.createElement('input');el.type='checkbox';el.className='wj-product-color-v155';el.value=String(c.id);el.checked=selected.has(String(c.id));el.style.display='none';box.append(el)})}window.wjProductColorSelectedV163=[...selected];overlay.remove();refreshWJProductColorSummaryV163()};
  overlay.onclick=e=>{if(e.target===overlay)close()};overlay.append(panel);document.body.append(overlay);
 };
-function refreshWJProductColorSummaryV162(){const input=document.getElementById('wjProductColorSummaryV162');if(!input)return;const ids=new Set([...document.querySelectorAll('.wj-product-color-v155:checked')].map(x=>String(x.value)));input.value=wjWorkColorPaletteV155.filter(c=>ids.has(String(c.id))).map(c=>c.name).join(', ')}
+function refreshWJProductColorSummaryV163(){const input=document.getElementById('wjProductColorSummaryV163');if(!input)return;const ids=new Set([...document.querySelectorAll('.wj-product-color-v155:checked')].map(x=>String(x.value)));input.value=wjWorkColorPaletteV155.filter(c=>ids.has(String(c.id))).map(c=>c.name).join(', ')}
 function renderWJProductWorkFieldsV155(config,previewUrl){
- const cfg=config||{},selected=new Set((cfg.color_palette_ids||[]).map(String));window.wjProductColorSelectedV162=[...selected];
+ const cfg=config||{},selected=new Set((cfg.color_palette_ids||[]).map(String));window.wjProductColorSelectedV163=[...selected];
  const hidden=wjWorkColorPaletteV155.map(c=>`<input type="checkbox" class="wj-product-color-v155" value="${escapeHtmlV8(c.id)}" ${selected.has(String(c.id))?'checked':''} style="display:none">`).join('');
  const names=wjWorkColorPaletteV155.filter(c=>selected.has(String(c.id))).map(c=>c.name).join(', ');
- return `<div class="field full wj-product-work-box-v155" style="border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;padding:13px;margin-top:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:13px">작업지시서 전용 정보</b><span style="font-size:10px;color:#2563eb;font-weight:700">관리자 전용 · 거래처 비노출</span></div><div class="field" style="margin-top:12px"><label for="wjProductRawMaterialV155">원단</label><input id="wjProductRawMaterialV155" value="${escapeHtmlV8(cfg.raw_material||'')}" placeholder="예: 라바 / 아크릴 / 63mic / 57mic"></div><div class="field" style="margin-top:10px"><label>색상</label><div style="display:flex;gap:7px;align-items:center">${hidden}<input id="wjProductColorSummaryV162" readonly value="${escapeHtmlV8(names)}" placeholder="색상 선택" style="flex:1;min-width:0;background:#fff"><button type="button" class="small-btn" onclick="openWJInlineColorPickerV162()" style="white-space:nowrap">색상 선택</button></div><div style="font-size:10px;color:#64748b;margin-top:4px">색상값이 지정된 색상은 색상칩으로, 지정하지 않은 색상은 글자로 표시됩니다.</div></div><div class="field" style="margin-top:10px"><label>기본 생산용 이미지</label>${previewUrl?`<img src="${previewUrl}" alt="기본 생산용 이미지" style="display:block;max-width:220px;max-height:130px;object-fit:contain;border:1px solid #dbe3ec;border-radius:7px;background:#fff;padding:4px;margin:6px 0">`:''}<input id="wjProductDefaultImageV155" type="file" accept="image/*"><div style="font-size:10px;color:#64748b;margin-top:4px">실제 인쇄에 필요한 로고·도안만 있는 이미지입니다. 거래처 주문 시안과 별도로 보관합니다. 최대 10MB.</div>${cfg.default_image_path?'<label style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px"><input id="wjProductRemoveImageV155" type="checkbox"> 기존 기본 이미지 삭제</label>':''}</div></div>`;
+ return `<div class="field full wj-product-work-box-v155" style="border:1px solid #dbeafe;background:#f8fbff;border-radius:10px;padding:13px;margin-top:12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:13px">작업지시서 전용 정보</b><span style="font-size:10px;color:#2563eb;font-weight:700">관리자 전용 · 거래처 비노출</span></div><div class="field" style="margin-top:12px"><label for="wjProductRawMaterialV155">원단</label><input id="wjProductRawMaterialV155" value="${escapeHtmlV8(cfg.raw_material||'')}" placeholder="예: 라바 / 아크릴 / 63mic / 57mic"></div><div class="field" style="margin-top:10px"><label>색상</label><div style="display:flex;gap:7px;align-items:center">${hidden}<input id="wjProductColorSummaryV163" readonly value="${escapeHtmlV8(names)}" placeholder="색상 선택" style="flex:1;min-width:0;background:#fff"><button type="button" class="small-btn" onclick="openWJInlineColorPickerV163()" style="white-space:nowrap">색상 선택</button></div><div style="font-size:10px;color:#64748b;margin-top:4px">색상값이 지정된 색상은 색상칩으로, 지정하지 않은 색상은 글자로 표시됩니다.</div></div><div class="field" style="margin-top:10px"><label>기본 생산용 이미지</label>${previewUrl?`<img src="${previewUrl}" alt="기본 생산용 이미지" style="display:block;max-width:220px;max-height:130px;object-fit:contain;border:1px solid #dbe3ec;border-radius:7px;background:#fff;padding:4px;margin:6px 0">`:''}<input id="wjProductDefaultImageV155" type="file" accept="image/*"><div style="font-size:10px;color:#64748b;margin-top:4px">실제 인쇄에 필요한 로고·도안만 있는 이미지입니다. 거래처 주문 시안과 별도로 보관합니다. 최대 10MB.</div>${cfg.default_image_path?'<label style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11px"><input id="wjProductRemoveImageV155" type="checkbox"> 기존 기본 이미지 삭제</label>':''}</div></div>`;
 }
 
-/* V162: 발행은 관리자 화면 안의 상세형 미리보기에서 확인 후 인쇄 */
+/* V163: 발행은 관리자 화면 안의 상세형 미리보기에서 확인 후 인쇄 */
 
 </script>
 
