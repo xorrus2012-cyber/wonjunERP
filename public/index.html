@@ -2308,6 +2308,7 @@ async function forceUnifiedProductSource(){
 
 
 const won=n=>'₩ '+Number(n).toLocaleString('ko-KR');
+/* V166: 로그인 성공 후 강제 location.reload 제거. 인증/데이터 로딩 완료 후 applyLoggedInUI로 즉시 전환 */
 async function login(){
  const id=document.getElementById('loginId').value.trim(), pw=document.getElementById('loginPw').value;
  if(!id||!pw){alert('아이디와 비밀번호를 입력해 주세요.');return}
@@ -2331,8 +2332,9 @@ async function login(){
    // 초기 localStorage 제품(A 등)을 Supabase로 자동 이관하지 않습니다.
    await loadProductsFromSupabase();
    subscribeERPRealtime();
+   // 인증 및 데이터 로딩이 끝난 뒤 화면을 즉시 전환합니다.
+   // 강제 전체 새로고침은 세션 복원 타이밍에 따라 로그인 화면으로 되돌아가는 문제를 만들 수 있어 사용하지 않습니다.
    applyLoggedInUI();
-   window.location.reload();
    return;
  }
 
@@ -2396,8 +2398,9 @@ async function login(){
    await refreshCurrentClientFromSupabase();
    await loadAllERPDataFromSupabase();
    subscribeERPRealtime();
+   // 인증 및 데이터 로딩이 끝난 뒤 화면을 즉시 전환합니다.
+   // 강제 전체 새로고침은 세션 복원 타이밍에 따라 로그인 화면으로 되돌아가는 문제를 만들 수 있어 사용하지 않습니다.
    applyLoggedInUI();
-   window.location.reload();
    return;
  }
 
@@ -2406,8 +2409,8 @@ async function login(){
  if(!client){alert('아이디 또는 비밀번호를 확인해 주세요.');return}
  currentUser=client.loginId;
  localStorage.setItem('wonjun_v7_session',currentUser);
+ // 로컬 계정도 전체 페이지를 다시 불러오지 않고 로그인 화면을 즉시 전환합니다.
  applyLoggedInUI();
- window.location.reload();
 }
 
 
