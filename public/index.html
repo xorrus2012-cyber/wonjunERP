@@ -960,6 +960,18 @@ body{font-size:14px}
 }
 </style>
 
+
+<style id="v170-admin-notice-action-alignment">
+/* V170: 공지사항 관리 표의 편집/삭제 버튼을 관리 열 안에서 항상 한 줄 중앙 정렬 */
+#adminNotices .card.table-wrap { width:100% !important; min-width:0 !important; }
+#adminNotices .card.table-wrap > table { width:100% !important; min-width:100% !important; table-layout:fixed !important; }
+#adminNotices .card.table-wrap > table th:last-child,
+#adminNotices .card.table-wrap > table td:last-child { width:168px !important; min-width:168px !important; max-width:168px !important; padding-left:8px !important; padding-right:8px !important; text-align:center !important; vertical-align:middle !important; white-space:nowrap !important; }
+#adminNotices .card.table-wrap > table td:last-child .action-row { display:flex !important; flex-flow:row nowrap !important; align-items:center !important; justify-content:center !important; gap:8px !important; width:100% !important; min-width:0 !important; margin:0 auto !important; }
+#adminNotices .card.table-wrap > table td:last-child .action-row button { display:inline-flex !important; flex:0 0 58px !important; width:58px !important; min-width:58px !important; max-width:58px !important; height:30px !important; min-height:30px !important; align-items:center !important; justify-content:center !important; box-sizing:border-box !important; padding:0 6px !important; white-space:nowrap !important; line-height:1 !important; }
+#adminNotices .card.table-wrap > table th:not(:last-child), #adminNotices .card.table-wrap > table td:not(:last-child) { overflow-wrap:anywhere; }
+@media(max-width:520px){ #adminNotices .card.table-wrap > table { min-width:560px !important; } }
+</style>
 </head>
 <body>
 <div id="v153ShipDateOverlay" hidden onclick="if(event.target===this)closeShipDatePickerV153()">
