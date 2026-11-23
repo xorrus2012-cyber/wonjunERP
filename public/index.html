@@ -972,6 +972,16 @@ body{font-size:14px}
 #adminNotices .card.table-wrap > table th:not(:last-child), #adminNotices .card.table-wrap > table td:not(:last-child) { overflow-wrap:anywhere; }
 @media(max-width:520px){ #adminNotices .card.table-wrap > table { min-width:560px !important; } }
 </style>
+
+<style id="v173-dashboard-layout-fix">
+/* V173: 관리자 대시보드가 콘텐츠 최대폭에 묶여 오른쪽이 비어 보이는 현상 보정 */
+.content:has(#adminDash.active){width:100%;max-width:none;margin:0;padding-right:28px;padding-left:28px}
+#adminDash,#adminDash .grid2,#adminDash .grid2>.card,#adminDash .table-wrap{width:100%;min-width:0;max-width:none}
+#adminDash .grid2{display:block}
+#adminDash .grid2>.card{grid-column:auto}
+@media(max-width:720px){.content:has(#adminDash.active){padding-left:12px;padding-right:12px}}
+</style>
+
 </head>
 <body>
 <div id="v153ShipDateOverlay" hidden onclick="if(event.target===this)closeShipDatePickerV153()">
@@ -3310,7 +3320,7 @@ function renderClientOrders(){
    items.forEach((it,index)=>{
      const status=it.itemStatus||it.status||o.status||'접수 완료';
      html.push(`<tr>
-       ${index===0?`<td rowspan="${count}" class="v151-client-order-group"><b>${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" class="v151-client-order-group">${formatOrderDateTime(o)}</td>`:''}
+       ${index===0?`<td rowspan="${count}" class="v151-client-order-group"><b class="detail-link" role="button" tabindex="0" onclick="showClientOrderDetail('${escapeHtmlV8(o.no)}')" onkeydown="if(event.key==='Enter'||event.key===' ')showClientOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" class="v151-client-order-group">${formatOrderDateTime(o)}</td>`:''}
        <td><b>${escapeHtmlV8(it.name||'-')}</b><div class="v151-client-spec">${escapeHtmlV8(it.spec||'')}</div></td>
        <td>${Number(it.qty||0).toLocaleString()}박스</td><td>${won(Number(it.totalAmount??it.amount??0))}</td>
        <td>${orderStatusBadgeV54(status)}</td><td>${it.expectedShipDate?escapeHtmlV8(String(it.expectedShipDate).slice(0,10)):'미정'}</td>
@@ -3438,7 +3448,7 @@ function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);
 function renderAdminDashboard(){
  const today=new Date().toISOString().slice(0,10),nw=orders.filter(o=>o.status==='주문 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));
  const dashRows=document.getElementById('adminDashOrders');
- if(dashRows)dashRows.innerHTML=orders.slice(0,5).map(o=>`<tr><td><b>${escapeHtmlV8(o.no)}</b></td><td>${escapeHtmlV8(o.client)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';
+ if(dashRows)dashRows.innerHTML=orders.slice(0,5).map(o=>`<tr><td><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td><td>${escapeHtmlV8(o.client)}</td><td>${escapeHtmlV8(getWJOrderSummaryText(o))}</td><td>총 ${Number(o.qty||0).toLocaleString()}박스</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="5" class="v4-empty">발주가 없습니다.</td></tr>';
  const kNew=document.getElementById('adminKpiNew'),kShip=document.getElementById('adminKpiShip'),kQty=document.getElementById('adminKpiShipQty'),kOrders=document.getElementById('adminKpiOrders');
  if(kNew)kNew.textContent=nw.length+'건';if(kShip)kShip.textContent=sh.length+'건';if(kQty)kQty.textContent='총 '+sh.reduce((a,o)=>a+Number(o.qty||0),0).toLocaleString()+'박스';if(kOrders)kOrders.textContent=orders.length+'건';
 }
@@ -4748,6 +4758,13 @@ function getWJOrderDetailItems(order){
     rowId:x.rowId||x.id||x.order_item_id||'',
     itemStatus:x.itemStatus||x.item_status||x.status||'',
     expectedShipDate:x.expectedShipDate||x.expected_ship_date||'',
+    shippingMethod:x.shippingMethod||x.shipping_method||'',
+    shippingCarrier:x.shippingCarrier||x.shipping_carrier||'',
+    trackingNumber:x.trackingNumber||x.tracking_number||'',
+    driverName:x.driverName||x.driver_name||'',
+    driverPhone:x.driverPhone||x.driver_phone||'',
+    shipmentNote:x.shipmentNote||x.shipment_note||'',
+    shippedAt:x.shippedAt||x.shipped_at||'',
     productCode:x.productCode||x.product_code||x.code||'',
     actualLength:x.actualLength||x.actual_length||'',
     workIssuedAt:x.workIssuedAt||x.work_instruction_issued_at||'',
@@ -4767,6 +4784,12 @@ function getWJOrderDetailItems(order){
     coreType:x.coreType||x.core_type||'공용지관'
   })).filter(x=>x.name||x.spec||x.qty||x.amount||x.boxType||x.boxStamp||x.palletType);
 
+  // V173: 상세에서 서버에서 방금 읽은 order_items를 가장 먼저 사용합니다.
+  // 주문 JSON 스냅샷이 최신 출고정보를 덮어쓰지 않도록 합니다.
+  if(Array.isArray(order._directOrderItems)&&order._directOrderItems.length){
+    const live=normalize(order._directOrderItems);
+    if(live.length)return live;
+  }
   // 상세 화면에서는 '요약 문자열'을 절대 사용하지 않는다.
   // 저장된 구조화 품목을 우선하며, 2건 이상이면 그대로 모두 표시한다.
   const rawCandidates=[order.itemSummaryRaw, order.item_summary];
@@ -5236,7 +5259,7 @@ function renderWJProductWorkFieldsV155(config,previewUrl){
 function renderShipmentEditorV171(items,orderNo){
  const box='width:100%;min-height:46px;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:inherit;font-size:14px;box-sizing:border-box;outline:none';
  const field=(label,id,value,placeholder,type='text')=>`<label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:#334155">${label}<input id="${id}" type="${type}" value="${escapeHtmlV8(value||'')}" placeholder="${placeholder}" style="${box}"></label>`;
- return `<section style="margin-top:22px;padding:20px;border:1px solid #dbe3ee;border-radius:14px;background:#f8fafc"><h3 style="margin:0 0 7px;font-size:16px">품목별 출고 정보</h3><p style="font-size:12px;line-height:1.6;color:#64748b;margin:0 0 16px">배송 방식을 선택하면 해당 방식에 필요한 입력칸만 표시됩니다. 출고 대기 단계에서 미리 입력할 수 있습니다.</p>${items.map((it,i)=>`<div style="margin-top:13px;padding:17px;border:1px solid #dbe3ee;border-radius:12px;background:#fff"><div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:14px">${escapeHtmlV8(it.name||'-')} <span style="font-weight:600;color:#64748b">· ${Number(it.qty||0).toLocaleString()}박스</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px"><label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:#334155">배송 방식<select id="shipMethod171_${i}" onchange="toggleShipmentFieldsV172(${i})" style="${box}"><option value="">배송 방식을 선택해 주세요</option><option value="택배" ${it.shippingMethod==='택배'?'selected':''}>택배</option><option value="용차" ${it.shippingMethod==='용차'?'selected':''}>용차</option><option value="기타" ${it.shippingMethod==='기타'?'selected':''}>기타</option></select></label><div id="shipFields171_${i}" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px"></div></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button type="button" class="small-btn" style="min-height:42px;padding:0 20px;border-radius:10px;font-size:13px" onclick="saveShipmentInfoV171('${escapeHtmlV8(it.rowId)}',${i},'${escapeHtmlV8(orderNo)}')">출고 정보 저장</button></div></div>`).join('')}</section>`;
+ return `<section style="margin-top:22px;padding:20px;border:1px solid #dbe3ee;border-radius:14px;background:#f8fafc"><h3 style="margin:0 0 7px;font-size:18px">출고 정보</h3><p style="font-size:12px;line-height:1.6;color:#64748b;margin:0 0 16px">배송 방식을 선택하면 해당 방식에 필요한 입력칸만 표시됩니다. 출고 대기 단계에서 미리 입력할 수 있습니다.</p>${items.map((it,i)=>`<div style="margin-top:13px;padding:17px;border:1px solid #dbe3ee;border-radius:12px;background:#fff"><div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:14px">${escapeHtmlV8(it.name||'-')} <span style="font-weight:600;color:#64748b">· ${Number(it.qty||0).toLocaleString()}박스</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px"><label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;color:#334155">배송 방식<select id="shipMethod171_${i}" onchange="toggleShipmentFieldsV172(${i})" style="${box}"><option value="">배송 방식을 선택해 주세요</option><option value="택배" ${it.shippingMethod==='택배'?'selected':''}>택배</option><option value="용차" ${it.shippingMethod==='용차'?'selected':''}>용차</option><option value="기타" ${it.shippingMethod==='기타'?'selected':''}>기타</option></select></label><div id="shipFields171_${i}" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px"></div></div><div style="display:flex;justify-content:flex-end;margin-top:14px"><button type="button" class="small-btn" style="min-height:42px;padding:0 20px;border-radius:10px;font-size:13px" onclick="saveShipmentInfoV171('${escapeHtmlV8(it.rowId)}',${i},'${escapeHtmlV8(orderNo)}')">출고 정보 저장</button></div></div>`).join('')}</section>`;
 }
 function toggleShipmentFieldsV172(i){
  const method=document.getElementById(`shipMethod171_${i}`)?.value||'',host=document.getElementById(`shipFields171_${i}`);if(!host)return;
@@ -5253,7 +5276,7 @@ async function saveShipmentInfoV171(rowId,i,orderNo){
  const val=id=>document.getElementById(id)?.value?.trim()||'',method=val(`shipMethod171_${i}`),carrier=val(`shipCarrier171_${i}`),tracking=val(`shipTracking171_${i}`),driver=val(`shipDriver171_${i}`),phone=val(`shipPhone171_${i}`),note=val(`shipNote171_${i}`);
  if(!method){alert('배송 방식을 선택해 주세요.');return}if(method==='택배'&&(!carrier||!tracking)){alert('택배는 택배사와 송장번호를 입력해 주세요.');return}if(method==='용차'&&(!driver||!phone)){alert('용차는 기사님 성함과 연락처를 입력해 주세요.');return}
  const payload={shipping_method:method,shipping_carrier:method==='택배'?carrier:'',tracking_number:method==='택배'?tracking:'',driver_name:method==='용차'?driver:'',driver_phone:method==='용차'?phone:'',shipment_note:method==='기타'?note:note};
- const r=await supabaseERP.from('order_items').update(payload).eq('id',rowId).select('*').maybeSingle();if(r.error||!r.data){alert('출고 정보 저장 실패: '+(r.error?.message||'저장 결과 없음'));return}alert('출고 정보가 저장되었습니다.');await showOrderDetail(orderNo);
+ const r=await supabaseERP.from('order_items').update(payload).eq('id',rowId).select('*').maybeSingle();if(r.error||!r.data){alert('출고 정보 저장 실패: '+(r.error?.message||'저장 결과 없음'));return}const saved=r.data;const local=orders.find(x=>String(x.no)===String(orderNo));if(local){const arr=getWJOrderDetailItems(local);const target=arr.find(x=>String(x.rowId||x.id)===String(rowId));if(target)Object.assign(target,{shippingMethod:saved.shipping_method||method,shippingCarrier:saved.shipping_carrier||'',trackingNumber:saved.tracking_number||'',driverName:saved.driver_name||'',driverPhone:saved.driver_phone||'',shipmentNote:saved.shipment_note||''});}alert('출고 정보가 저장되었습니다.');await showOrderDetail(orderNo);
 }
 function renderClientShipmentInfoV171(it){const m=it.shippingMethod||'';if(!m)return '출고 정보 준비 중';if(m==='택배')return `<div><b>택배 · ${escapeHtmlV8(it.shippingCarrier||'-')}</b><div>송장번호: ${escapeHtmlV8(it.trackingNumber||'-')}</div></div>`;if(m==='용차')return `<div><b>용차</b><div>기사님: ${escapeHtmlV8(it.driverName||'-')}</div><div>연락처: ${escapeHtmlV8(it.driverPhone||'-')}</div></div>`;return `<div><b>기타</b><div style="white-space:pre-wrap">${escapeHtmlV8(it.shipmentNote||'안내 메모 없음')}</div></div>`}
 function openShipmentSlipForSelectedV171(){const refs=getSelectedOrderItemRefsV148();if(!refs.length){alert('출고전표를 발행할 품목을 선택해 주세요.');return}if(refs.some(x=>!x.it.rowId)){alert('개별 품목 ID가 없는 주문은 출고전표를 발행할 수 없습니다.');return}const missing=refs.filter(x=>!x.it.shippingMethod);if(missing.length){alert('선택한 모든 품목의 출고 방식을 먼저 입력해 주세요. 주문 상세에서 출고 정보를 저장할 수 있습니다.');return}if(!confirm(`선택한 ${refs.length}개 품목의 출고전표를 발행하고 상태를 '출고 중'으로 변경하시겠습니까?`))return;printShipmentSlipsV171(refs)}
