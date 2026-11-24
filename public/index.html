@@ -5553,6 +5553,45 @@ async function openShipReadyModalV176(refs){
  }catch(e){console.error('출고정보 조회 실패',e);alert('출고 정보를 불러오지 못했습니다.\n'+(e?.message||''));}
 }
 
+
+
+/* V179: 전체 선택 해제 시 DOM 체크 상태와 품목 선택 Set 동기화 */
+window.wjSelectedOrderItemsV148 = window.wjSelectedOrderItemsV148 instanceof Set
+  ? window.wjSelectedOrderItemsV148 : new Set();
+
+function toggleAllOrders(checked) {
+  const boxes = [...document.querySelectorAll('#adminOrderRows .order-check-v6:not(:disabled)')];
+  boxes.forEach(box => {
+    box.checked = !!checked;
+    const key = String(box.value);
+    if (checked) window.wjSelectedOrderItemsV148.add(key);
+    else window.wjSelectedOrderItemsV148.delete(key);
+  });
+  updateOrderSelectAllV179();
+}
+
+function updateOrderSelectAllV179() {
+  const master = document.getElementById('adminOrderSelectAll');
+  if (!master) return;
+  const boxes = [...document.querySelectorAll('#adminOrderRows .order-check-v6:not(:disabled)')];
+  const checkedCount = boxes.filter(box => box.checked).length;
+  master.checked = boxes.length > 0 && checkedCount === boxes.length;
+  master.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+}
+
+/* 행 체크 변경 시에도 저장된 선택 상태를 즉시 동기화 */
+if (!window.wjOrderSelectionSyncV179) {
+  document.addEventListener('change', function (event) {
+    const box = event.target;
+    if (!box || !box.matches || !box.matches('#adminOrderRows .order-check-v6')) return;
+    const key = String(box.value);
+    if (box.checked) window.wjSelectedOrderItemsV148.add(key);
+    else window.wjSelectedOrderItemsV148.delete(key);
+    updateOrderSelectAllV179();
+  });
+  window.wjOrderSelectionSyncV179 = true;
+}
+
 </script>
 
 <style id="v34-cart-modal-ui">
