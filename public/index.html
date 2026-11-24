@@ -5280,112 +5280,182 @@ function openShipmentSlipForSelectedV171(){const refs=getSelectedOrderItemRefsV1
 async function printShipmentSlipsV171(refs){for(const x of refs){const previous=x.it.itemStatus||x.it.status||x.o.status||'';const r=await supabaseERP.from('order_items').update({item_status:'출고 중',shipped_at:new Date().toISOString()}).eq('id',x.it.rowId).select('*').maybeSingle();if(r.error||!r.data){alert('출고 상태 저장 실패: '+(r.error?.message||''));return}x.it.itemStatus='출고 중';x.it.shippedAt=r.data.shipped_at||new Date().toISOString();if(previous!=='출고 중')await recordOrderItemStatusHistoryV172(x,previous,'출고 중','출고전표 발행')}const groups=new Map();refs.forEach(x=>{const k=String(x.o.no);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});let html='';for(const [no,items] of groups){const client=items[0].o.client||'';for(const copy of ['기사님 보관용','사무실 보관용'])html+=`<section class="slip"><h1>출 고 전 표</h1><div class="meta">발주번호: ${escapeHtmlV8(no)}　 거래처: ${escapeHtmlV8(client)}　 발행일: ${new Date().toLocaleString('ko-KR')}</div><table><thead><tr><th>NO.</th><th>품명</th><th>규격</th><th>수량</th><th>단위</th></tr></thead><tbody>${items.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtmlV8(x.it.name||'-')}</td><td>${escapeHtmlV8(x.it.spec||'-')}</td><td>${Number(x.it.qty||0).toLocaleString()}</td><td>박스</td></tr>`).join('')}</tbody></table><div class="sign"><div>기사님 서명</div><div>인수자 서명</div></div><p class="copy">${copy}</p></section>`}const w=window.open('','_blank');if(!w){alert('팝업이 차단되었습니다. 팝업을 허용한 뒤 다시 시도해 주세요.');return}w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>출고전표</title><style>@page{size:A4 portrait;margin:15mm}body{font-family:Arial,'Malgun Gothic',sans-serif;color:#111}.slip{page-break-after:always;position:relative;min-height:255mm}.slip h1{text-align:center;letter-spacing:12px;font-size:25px;margin:8mm 0}.meta{margin:15px 0 20px;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:10px;text-align:center;font-size:13px}th{background:#eee}.sign{display:flex;gap:20px;margin-top:45mm}.sign div{width:50%;height:35mm;border:1px solid #333;display:flex;align-items:flex-start;padding:10px;font-weight:bold}.copy{text-align:right;margin-top:15px;font-weight:bold}</style></head><body>${html}<script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();w.focus();w.print();window.wjSelectedOrderItemsV148.clear();renderAdminOrders();renderClientOrders()}
 
 
-/* V175: 출고 대기 전환 시 배송정보 입력 + 주문/품목 상태 저장 보완 */
-window.wjShipReadyRowsV175=window.wjShipReadyRowsV175||[];
-function shipmentMethodFromOrderV175(order){
+/* V176: 선택 품목 기준 출고 대기 전환 + 출고전표 발행 상태 규칙 */
+window.wjShipReadyRowsV176=window.wjShipReadyRowsV176||[];
+window.wjSelectedShipmentRefsV176=[];
+function shipmentMethodFromOrderV176(order){
  const raw=String(order?.deliveryMethod||order?.delivery_method||'').trim();
  if(raw.startsWith('택배'))return '택배';
  if(raw.startsWith('용차'))return '용차';
  if(raw.startsWith('기타'))return '기타';
  return '';
 }
-async function openShipReadyModalV175(orderNos){
+function selectedOrderItemRefsV176(){
+ const refs=typeof getSelectedOrderItemRefsV148==='function'?getSelectedOrderItemRefsV148():[];
+ return refs.filter(x=>x&&x.o&&x.it);
+}
+async function openShipReadyModalV176(refs){
  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 출고 대기로 변경할 수 없습니다.');return;}
- const ordersToShip=orderNos.map(n=>orders.find(o=>String(o.no)===String(n))).filter(Boolean);
+ // 화면에 이미 로드된 품목별 rowId를 우선 사용합니다. 누락된 경우에만 주문번호로 서버에서 보충합니다.
  const rows=[];
  try{
-  for(const o of ordersToShip){
-   let q=supabaseERP.from('order_items').select('*');
-   if(o.dbId)q=q.eq('order_id',o.dbId);else q=q.eq('order_no',o.no);
-   let r=await q;
-   if(r.error)throw r.error;
-   if(!r.data?.length && o.dbId){r=await supabaseERP.from('order_items').select('*').eq('order_no',o.no);if(r.error)throw r.error;}
-   (r.data||[]).forEach(it=>rows.push({order:o,item:it}));
+  for(const ref of refs){
+   let item=ref.it;
+   if(!item.rowId && item.id)item={...item,rowId:item.id};
+   if(!item.rowId){
+    let q=supabaseERP.from('order_items').select('*').eq('order_no',String(ref.o.no));
+    const r=await q;
+    if(r.error)throw r.error;
+    const candidates=r.data||[];
+    const match=candidates.find(z=>
+      (String(firstValue(z,['product_id','product'],'')||'')===String(item.productId||'')) &&
+      String(firstValue(z,['product_name','name','item_name'],'')||'')===String(item.name||'') &&
+      Number(firstValue(z,['quantity','qty'],0))===Number(item.qty||0)
+    ) || (candidates.length===1?candidates[0]:null);
+    if(match)item={...item,rowId:match.id,shippingMethod:firstValue(match,['shipping_method'],item.shippingMethod||''),shippingCarrier:firstValue(match,['shipping_carrier'],item.shippingCarrier||''),trackingNumber:firstValue(match,['tracking_number'],item.trackingNumber||''),driverName:firstValue(match,['driver_name'],item.driverName||''),driverPhone:firstValue(match,['driver_phone'],item.driverPhone||''),shipmentNote:firstValue(match,['shipment_note'],item.shipmentNote||'')};
+   }
+   if(!item.rowId)throw new Error(`${ref.o.no} · ${item.name||'품목'}의 개별 품목 ID를 찾지 못했습니다. 주문 품목 데이터 연결을 확인해 주세요.`);
+   rows.push({order:ref.o,item,ref});
   }
-  if(!rows.length){alert('선택한 주문에서 품목 정보를 찾지 못했습니다. 주문 품목 저장 상태를 확인해 주세요.');return;}
-  window.wjShipReadyRowsV175=rows;
-  let modal=document.getElementById('wjShipReadyModalV175');if(modal)modal.remove();
-  modal=document.createElement('div');modal.id='wjShipReadyModalV175';
+  if(!rows.length){alert('출고 대기로 변경할 품목을 선택해 주세요.');return;}
+  window.wjShipReadyRowsV176=rows;
+  let modal=document.getElementById('wjShipReadyModalV176');if(modal)modal.remove();
+  modal=document.createElement('div');modal.id='wjShipReadyModalV176';
   modal.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;padding:18px;';
   const esc=v=>escapeHtmlV8(String(v??''));
   const field=(label,id,value,placeholder)=>`<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;color:#334155">${label}<input id="${id}" value="${esc(value)}" placeholder="${placeholder}" style="width:100%;height:48px;padding:0 13px;border:1px solid #cbd5e1;border-radius:11px;box-sizing:border-box;font:inherit;font-weight:500;background:#fff"></label>`;
   const cards=rows.map((x,i)=>{
-   const o=x.order,it=x.item,method=shipmentMethodFromOrderV175(o)||String(it.shipping_method||'');
-   const name=firstValue(it,['product_name','name','item_name'],'품목');
-   const qty=Number(firstValue(it,['quantity','qty'],0))||0;
+   const o=x.order,it=x.item,method=shipmentMethodFromOrderV176(o)||String(it.shippingMethod||'');
+   const name=it.name||it.product_name||'품목',qty=Number(it.qty||it.quantity||0)||0;
    let inputs='';
-   if(method==='택배')inputs=field('택배사',`wjShipCarrier175_${i}`,firstValue(it,['shipping_carrier'],o.deliveryCarrier||''),'택배사 입력')+field('송장번호',`wjShipTracking175_${i}`,firstValue(it,['tracking_number'],''),'송장번호 입력');
-   else if(method==='용차')inputs=field('기사님 성함',`wjShipDriver175_${i}`,firstValue(it,['driver_name'],o.deliveryContactName||''),'기사님 성함')+field('기사님 연락처',`wjShipPhone175_${i}`,firstValue(it,['driver_phone'],o.deliveryContactPhone||''),'연락처 입력');
-   else if(method==='기타')inputs=`<label style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;color:#334155">출고 메모<textarea id="wjShipNote175_${i}" rows="3" placeholder="출고 관련 안내사항" style="width:100%;min-height:90px;padding:12px;border:1px solid #cbd5e1;border-radius:11px;box-sizing:border-box;font:inherit;resize:vertical">${esc(firstValue(it,['shipment_note'],o.deliveryRequest||''))}</textarea></label>`;
-   else inputs=`<div style="grid-column:1/-1;padding:12px;border-radius:10px;background:#fff7ed;color:#9a3412">거래처 주문에 배송 방식이 지정되어 있지 않습니다. 출고 대기로 변경할 수 없습니다.</div>`;
-   return `<div style="padding:16px;border:1px solid #dbe3ee;border-radius:14px;background:#fff;margin-top:12px"><div style="font-weight:850;font-size:14px;margin-bottom:5px">${esc(o.no)} · ${esc(name)}</div><div style="font-size:12px;color:#64748b;margin-bottom:12px">${qty.toLocaleString()}박스 · 거래처 배송 방식: <b style="color:#1d4ed8">${esc(method||'미선택')}</b></div><input type="hidden" id="wjShipMethod175_${i}" value="${esc(method)}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">${inputs}</div></div>`;
+   if(method==='택배')inputs=field('택배사',`wjShipCarrier176_${i}`,it.shippingCarrier||o.deliveryCarrier||'','택배사 입력')+field('송장번호',`wjShipTracking176_${i}`,it.trackingNumber||'','송장번호 입력');
+   else if(method==='용차')inputs=field('기사님 성함',`wjShipDriver176_${i}`,it.driverName||o.deliveryContactName||'','기사님 성함')+field('기사님 연락처',`wjShipPhone176_${i}`,it.driverPhone||o.deliveryContactPhone||'','연락처 입력');
+   else if(method==='기타')inputs=`<label style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;color:#334155">출고 메모<textarea id="wjShipNote176_${i}" rows="3" placeholder="출고 관련 안내사항" style="width:100%;min-height:90px;padding:12px;border:1px solid #cbd5e1;border-radius:11px;box-sizing:border-box;font:inherit;resize:vertical">${esc(it.shipmentNote||o.deliveryRequest||'')}</textarea></label>`;
+   else inputs=`<div style="grid-column:1/-1;padding:12px;border-radius:10px;background:#fff7ed;color:#9a3412">거래처 주문의 배송 방식이 확인되지 않습니다. 주문 상세의 배송 요청 정보를 확인해 주세요.</div>`;
+   return `<div style="padding:16px;border:1px solid #dbe3ee;border-radius:14px;background:#fff;margin-top:12px"><div style="font-weight:850;font-size:14px;margin-bottom:5px">${esc(o.no)} · ${esc(name)}</div><div style="font-size:12px;color:#64748b;margin-bottom:12px">${qty.toLocaleString()}박스 · 거래처 배송 방식: <b style="color:#1d4ed8">${esc(method||'미선택')}</b></div><input type="hidden" id="wjShipMethod176_${i}" value="${esc(method)}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px">${inputs}</div></div>`;
   }).join('');
-  modal.innerHTML=`<div style="width:min(850px,96vw);max-height:92vh;display:flex;flex-direction:column;background:#f8fafc;border-radius:18px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)"><header style="padding:20px 22px;background:#fff;border-bottom:1px solid #e2e8f0"><b style="font-size:19px">출고 정보 입력</b><p style="margin:7px 0 0;color:#64748b;font-size:13px;line-height:1.5">거래처가 주문할 때 선택한 배송 방식에 맞는 정보만 입력합니다. 저장이 완료되면 선택한 주문이 출고 대기로 변경됩니다.</p></header><div style="padding:8px 20px 18px;overflow:auto">${cards}</div><footer style="display:flex;justify-content:flex-end;gap:9px;padding:14px 20px;background:#fff;border-top:1px solid #e2e8f0"><button type="button" id="wjShipCancel175" class="small-btn" style="min-height:44px;padding:0 18px">취소</button><button type="button" id="wjShipSave175" class="btn primary" style="min-height:44px;padding:0 22px">배송정보 저장 후 출고 대기</button></footer></div>`;
+  modal.innerHTML=`<div style="width:min(850px,96vw);max-height:92vh;display:flex;flex-direction:column;background:#f8fafc;border-radius:18px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)"><header style="padding:20px 22px;background:#fff;border-bottom:1px solid #e2e8f0"><b style="font-size:19px">출고 정보 입력</b><p style="margin:7px 0 0;color:#64748b;font-size:13px;line-height:1.5">선택한 품목의 배송 방식에 맞는 정보를 입력합니다. 저장이 완료되면 해당 품목만 출고 대기로 변경됩니다.</p></header><div style="padding:8px 20px 18px;overflow:auto">${cards}</div><footer style="display:flex;justify-content:flex-end;gap:9px;padding:14px 20px;background:#fff;border-top:1px solid #e2e8f0"><button type="button" id="wjShipCancel176" class="small-btn" style="min-height:44px;padding:0 18px">취소</button><button type="button" id="wjShipSave176" class="btn primary" style="min-height:44px;padding:0 22px">배송정보 저장 후 출고 대기</button></footer></div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});
-  modal.querySelector('#wjShipCancel175').onclick=()=>modal.remove();
-  modal.querySelector('#wjShipSave175').onclick=saveShipReadyV175;
+  modal.querySelector('#wjShipCancel176').onclick=()=>modal.remove();
+  modal.querySelector('#wjShipSave176').onclick=saveShipReadyV176;
  }catch(e){console.error('출고정보 사전 입력 조회 실패',e);alert('출고 정보를 불러오지 못했습니다.\n'+(e?.message||''));}
 }
-async function saveShipReadyV175(){
- const rows=window.wjShipReadyRowsV175||[];if(!rows.length)return;
- const btn=document.getElementById('wjShipSave175');if(btn){btn.disabled=true;btn.textContent='저장 중…';}
+async function saveShipReadyV176(){
+ const rows=window.wjShipReadyRowsV176||[];if(!rows.length)return;
+ const btn=document.getElementById('wjShipSave176');if(btn){btn.disabled=true;btn.textContent='저장 중…';}
  const val=id=>document.getElementById(id)?.value?.trim()||'';
  try{
-  // 모든 필수값을 먼저 검사하여 일부 품목만 저장되는 상황을 줄입니다.
   const payloads=rows.map((x,i)=>{
-   const method=val(`wjShipMethod175_${i}`);if(!method)throw new Error(`${x.order.no} · ${firstValue(x.item,['product_name','name'],'품목')}: 거래처 주문 배송 방식이 비어 있습니다.`);
+   const method=val(`wjShipMethod176_${i}`);if(!method)throw new Error(`${x.order.no} · ${x.item.name||'품목'}: 거래처 주문 배송 방식이 비어 있습니다.`);
    const p={shipping_method:method,shipping_carrier:'',tracking_number:'',driver_name:'',driver_phone:'',shipment_note:''};
-   if(method==='택배'){p.shipping_carrier=val(`wjShipCarrier175_${i}`);p.tracking_number=val(`wjShipTracking175_${i}`);if(!p.shipping_carrier||!p.tracking_number)throw new Error(`${x.order.no}: 택배사와 송장번호를 모두 입력해 주세요.`);}
-   else if(method==='용차'){p.driver_name=val(`wjShipDriver175_${i}`);p.driver_phone=val(`wjShipPhone175_${i}`);if(!p.driver_name||!p.driver_phone)throw new Error(`${x.order.no}: 기사님 성함과 연락처를 모두 입력해 주세요.`);}
-   else if(method==='기타')p.shipment_note=val(`wjShipNote175_${i}`);
+   if(method==='택배'){p.shipping_carrier=val(`wjShipCarrier176_${i}`);p.tracking_number=val(`wjShipTracking176_${i}`);if(!p.shipping_carrier||!p.tracking_number)throw new Error(`${x.order.no}: 택배사와 송장번호를 모두 입력해 주세요.`);}
+   else if(method==='용차'){p.driver_name=val(`wjShipDriver176_${i}`);p.driver_phone=val(`wjShipPhone176_${i}`);if(!p.driver_name||!p.driver_phone)throw new Error(`${x.order.no}: 기사님 성함과 연락처를 모두 입력해 주세요.`);}
+   else if(method==='기타')p.shipment_note=val(`wjShipNote176_${i}`);
    else throw new Error(`${x.order.no}: 지원하지 않는 배송 방식(${method})입니다.`);
    return p;
   });
   for(let i=0;i<rows.length;i++){
-   const x=rows[i],p=payloads[i],previous=String(x.item.item_status||x.item.status||x.order.status||'');
-   const r=await supabaseERP.from('order_items').update({...p,item_status:'출고 대기'}).eq('id',x.item.id).select('*').maybeSingle();
+   const x=rows[i],p=payloads[i],previous=String(x.item.itemStatus||x.item.status||x.order.status||'');
+   const r=await supabaseERP.from('order_items').update({...p,item_status:'출고 대기'}).eq('id',x.item.rowId).select('*').maybeSingle();
    if(r.error||!r.data)throw new Error(`품목 저장 실패 (${x.order.no}): ${r.error?.message||'저장된 행이 없습니다.'}`);
-   if(previous!=='출고 대기'){
-    try{await supabaseERP.from('order_status_history').insert({order_no:String(x.order.no),order_id:x.order.dbId||null,previous_status:previous,new_status:'출고 대기',actor_type:'admin',actor_label:'관리자',event_type:'status_change',note:`${firstValue(x.item,['product_name','name'],'품목')} · 배송정보 입력 후 출고 대기 전환`});}catch(e){console.warn('상태 이력 저장 실패',e)}
-   }
+   Object.assign(x.item,{shippingMethod:p.shipping_method,shippingCarrier:p.shipping_carrier,trackingNumber:p.tracking_number,driverName:p.driver_name,driverPhone:p.driver_phone,shipmentNote:p.shipment_note,itemStatus:'출고 대기'});
+   if(previous!=='출고 대기')await recordOrderItemStatusHistoryV172(x.ref,previous,'출고 대기','배송정보 입력 후 출고 대기 전환');
   }
+  // 주문 전체 상태도 갱신하되, 품목별 상태 저장이 완료된 뒤 진행합니다.
   const uniqueOrders=[...new Map(rows.map(x=>[String(x.order.no),x.order])).values()];
   for(const o of uniqueOrders){
    let q=supabaseERP.from('orders').update({status:'출고 대기'});
    q=o.dbId?q.eq('id',o.dbId):q.eq('order_no',o.no);
-   const r=await q.select('*');if(r.error||!r.data?.length)throw new Error(`주문 ${o.no}의 상태 저장 실패: ${r.error?.message||'orders 행이 수정되지 않았습니다.'}`);
+   const r=await q.select('*');
+   if(r.error||!r.data?.length)throw new Error(`주문 ${o.no}의 대표 상태 저장 실패: ${r.error?.message||'orders 행이 수정되지 않았습니다.'}`);
   }
-  document.getElementById('wjShipReadyModalV175')?.remove();window.bulkStatusOrderNosV54=[];uniqueOrders.forEach(o=>window.wjSelectedOrderNosV58?.delete(String(o.no)));
+  document.getElementById('wjShipReadyModalV176')?.remove();
+  window.wjSelectedOrderItemsV148?.clear();window.wjSelectedOrderNosV58?.clear();window.bulkStatusOrderNosV54=[];
   await loadOrdersFromSupabase();try{localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders))}catch(e){}
   renderAdminOrders();renderAdminDashboard();renderClientOrders();if(typeof renderAdminStats==='function')renderAdminStats();if(typeof renderHome==='function')renderHome();
   alert(`${rows.length}개 품목의 배송정보를 저장하고 출고 대기로 변경했습니다.`);
  }catch(e){console.error('출고 대기 전환 실패:',e);alert('출고 대기 전환을 완료하지 못했습니다.\n'+(e?.message||''));}
- finally{const b=document.getElementById('wjShipSave175');if(b){b.disabled=false;b.textContent='배송정보 저장 후 출고 대기';}}
+ finally{const b=document.getElementById('wjShipSave176');if(b){b.disabled=false;b.textContent='배송정보 저장 후 출고 대기';}}
 }
 async function applyBulkStatusV54(){
  const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');
  if(!choice){alert('변경할 상태를 선택해 주세요.');return;}
- const ns=[...(window.bulkStatusOrderNosV54||[])];if(!ns.length){alert('변경할 주문을 다시 선택해 주세요.');return;}
+ const refs=window.wjSelectedShipmentRefsV176||selectedOrderItemRefsV176();
+ if(!refs.length){alert('변경할 품목을 다시 선택해 주세요.');return;}
  if(choice.value==='출고 대기'){
-  if(!confirm(`선택한 주문 ${ns.length}건을 출고 대기로 변경합니다. 거래처가 선택한 배송 방식에 맞춰 배송정보를 입력하시겠습니까?`))return;
-  closeBulkStatusModalV54();await openShipReadyModalV175(ns);return;
+  if(!confirm(`선택한 ${refs.length}개 품목을 출고 대기로 변경합니다. 배송정보를 입력하시겠습니까?`))return;
+  closeBulkStatusModalV54();await openShipReadyModalV176(refs);return;
  }
- const confirmText=`선택한 주문 ${ns.length}건의 상태를 '${choice.value}'(으)로 변경하시겠습니까?`;if(!confirm(confirmText))return;
+ if(!confirm(`선택한 ${refs.length}개 품목의 상태를 '${choice.value}'(으)로 변경하시겠습니까?`))return;
  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 저장할 수 없습니다.');return;}
  const saveButton=document.querySelector('#bulkStatusModalV54 .bulk-status-foot-v54 .btn.primary');if(saveButton){saveButton.disabled=true;saveButton.textContent='저장 중…';}
- let changed=0;const failures=[];
  try{
-  for(const n of ns){
-   const o=orders.find(x=>String(x.no)===String(n));if(!o){failures.push(`${n}: 화면에서 주문을 찾지 못했습니다.`);continue;}
-   let q=supabaseERP.from('orders').update({status:choice.value});q=o.dbId?q.eq('id',o.dbId):q.eq('order_no',o.no);
-   const r=await q.select('*');if(r.error||!r.data?.length){failures.push(`${n}: ${r.error?.message||'orders 행 수정 결과가 없습니다.'}`);continue;}changed++;
-   try{await supabaseERP.from('order_status_history').insert({order_no:String(o.no),order_id:o.dbId||null,previous_status:String(o.status||''),new_status:choice.value,actor_type:'admin',actor_label:'관리자',event_type:'status_change',note:'관리자 주문 상태 변경'});}catch(e){console.warn('주문 상태 이력 저장 실패',e)}
-  }
-  if(changed){await loadOrdersFromSupabase();try{localStorage.setItem('wonjun_v7_orders',JSON.stringify(orders))}catch(e){}closeBulkStatusModalV54();renderAdminOrders();renderAdminDashboard();renderClientOrders();if(typeof renderAdminStats==='function')renderAdminStats();if(typeof renderHome==='function')renderHome();window.bulkStatusOrderNosV54=[];ns.forEach(n=>window.wjSelectedOrderNosV58?.delete(String(n)));}
-  if(failures.length)alert(`${changed}건 변경, ${failures.length}건 실패\n\n${failures.slice(0,4).join('\n')}`);else alert('선택한 주문 상태가 변경되었습니다.');
- }catch(e){console.error('선택 주문 상태 변경 실패:',e);alert('서버 저장 중 오류가 발생했습니다.\n'+(e?.message||''));}
+  await applyBulkItemStatusV148(refs,choice.value);
+  closeBulkStatusModalV54();window.wjSelectedShipmentRefsV176=[];window.wjSelectedOrderItemsV148?.clear();window.wjSelectedOrderNosV58?.clear();
+  await loadOrdersFromSupabase();renderAdminOrders();renderAdminDashboard();renderClientOrders();
+ }catch(e){console.error(e);alert('상태 저장 중 오류가 발생했습니다.\n'+(e?.message||''));}
  finally{if(saveButton){saveButton.disabled=false;saveButton.textContent='저장';}}
+}
+function bulkOrderStatus(){
+ const refs=selectedOrderItemRefsV176();
+ if(!refs.length){alert('상태를 변경할 품목을 선택해 주세요.');return;}
+ window.wjSelectedShipmentRefsV176=refs;
+ ensureBulkStatusModalV54();
+ const statuses=['주문 완료','접수 완료','생산 중','출고 대기','출고 중','출고 완료','취소'];
+ const selected=new Set(refs.map(x=>x.it.itemStatus||x.it.status||x.o.status).filter(Boolean));
+ const same=selected.size===1?[...selected][0]:'';
+ document.getElementById('bulkStatusCountV54').textContent=`선택한 ${refs.length}개 품목의 상태를 변경합니다.`;
+ document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((st,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${st}" ${same===st?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(st)}</span>${same===st?'<small>현재 상태</small>':''}</label>`).join('');
+ document.getElementById('bulkStatusModalV54').classList.add('show');
+}
+
+/* V176: 출고전표는 출고 대기에서 최초 발행, 출고 완료에서는 재발행만 허용 */
+function openShipmentSlipForSelectedV171(){
+ const refs=selectedOrderItemRefsV176();
+ if(!refs.length){alert('출고전표를 발행할 품목을 선택해 주세요.');return;}
+ if(refs.some(x=>!x.it.rowId)){alert('개별 품목 ID가 없는 품목이 선택되어 있습니다.');return;}
+ const invalid=refs.filter(x=>!['출고 대기','출고 완료'].includes(String(x.it.itemStatus||x.it.status||x.o.status||'').trim()));
+ if(invalid.length){alert('출고전표는 출고 대기 상태에서 최초 발행하거나, 출고 완료 상태에서 재발행할 수 있습니다.\n출고 대기 또는 출고 완료 품목만 선택해 주세요.');return;}
+ const missing=refs.filter(x=>{
+  const m=x.it.shippingMethod||'';
+  return !m || (m==='택배'&&(!x.it.shippingCarrier||!x.it.trackingNumber)) || (m==='용차'&&(!x.it.driverName||!x.it.driverPhone));
+ });
+ if(missing.length){alert('선택한 품목의 출고 정보가 부족합니다. 주문 상세에서 배송정보를 먼저 저장해 주세요.');return;}
+ if(!confirm(`선택한 ${refs.length}개 품목의 출고전표를 발행하시겠습니까?\n출고 대기 품목만 출고 중으로 변경되며, 출고 완료 품목은 상태를 유지한 채 재발행됩니다.`))return;
+ const w=window.open('','_blank');
+ if(!w){alert('팝업이 차단되었습니다. 팝업을 허용한 뒤 다시 시도해 주세요.');return;}
+ printShipmentSlipsV176(refs,w);
+}
+async function printShipmentSlipsV176(refs,w){
+ try{
+  const printItems=[];
+  for(const x of refs){
+   const previous=String(x.it.itemStatus||x.it.status||x.o.status||'').trim();
+   if(previous==='출고 대기'){
+    const now=new Date().toISOString();
+    const r=await supabaseERP.from('order_items').update({item_status:'출고 중',shipped_at:now}).eq('id',x.it.rowId).select('*').maybeSingle();
+    if(r.error||!r.data)throw new Error(`출고 상태 저장 실패 (${x.o.no}): ${r.error?.message||'저장 결과 없음'}`);
+    x.it.itemStatus='출고 중';x.it.shippedAt=r.data.shipped_at||now;
+    const historyOk=await recordOrderItemStatusHistoryV172(x,previous,'출고 중','출고전표 최초 발행');
+    if(historyOk===false)console.warn('출고전표 발행 상태 이력 저장 실패',x.o.no);
+   }
+   // 출고 완료 재발행은 DB 상태를 전혀 수정하지 않습니다.
+   printItems.push(x);
+  }
+  const groups=new Map();printItems.forEach(x=>{const k=String(x.o.no);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
+  let html='';
+  for(const [no,items] of groups){
+   const client=items[0].o.client||'';
+   for(const copy of ['기사님 보관용','사무실 보관용']){
+    html+=`<section class="slip"><h1>출 고 전 표</h1><div class="meta">발주번호: ${escapeHtmlV8(no)}　 거래처: ${escapeHtmlV8(client)}　 발행일: ${new Date().toLocaleString('ko-KR')}</div><table><thead><tr><th>NO.</th><th>품명</th><th>규격</th><th>수량</th><th>단위</th></tr></thead><tbody>${items.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtmlV8(x.it.name||'-')}</td><td>${escapeHtmlV8(x.it.spec||'-')}</td><td>${Number(x.it.qty||0).toLocaleString()}</td><td>박스</td></tr>`).join('')}</tbody></table><div class="sign"><div>기사님 서명</div><div>인수자 서명</div></div><p class="copy">${copy}</p></section>`;
+   }
+  }
+  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>출고전표</title><style>@page{size:A4 portrait;margin:15mm}body{font-family:Arial,'Malgun Gothic',sans-serif;color:#111}.slip{page-break-after:always;position:relative;min-height:255mm}.slip h1{text-align:center;letter-spacing:12px;font-size:25px;margin:8mm 0}.meta{margin:15px 0 20px;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #333;padding:10px;text-align:center;font-size:13px}th{background:#eee}.sign{display:flex;gap:20px;margin-top:45mm}.sign div{width:50%;height:35mm;border:1px solid #333;display:flex;align-items:flex-start;padding:10px;font-weight:bold}.copy{text-align:right;margin-top:15px;font-weight:bold}</style></head><body>${html}</body></html>`);
+  w.document.close();w.focus();w.print();
+  window.wjSelectedOrderItemsV148?.clear();
+  await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();
+ }catch(e){console.error('출고전표 발행 실패',e);try{w.close()}catch(_){}alert('출고전표 처리에 실패했습니다.\n'+(e?.message||''));}
 }
 
 </script>
