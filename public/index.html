@@ -5296,26 +5296,64 @@ function selectedOrderItemRefsV176(){
 }
 async function openShipReadyModalV176(refs){
  if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 출고 대기로 변경할 수 없습니다.');return;}
- // 화면에 이미 로드된 품목별 rowId를 우선 사용합니다. 누락된 경우에만 주문번호로 서버에서 보충합니다.
  const rows=[];
  try{
+  // 주문별 order_items를 먼저 조회합니다. order_no만으로 조회하던 기존 방식은
+  // order_no가 비어 있거나 order_id로만 연결된 데이터에서 품목을 놓칠 수 있습니다.
+  const cache=new Map();
   for(const ref of refs){
-   let item=ref.it;
-   if(!item.rowId && item.id)item={...item,rowId:item.id};
-   if(!item.rowId){
-    let q=supabaseERP.from('order_items').select('*').eq('order_no',String(ref.o.no));
-    const r=await q;
-    if(r.error)throw r.error;
-    const candidates=r.data||[];
-    const match=candidates.find(z=>
-      (String(firstValue(z,['product_id','product'],'')||'')===String(item.productId||'')) &&
-      String(firstValue(z,['product_name','name','item_name'],'')||'')===String(item.name||'') &&
-      Number(firstValue(z,['quantity','qty'],0))===Number(item.qty||0)
-    ) || (candidates.length===1?candidates[0]:null);
-    if(match)item={...item,rowId:match.id,shippingMethod:firstValue(match,['shipping_method'],item.shippingMethod||''),shippingCarrier:firstValue(match,['shipping_carrier'],item.shippingCarrier||''),trackingNumber:firstValue(match,['tracking_number'],item.trackingNumber||''),driverName:firstValue(match,['driver_name'],item.driverName||''),driverPhone:firstValue(match,['driver_phone'],item.driverPhone||''),shipmentNote:firstValue(match,['shipment_note'],item.shipmentNote||'')};
+   const order=ref.o||{}, source=ref.it||{};
+   const orderKeys=[String(order.dbId||''),String(order.id||''),String(order.no||'')].filter((v,i,a)=>v&&a.indexOf(v)===i);
+   const cacheKey=orderKeys.join('|');
+   if(!cache.has(cacheKey)){
+    let found=[]; let lastError=null;
+    for(const key of orderKeys){
+     for(const col of (key===String(order.no||'')?['order_no','order_id']:['order_id','order_no'])){
+      try{
+       const result=await supabaseERP.from('order_items').select('*').eq(col,key);
+       if(result.error){lastError=result.error;continue;}
+       if(Array.isArray(result.data)&&result.data.length){found=result.data;break;}
+      }catch(e){lastError=e;}
+     }
+     if(found.length)break;
+    }
+    if(!found.length&&lastError)console.warn('출고대기 품목 조회 참고 오류:',lastError);
+    cache.set(cacheKey,found);
    }
-   if(!item.rowId)throw new Error(`${ref.o.no} · ${item.name||'품목'}의 개별 품목 ID를 찾지 못했습니다. 주문 품목 데이터 연결을 확인해 주세요.`);
-   rows.push({order:ref.o,item,ref});
+   const candidates=cache.get(cacheKey)||[];
+   let matched=null;
+   const directId=source.rowId||source.id||source.order_item_id||'';
+   if(directId)matched=candidates.find(z=>String(z.id||z.order_item_id||'')===String(directId))||null;
+   if(!matched){
+    const pid=String(source.productId||source.product_id||'');
+    const name=String(source.name||source.product_name||source.item_name||'').trim();
+    const qty=Number(source.qty??source.quantity??0);
+    let scored=candidates.map((z,idx)=>{
+     const zid=String(firstValue(z,['product_id','product'],''));
+     const zn=String(firstValue(z,['product_name','name','item_name'],'')).trim();
+     const zq=Number(firstValue(z,['quantity','qty'],0));
+     let score=0;if(pid&&zid===pid)score+=8;if(name&&zn===name)score+=5;if(Number.isFinite(qty)&&zq===qty)score+=3;
+     return {z,idx,score};
+    }).filter(x=>x.score>=8).sort((a,b)=>b.score-a.score);
+    if(scored.length&&(!scored[1]||scored[0].score>scored[1].score))matched=scored[0].z;
+    else if(scored.length===1)matched=scored[0].z;
+    // 동일 품목/수량이 여러 줄인 경우 화면 품목 순번을 사용합니다.
+    if(!matched&&Number.isInteger(Number(ref.index))&&candidates[Number(ref.index)])matched=candidates[Number(ref.index)];
+    if(!matched&&candidates.length===1)matched=candidates[0];
+   }
+   if(!matched){
+    const keys=orderKeys.join(', ');
+    throw new Error(`${order.no||'주문'} · ${source.name||'선택 품목'}: order_items에서 연결 행을 찾지 못했습니다. 조회한 주문 키(${keys||'없음'}), 조회된 품목 수(${candidates.length})`);
+   }
+   const item={...source,rowId:matched.id||matched.order_item_id,
+    itemStatus:firstValue(matched,['item_status','status'],source.itemStatus||source.status||''),
+    shippingMethod:firstValue(matched,['shipping_method'],source.shippingMethod||''),
+    shippingCarrier:firstValue(matched,['shipping_carrier'],source.shippingCarrier||''),
+    trackingNumber:firstValue(matched,['tracking_number'],source.trackingNumber||''),
+    driverName:firstValue(matched,['driver_name'],source.driverName||''),
+    driverPhone:firstValue(matched,['driver_phone'],source.driverPhone||''),
+    shipmentNote:firstValue(matched,['shipment_note'],source.shipmentNote||'')};
+   rows.push({order,item,ref});
   }
   if(!rows.length){alert('출고 대기로 변경할 품목을 선택해 주세요.');return;}
   window.wjShipReadyRowsV176=rows;
@@ -5422,7 +5460,7 @@ function openShipmentSlipForSelectedV171(){
   return !m || (m==='택배'&&(!x.it.shippingCarrier||!x.it.trackingNumber)) || (m==='용차'&&(!x.it.driverName||!x.it.driverPhone));
  });
  if(missing.length){alert('선택한 품목의 출고 정보가 부족합니다. 주문 상세에서 배송정보를 먼저 저장해 주세요.');return;}
- if(!confirm(`선택한 ${refs.length}개 품목의 출고전표를 발행하시겠습니까?\n출고 대기 품목만 출고 중으로 변경되며, 출고 완료 품목은 상태를 유지한 채 재발행됩니다.`))return;
+ const firstCount=refs.filter(x=>String(x.it.itemStatus||x.it.status||x.o.status||'').trim()==='출고 대기').length;const reprintCount=refs.filter(x=>String(x.it.itemStatus||x.it.status||x.o.status||'').trim()==='출고 완료').length;const notice=firstCount&&reprintCount?`최초 발행 ${firstCount}개 / 재발행 ${reprintCount}개입니다.\n최초 발행 품목만 출고 중으로 변경되고, 재발행 품목은 출고 완료 상태를 유지합니다.`:reprintCount?`[재발행 안내] 이미 출고 완료된 전표를 다시 출력합니다.\n재발행이며 품목 상태는 출고 완료로 유지됩니다.`:`[최초 발행 안내] 출고 대기 품목의 전표를 최초 발행합니다.\n발행 처리 후 해당 품목만 출고 중으로 변경됩니다.`;if(!confirm(notice+`\n\n선택한 ${refs.length}개 품목을 진행하시겠습니까?`))return;
  const w=window.open('','_blank');
  if(!w){alert('팝업이 차단되었습니다. 팝업을 허용한 뒤 다시 시도해 주세요.');return;}
  printShipmentSlipsV176(refs,w);
