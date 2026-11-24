@@ -2904,7 +2904,7 @@ function openAddCartOptionModal(id,qty){
  document.getElementById('modalTitle').textContent='장바구니에 담기';
  const packOptions=getPackagingOptionsV129(p.id,true);const firstPack=packOptions[0]||null;
  const parsedSpec=parseWJProductSpec(p.spec||'');const standardStamp=String(parsedSpec.length||'').trim();
- body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label>포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select><div class="v129-option-label">선택한 포장 단가 기준으로 공급가액과 부가세가 계산됩니다.</div></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label>도장표기</label><select id="addCartStampMode" onchange="toggleCartStampInputV165(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:8px"><div style="font-size:10px;color:#94a3b8;margin-top:5px">기본은 제품 규격의 일반 길이를 표기합니다.</div></div><div class="order-option-card full"><label>총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
+ body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label>포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select><div class="v129-option-label">선택한 포장 단가 기준으로 공급가액과 부가세가 계산됩니다.</div></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label>도장표기</label><div id="addCartStampControl"><select id="addCartStampMode" onchange="toggleCartStampInputV178(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label>총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
 
  const save=document.getElementById('modalSave'); save.style.display=''; save.textContent='장바구니에 담기';
  save.onclick=()=>{
@@ -2920,6 +2920,7 @@ function openAddCartOptionModal(id,qty){
  return true;
 }
 function toggleCartStampInputV165(value){const input=document.getElementById('addCartBoxStamp');if(!input)return;input.style.display=value==='custom'?'block':'none';if(value!=='custom')input.value='';}
+function toggleCartStampInputV178(value){const input=document.getElementById('addCartBoxStamp');if(!input)return;input.style.display=value==='custom'?'block':'none';if(value!=='custom')input.value='';}
 function toggleCartCoreCustomV165(value){const select=document.getElementById('addCartCoreType'),input=document.getElementById('addCartCoreCustom');if(!select||!input)return;if(value==='__custom__'){input.style.display='block';input.focus();}else{input.style.display='none';input.value='';}}
 function updateCartPackagingPriceV129(productId){const p=products.find(x=>String(x.id)===String(productId));const id=document.getElementById('addCartPackagingOptionV129')?.value;const el=document.getElementById('v129SelectedUnitPrice');if(p&&el)el.textContent=won(getPackagingUnitPriceV129(p,id));}
 function saveCartItemsV34(){try{localStorage.setItem('wonjun_v34_cart_items',JSON.stringify(cartItems))}catch(e){console.warn('장바구니 옵션 저장 실패',e)}}
@@ -5496,6 +5497,62 @@ async function printShipmentSlipsV176(refs,w){
  }catch(e){console.error('출고전표 발행 실패',e);try{w.close()}catch(_){}alert('출고전표 처리에 실패했습니다.\n'+(e?.message||''));}
 }
 
+
+
+/* V178: 출고정보 입력 시 주문을 알아보기 쉬운 상세 정보로 표시하고 배송방식 재조회 */
+function shipmentMethodFromOrderV178(order){
+ const raw=String(order?.deliveryMethod||order?.delivery_method||'').trim();
+ if(raw.startsWith('택배'))return '택배'; if(raw.startsWith('용차'))return '용차'; if(raw.startsWith('기타'))return '기타'; return '';
+}
+async function openShipReadyModalV176(refs){
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 준비되지 않아 출고 대기로 변경할 수 없습니다.');return;}
+ const rows=[],orderFresh=new Map(),itemCache=new Map();
+ const esc=v=>escapeHtmlV8(String(v??''));
+ try{
+  for(const ref of refs){
+   const original=ref.o||{},source=ref.it||{};
+   const orderKeys=[String(original.dbId||''),String(original.id||''),String(original.no||'')].filter((v,i,a)=>v&&a.indexOf(v)===i);
+   const orderCacheKey=orderKeys.join('|');
+   let order=orderFresh.get(orderCacheKey)||{...original};
+   if(!shipmentMethodFromOrderV178(order)){
+    let fresh=null;
+    for(const key of orderKeys){
+     for(const col of (key===String(original.no||'')?['order_no','id']:['id','order_no'])){
+      try{const q=await supabaseERP.from('orders').select('*').eq(col,key).limit(1);if(!q.error&&q.data?.length){fresh=q.data[0];break;}}catch(e){}
+     }
+     if(fresh)break;
+    }
+    if(fresh)order={...order,deliveryMethod:firstValue(fresh,['delivery_method'],order.deliveryMethod||''),deliveryCarrier:firstValue(fresh,['delivery_carrier'],order.deliveryCarrier||''),deliveryAddress:firstValue(fresh,['delivery_address'],order.deliveryAddress||''),deliveryAddressName:firstValue(fresh,['delivery_address_name'],order.deliveryAddressName||''),deliveryContactName:firstValue(fresh,['delivery_contact_name'],order.deliveryContactName||''),deliveryContactPhone:firstValue(fresh,['delivery_contact_phone'],order.deliveryContactPhone||''),deliveryRequest:firstValue(fresh,['delivery_request'],order.deliveryRequest||''),dbId:fresh.id||order.dbId};
+   }
+   orderFresh.set(orderCacheKey,order);
+   let candidates=itemCache.get(orderCacheKey);
+   if(!candidates){candidates=[];for(const key of orderKeys){for(const col of (key===String(original.no||'')?['order_no','order_id']:['order_id','order_no'])){try{const q=await supabaseERP.from('order_items').select('*').eq(col,key);if(!q.error&&q.data?.length){candidates=q.data;break;}}catch(e){}}if(candidates.length)break;}itemCache.set(orderCacheKey,candidates);}
+   let matched=null;const directId=source.rowId||source.id||source.order_item_id||'';
+   if(directId)matched=candidates.find(z=>String(z.id||z.order_item_id||'')===String(directId))||null;
+   if(!matched){const pid=String(source.productId||source.product_id||''),name=String(source.name||source.product_name||source.item_name||'').trim(),qty=Number(source.qty??source.quantity??0);
+    const scored=candidates.map((z,idx)=>{const zid=String(firstValue(z,['product_id','product'],'')),zn=String(firstValue(z,['product_name','name','item_name'],'')).trim(),zq=Number(firstValue(z,['quantity','qty'],0));let score=0;if(pid&&zid===pid)score+=8;if(name&&zn===name)score+=5;if(Number.isFinite(qty)&&zq===qty)score+=3;return{z,idx,score};}).filter(x=>x.score>=8).sort((a,b)=>b.score-a.score);
+    if(scored.length===1|| (scored.length>1&&scored[0].score>scored[1].score))matched=scored[0].z;
+    if(!matched&&Number.isInteger(Number(ref.index))&&candidates[Number(ref.index)])matched=candidates[Number(ref.index)];
+    if(!matched&&candidates.length===1)matched=candidates[0];
+   }
+   if(!matched)throw new Error(`${original.no||'주문'} · ${source.name||'선택 품목'}: 저장된 주문 품목 연결 행을 찾지 못했습니다. 조회된 품목 ${candidates.length}건`);
+   const item={...source,rowId:matched.id||matched.order_item_id,itemStatus:firstValue(matched,['item_status','status'],source.itemStatus||source.status||''),shippingMethod:firstValue(matched,['shipping_method'],source.shippingMethod||''),shippingCarrier:firstValue(matched,['shipping_carrier'],source.shippingCarrier||''),trackingNumber:firstValue(matched,['tracking_number'],source.trackingNumber||''),driverName:firstValue(matched,['driver_name'],source.driverName||''),driverPhone:firstValue(matched,['driver_phone'],source.driverPhone||''),shipmentNote:firstValue(matched,['shipment_note'],source.shipmentNote||''),name:firstValue(matched,['product_name','name','item_name'],source.name||''),spec:firstValue(matched,['spec','product_spec'],source.spec||''),qty:Number(firstValue(matched,['quantity','qty'],source.qty||0))||0,packagingOptionName:firstValue(matched,['packaging_option_name'],source.packagingOptionName||''),boxType:firstValue(matched,['box_type'],source.boxType||''),palletType:firstValue(matched,['pallet_type'],source.palletType||''),coreType:firstValue(matched,['core_type'],source.coreType||'')};
+   rows.push({order,item,ref});
+  }
+  if(!rows.length){alert('출고 대기로 변경할 품목을 선택해 주세요.');return;}
+  window.wjShipReadyRowsV176=rows;
+  document.getElementById('wjShipReadyModalV176')?.remove();
+  const modal=document.createElement('div');modal.id='wjShipReadyModalV176';modal.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;padding:12px;';
+  const field=(label,id,value,placeholder)=>`<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;color:#334155">${label}<input id="${id}" value="${esc(value)}" placeholder="${placeholder}" style="width:100%;height:46px;padding:0 12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font:inherit;font-weight:500;background:#fff"></label>`;
+  const cards=rows.map((x,i)=>{const o=x.order,it=x.item,method=shipmentMethodFromOrderV178(o)||String(it.shippingMethod||'');const client=o.client||o.clientName||o.client_name||'-';const date=o.date||o.orderDate||o.order_date||o.createdAt||o.created_at||'';const dateText=date?String(date).replace('T',' ').slice(0,16):'-';const details=[it.spec,it.packagingOptionName,it.boxType,it.palletType].filter(Boolean).join(' · ');
+   let inputs='';if(method==='택배')inputs=field('택배사',`wjShipCarrier176_${i}`,it.shippingCarrier||o.deliveryCarrier||'','택배사 입력')+field('송장번호',`wjShipTracking176_${i}`,it.trackingNumber||'','송장번호 입력');else if(method==='용차')inputs=field('기사님 성함',`wjShipDriver176_${i}`,it.driverName||o.deliveryContactName||'','기사님 성함')+field('기사님 연락처',`wjShipPhone176_${i}`,it.driverPhone||o.deliveryContactPhone||'','연락처 입력');else if(method==='기타')inputs=`<label style="grid-column:1/-1;display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;color:#334155">출고 메모<textarea id="wjShipNote176_${i}" rows="3" placeholder="출고 관련 안내사항" style="width:100%;min-height:82px;padding:12px;border:1px solid #cbd5e1;border-radius:10px;box-sizing:border-box;font:inherit;resize:vertical">${esc(it.shipmentNote||o.deliveryRequest||'')}</textarea></label>`;else inputs=`<div style="grid-column:1/-1;padding:12px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:12px">주문에 저장된 배송 방식이 없습니다. 거래처 주문 상세에서 배송 요청을 확인하거나 배송 방식을 지정해 주세요.</div>`;
+   return `<div style="padding:15px;border:1px solid #dbe3ee;border-radius:14px;background:#fff;margin-top:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:9px"><b style="font-size:13px;color:#1d4ed8">${esc(client)} · ${esc(dateText)}</b><span style="font-size:11px;color:#64748b">발주번호 ${esc(o.no||'-')}</span></div><div style="font-weight:850;font-size:16px;color:#0f172a">${esc(it.name||'품목')}</div><div style="font-size:12px;color:#64748b;margin:4px 0 9px">${esc(details||'규격/옵션 정보 없음')} · ${Number(it.qty||0).toLocaleString()}박스</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 11px;border-radius:9px;background:#f8fafc;margin-bottom:12px"><b style="font-size:12px;color:#475569">배송 방식</b><strong style="font-size:13px;color:${method?'#1d4ed8':'#b45309'}">${esc(method||'미선택')}</strong></div><input type="hidden" id="wjShipMethod176_${i}" value="${esc(method)}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:11px">${inputs}</div></div>`;
+  }).join('');
+  modal.innerHTML=`<div style="width:min(900px,96vw);max-height:94vh;max-height:94dvh;display:flex;flex-direction:column;background:#f8fafc;border-radius:18px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.3)"><header style="flex:0 0 auto;padding:17px 20px;background:#fff;border-bottom:1px solid #e2e8f0"><b style="font-size:19px">출고 정보 입력</b><p style="margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.5">거래처명·접수일·품명·규격·수량을 함께 표시합니다. 발주번호는 보조 정보로만 표시합니다.</p></header><div style="padding:8px 18px 18px;overflow:auto;min-height:0;flex:1 1 auto">${cards}</div><footer style="flex:0 0 auto;display:flex;justify-content:flex-end;gap:9px;padding:12px 18px;background:#fff;border-top:1px solid #e2e8f0"><button type="button" id="wjShipCancel176" class="small-btn" style="min-height:44px;padding:0 18px">취소</button><button type="button" id="wjShipSave176" class="btn primary" style="min-height:44px;padding:0 22px">배송정보 저장 후 출고 대기</button></footer></div>`;
+  document.body.appendChild(modal);modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});modal.querySelector('#wjShipCancel176').onclick=()=>modal.remove();modal.querySelector('#wjShipSave176').onclick=saveShipReadyV176;
+ }catch(e){console.error('출고정보 조회 실패',e);alert('출고 정보를 불러오지 못했습니다.\n'+(e?.message||''));}
+}
+
 </script>
 
 <style id="v34-cart-modal-ui">
@@ -5685,6 +5742,16 @@ async function printShipmentSlipsV176(refs,w){
 .product-visibility-box-v141 .pv-mode label{display:flex;align-items:center;gap:6px;font-size:12px;color:#334155;cursor:pointer}
 .product-visibility-box-v141 .pv-picker{margin-top:8px}
 .product-visibility-box-v141 .pv-picker.hidden{display:none}
+
+/* V178: 장바구니 옵션 모달 내부 스크롤 및 버튼 고정 */
+#modalBg .modal{display:flex;flex-direction:column;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px);overflow:hidden}
+#modalBg .modal-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#modalBg .modal-foot{flex:0 0 auto;position:relative;z-index:2}
+#modalBg #addCartStampControl{display:flex;flex-direction:column;gap:8px;width:100%;min-width:0}
+#modalBg #addCartStampControl select,#modalBg #addCartStampControl input{box-sizing:border-box;width:100%;min-width:0}
+#modalBg #addCartCoreControl{display:flex;flex-direction:column;gap:8px;width:100%;min-width:0}
+#modalBg #addCartCoreControl select,#modalBg #addCartCoreControl input{box-sizing:border-box;width:100%;min-width:0}
+@media(max-width:620px){#modalBg .modal{width:calc(100vw - 20px);max-height:calc(100dvh - 20px);margin:10px}#modalBg .modal-foot{padding-bottom:max(12px,env(safe-area-inset-bottom))}}
 </style>
 
 <!-- V145: packaging options bulk entry, lowest active option becomes product base price, unified client base+option price editor -->
