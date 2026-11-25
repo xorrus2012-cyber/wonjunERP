@@ -1070,7 +1070,7 @@ body{font-size:14px}
       <section id="products" class="page">
         <div class="page-head"><div><h2>제품 주문</h2><p>로그인한 거래처에 적용된 개별 단가가 표시됩니다.</p></div></div>
         <div class="client-quote-launch" style="display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:14px;padding:14px 16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc">
-          <div style="flex:1;min-width:0"><strong style="display:block;font-size:14px">원하는 규격이나 입수량이 없으신가요?</strong><span style="display:block;margin-top:4px;color:#64748b;font-size:12px">별도 견적 요청을 통해 관리자 확인 후 주문하실 수 있습니다.</span></div>
+          <div style="flex:1;min-width:0"><strong style="display:block;font-size:14px">원하는 규격이나 입수량이 없으신가요?</strong><span style="display:block;margin-top:4px;color:#64748b;font-size:12px">비규격 제작 요청을 접수하고 견적을 확인한 뒤 발주 여부를 결정하실 수 있습니다.</span></div>
           <button type="button" class="btn primary" onclick="openQuoteRequestModalV134()" style="white-space:nowrap">비규격 · 별도 견적 요청</button>
         </div>
 
@@ -1102,7 +1102,7 @@ body{font-size:14px}
 
         <section class="card pad" style="margin-bottom:16px">
           <div style="font-weight:800;font-size:13px;margin-bottom:10px">내 견적 요청 현황</div>
-          <div class="table-wrap"><table><thead><tr><th>요청일</th><th>요청 내용</th><th>희망 박스 수량</th><th>견적 금액</th><th>상태 / 관리</th></tr></thead><tbody id="v130ClientQuoteRows"><tr><td colspan="5" class="v4-empty">견적 요청 내역을 불러오는 중입니다.</td></tr></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>요청일</th><th>요청 내용</th><th>예상 수량</th><th>견적 회신</th><th>발주 / 상태</th></tr></thead><tbody id="v130ClientQuoteRows"><tr><td colspan="5" class="v4-empty">견적 요청 내역을 불러오는 중입니다.</td></tr></tbody></table></div>
           <div id="v130ClientQuotePaginationV139" class="client-quote-pagination-v139"></div>
         </section>
         <div class="order-filter-panel admin-search-panel" aria-label="제품 검색 및 필터"><div class="order-filter-grid admin-search-grid">
@@ -1213,7 +1213,7 @@ body{font-size:14px}
 
       <!-- ADMIN QUOTE REQUESTS V130 -->
       <section id="adminQuotesV130" class="page">
-        <div class="page-head"><div><h2>견적 요청 관리</h2><p>거래처의 별도 입수량 및 비규격 제작 요청을 검토하고 견적 단가를 전달합니다. 거래처가 승인해야 정식 주문으로 전환됩니다.</p></div><button class="btn light" type="button" onclick="loadQuoteRequestsV130().then(renderQuoteRequestsAdminV130)">새로고침</button></div>
+        <div class="page-head"><div><h2>견적 요청 관리</h2><p>거래처의 비규격 제품 제작 요청을 확인하고 견적 조건을 회신합니다. 실제 발주는 거래처가 견적을 확인한 뒤 직접 결정합니다.</p></div><button class="btn light" type="button" onclick="loadQuoteRequestsV130().then(renderQuoteRequestsAdminV130)">새로고침</button></div>
         <div class="order-filter-panel" aria-label="견적 요청 검색 및 필터">
           <div class="order-filter-grid">
             <div class="order-filter-field order-filter-client"><label class="order-filter-label">거래처</label><div class="smartbox" id="quoteClientFilterV133"></div></div>
@@ -1223,7 +1223,7 @@ body{font-size:14px}
             <div class="order-filter-actions"><button type="button" class="small-btn order-filter-search" onclick="applyQuoteRequestFiltersV133()">검색</button><button type="button" class="small-btn order-filter-reset" onclick="resetQuoteRequestFiltersV133()">필터 초기화</button></div>
           </div>
         </div>
-        <div class="card table-wrap"><table><thead><tr><th>요청일</th><th>거래처</th><th>요청 유형</th><th>제품 / 종류</th><th>규격 / 희망 포장단위</th><th>주문 수량</th><th>견적 단가 (VAT 별도)</th><th>상태</th><th>관리</th></tr></thead><tbody id="v130AdminQuoteRows"></tbody></table></div><div id="v130AdminQuotePagination" aria-label="견적 요청 목록 페이지 이동"></div>
+        <div class="card table-wrap"><table><thead><tr><th>요청일</th><th>거래처</th><th>제품명</th><th>제작 요청 내용 / 첨부</th><th>예상 수량</th><th>상태</th><th>관리</th></tr></thead><tbody id="v130AdminQuoteRows"></tbody></table></div><div id="v130AdminQuotePagination" aria-label="견적 요청 목록 페이지 이동"></div>
       </section>
 
       <!-- ADMIN CLIENTS -->
@@ -5796,3 +5796,156 @@ if (!window.wjOrderSelectionSyncV179) {
 <!-- V145: packaging options bulk entry, lowest active option becomes product base price, unified client base+option price editor -->
 
 
+<style id="v180-overrides">
+/* 긴급 행의 강조선을 셀 안쪽으로 넣어 체크박스 정렬을 유지 */
+.urgent-order-row-v174 td:first-child{border-left:0!important;box-shadow:inset 4px 0 0 #dc2626}
+.v180-quote-detail{white-space:pre-wrap;line-height:1.55;color:#334155;font-size:12px;max-width:420px}
+.v180-quote-meta{font-size:11px;color:#64748b;margin-top:5px}
+.v180-quote-actions{display:flex;gap:6px;flex-wrap:wrap}
+.v180-quote-modal{position:fixed;inset:0;z-index:2147483601;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:16px}
+.v180-quote-modal-card{background:#fff;border-radius:14px;width:min(680px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 20px 60px rgba(15,23,42,.25)}
+.v180-quote-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.v180-quote-grid .full{grid-column:1/-1}
+.v180-quote-grid label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}
+.v180-quote-grid input,.v180-quote-grid textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font:inherit}
+.v180-quote-grid textarea{min-height:90px;resize:vertical}
+.v180-quote-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+@media(max-width:640px){.v180-quote-grid{grid-template-columns:1fr}.v180-quote-grid .full{grid-column:auto}}
+</style>
+<script id="v180-quote-and-shipment-overrides">
+/* V180: 비규격 견적 요청 전면 개편, 긴급 표시, 출고전표 1장 2부 */
+function openQuoteRequestModalV134(){
+ const modal=document.getElementById('v134QuoteRequestModal');if(!modal)return;
+ const panel=modal.querySelector('.v130-quote-panel');
+ if(panel&&!panel.dataset.v180){
+  panel.dataset.v180='1';
+  panel.innerHTML=`<div style="display:grid;grid-template-columns:1fr;gap:12px">
+   <div class="field"><label for="v180QuoteName">제품명</label><input id="v180QuoteName" class="input" placeholder="예: 인쇄테이프" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px"></div>
+   <div class="field"><label for="v180QuoteQty">예상 주문 수량 (선택)</label><input id="v180QuoteQty" type="number" min="1" step="1" placeholder="미정이면 비워 두셔도 됩니다" style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px"></div>
+   <div class="field"><label for="v180QuoteMemo">제작 요청 내용</label><textarea id="v180QuoteMemo" rows="7" placeholder="예)\n인쇄테이프\n견적 요청드립니다.\n폭 48 × 80m\n러버\n\n1. 견적\n2. MOQ\n3. 동판비\n4. 리드타임" style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd5e1;border-radius:8px;line-height:1.6"></textarea></div>
+   <div class="field"><label for="v180QuoteFile">도면 및 참고 파일 첨부 (선택)</label><input id="v180QuoteFile" type="file" accept=".ai,.pdf,.eps,.jpg,.jpeg,.png,.zip" style="width:100%;padding:9px;border:1px dashed #94a3b8;border-radius:8px"><small style="display:block;color:#64748b;margin-top:5px">AI, PDF, EPS, JPG, PNG, ZIP · 파일당 최대 25MB</small></div>
+  </div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" class="btn light" onclick="closeQuoteRequestModalV134()">취소</button><button type="button" class="btn primary" id="v180QuoteSubmit" onclick="submitQuoteRequestV180()">견적 요청하기</button></div>`;
+  const title=document.getElementById('v134QuoteModalTitle');if(title)title.textContent='비규격 제품 제작 요청';
+  const desc=modal.querySelector('.v134-quote-modal-header p');if(desc)desc.textContent='제작 규격과 요청 사항을 작성하고 필요하면 도면 파일을 첨부해 주세요.';
+ }
+ modal.style.display='flex';document.body.classList.add('v134-quote-modal-open');
+}
+async function submitQuoteRequestV180(){
+ if(!supabaseERP||!supabaseSyncReady){alert('서버 연결이 완료된 후 다시 시도해 주세요.');return;}
+ const c=quoteCurrentClientV130();if(!c){alert('거래처 정보를 확인할 수 없습니다. 다시 로그인해 주세요.');return;}
+ const name=(document.getElementById('v180QuoteName')?.value||'').trim();
+ const memo=(document.getElementById('v180QuoteMemo')?.value||'').trim();
+ const qtyRaw=(document.getElementById('v180QuoteQty')?.value||'').trim();
+ const qty=qtyRaw?Math.floor(Number(qtyRaw)):null;
+ const file=document.getElementById('v180QuoteFile')?.files?.[0]||null;
+ if(!name){alert('제품명을 입력해 주세요.');return;}
+ if(!memo){alert('제작 요청 내용을 입력해 주세요.');return;}
+ if(qtyRaw&&(!Number.isFinite(qty)||qty<1)){alert('예상 주문 수량은 1 이상으로 입력해 주세요.');return;}
+ if(file&&file.size>25*1024*1024){alert('첨부파일은 25MB 이하만 등록할 수 있습니다.');return;}
+ const btn=document.getElementById('v180QuoteSubmit');if(btn){btn.disabled=true;btn.textContent='요청 등록 중...';}
+ try{
+  const details={requestText:memo,expectedQuantity:qty,attachmentName:file?.name||''};
+  const payload={client_id:String(c.id),product_id:null,request_type:'nonstandard',product_name:name,product_spec:'',product_kind:'비규격 제작',desired_pack_qty:null,order_qty:qty||1,details,status:'requested'};
+  const ins=await supabaseERP.from('quote_requests').insert(payload).select('*').single();if(ins.error)throw ins.error;
+  if(file){
+   const safe=file.name.replace(/[^a-zA-Z0-9가-힣._-]/g,'_').slice(-100)||'attachment';
+   const path=`${String(c.id)}/${String(ins.data.id)}/${Date.now()}_${safe}`;
+   const up=await supabaseERP.storage.from('wj-quote-files').upload(path,file,{upsert:false,contentType:file.type||'application/octet-stream'});
+   if(up.error)throw new Error('견적 요청은 등록됐지만 파일 업로드에 실패했습니다. '+up.error.message);
+   const upd=await supabaseERP.from('quote_requests').update({attachment_path:path,attachment_name:file.name}).eq('id',ins.data.id);if(upd.error)throw upd.error;
+  }
+  alert('비규격 제작 견적 요청이 접수되었습니다. 관리자가 확인 후 견적을 회신해 드립니다.');
+  ['v180QuoteName','v180QuoteQty','v180QuoteMemo','v180QuoteFile'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  closeQuoteRequestModalV134();await loadQuoteRequestsV130();renderClientQuoteRequestsV130();
+ }catch(e){console.error(e);alert('견적 요청 등록에 실패했습니다.\n'+(e?.message||e));}
+ finally{if(btn){btn.disabled=false;btn.textContent='견적 요청하기';}}
+}
+async function openQuoteAttachmentV180(id){
+ const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r?.attachment_path){alert('첨부파일이 없습니다.');return;}
+ const {data,error}=await supabaseERP.storage.from('wj-quote-files').createSignedUrl(r.attachment_path,300);
+ if(error||!data?.signedUrl){alert('첨부파일을 열 수 없습니다. '+(error?.message||''));return;}
+ window.open(data.signedUrl,'_blank','noopener');
+}
+function quoteTextV180(r){const d=r.details||{};return String(d.requestText||d.memo||'요청 내용이 없습니다.');}
+function renderClientQuoteRequestsV130(){
+ const body=document.getElementById('v130ClientQuoteRows');if(!body)return;
+ const client=quoteCurrentClientV130();const rows=(wjQuoteRequestsV130||[]).filter(x=>String(x.client_id)===String(client?.id||''));
+ const size=5,total=Math.max(1,Math.ceil(rows.length/size));window.wjClientQuoteCountV139=rows.length;window.wjClientQuotePageV139=Math.min(total,Math.max(1,Number(window.wjClientQuotePageV139||1)));
+ const page=window.wjClientQuotePageV139,start=(page-1)*size,pageRows=rows.slice(start,start+size);
+ body.innerHTML=pageRows.map(r=>{
+  const d=r.details||{},request=quoteTextV180(r),expected=d.expectedQuantity?`${Number(d.expectedQuantity).toLocaleString()}박스`:'미정';
+  const attachment=r.attachment_name?`<button type="button" class="small-btn" onclick="openQuoteAttachmentV180('${r.id}')">첨부파일 보기</button>`:'';
+  const quote=r.status==='quoted'?`<div style="line-height:1.7"><b>단가:</b> ${r.admin_unit_price==null?'-':won(r.admin_unit_price)+' / 단위 (VAT 별도)'}<br><b>MOQ:</b> ${escapeHtmlV8(r.admin_moq||'-')}<br><b>동판비:</b> ${won(Number(r.admin_plate_fee||0))}<br><b>리드타임:</b> ${escapeHtmlV8(r.admin_lead_time||'-')}<br><b>추가 안내:</b> ${escapeHtmlV8(r.admin_quote||'-')}</div>`:(r.status==='approved'?'발주 완료':quoteStatusLabelV130(r.status));
+  const action=r.status==='quoted'?`<div class="v180-quote-actions"><button class="small-btn" onclick="startQuoteOrderV180('${r.id}')">이 견적으로 발주하기</button><button class="small-btn" onclick="rejectQuoteRequestV130('${r.id}')">진행하지 않기</button></div>`:quoteStatusLabelV130(r.status);
+  return `<tr><td>${escapeHtmlV8(String(r.created_at||'').slice(0,10))}</td><td><b>${escapeHtmlV8(r.product_name||'')}</b><div class="v180-quote-detail">${escapeHtmlV8(request)}</div>${attachment}</td><td>${expected}</td><td>${quote}</td><td>${action}</td></tr>`;
+ }).join('')||'<tr><td colspan="5" class="v4-empty">아직 견적 요청 내역이 없습니다.</td></tr>';
+ const pager=document.getElementById('v130ClientQuotePaginationV139');if(pager){const from=rows.length?start+1:0,to=Math.min(start+size,rows.length);pager.innerHTML=`<div class="pagination-left"><span>총 <b>${rows.length.toLocaleString()}</b>건 중 <b>${from.toLocaleString()}–${to.toLocaleString()}</b>건 표시</span><span>페이지당 <b>5개</b></span></div><div class="pagination-right"><button type="button" onclick="changeClientQuotePageV139(-1)" ${page<=1?'disabled':''}>이전</button><span class="page-current">${page} / ${total} 페이지</span><button type="button" onclick="changeClientQuotePageV139(1)" ${page>=total?'disabled':''}>다음</button></div>`;}
+}
+function openAdminQuoteReplyV180(id){
+ const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r)return;
+ const d=r.details||{};const root=document.createElement('div');root.className='v180-quote-modal';root.id='v180AdminQuoteReplyModal';
+ root.innerHTML=`<div class="v180-quote-modal-card"><h3 style="margin:0 0 8px">비규격 견적 회신</h3><div style="font-weight:800;margin-bottom:6px">${escapeHtmlV8(r.product_name||'')}</div><div class="v180-quote-detail" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-bottom:14px">${escapeHtmlV8(quoteTextV180(r))}</div>${r.attachment_name?`<button class="small-btn" onclick="openQuoteAttachmentV180('${r.id}')">첨부파일 확인: ${escapeHtmlV8(r.attachment_name)}</button>`:''}
+ <div class="v180-quote-grid" style="margin-top:14px"><div><label>견적 단가 (단위당 / VAT 별도)</label><input id="v180AdminUnitPrice" type="number" min="0" step="1" value="${r.admin_unit_price??''}" placeholder="원"></div><div><label>MOQ (최소주문수량)</label><input id="v180AdminMOQ" value="${escapeHtmlV8(r.admin_moq||'')}" placeholder="예: 100박스"></div><div><label>동판비</label><input id="v180AdminPlateFee" type="number" min="0" step="1" value="${r.admin_plate_fee??0}" placeholder="원"></div><div><label>리드타임</label><input id="v180AdminLeadTime" value="${escapeHtmlV8(r.admin_lead_time||'')}" placeholder="예: 시안 확정 후 7~10일"></div><div class="full"><label>추가 안내</label><textarea id="v180AdminQuoteNote" placeholder="견적 조건 및 유의사항">${escapeHtmlV8(r.admin_quote||'')}</textarea></div></div>
+ <div class="v180-quote-modal-actions"><button class="btn light" onclick="document.getElementById('v180AdminQuoteReplyModal')?.remove()">취소</button><button class="btn primary" onclick="saveAdminQuoteReplyV180('${r.id}')">견적 회신하기</button></div></div>`;
+ document.body.appendChild(root);
+}
+async function saveAdminQuoteReplyV180(id){
+ const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r)return;
+ const price=Number(document.getElementById('v180AdminUnitPrice')?.value),moq=(document.getElementById('v180AdminMOQ')?.value||'').trim(),plate=Number(document.getElementById('v180AdminPlateFee')?.value||0),lead=(document.getElementById('v180AdminLeadTime')?.value||'').trim(),note=(document.getElementById('v180AdminQuoteNote')?.value||'').trim();
+ if(!Number.isFinite(price)||price<0){alert('견적 단가를 0 이상으로 입력해 주세요.');return;}if(!moq){alert('MOQ를 입력해 주세요.');return;}if(!Number.isFinite(plate)||plate<0){alert('동판비를 0 이상으로 입력해 주세요.');return;}if(!lead){alert('리드타임을 입력해 주세요.');return;}
+ const upd=await supabaseERP.from('quote_requests').update({admin_unit_price:price,admin_moq:moq,admin_plate_fee:plate,admin_lead_time:lead,admin_quote:note,supply_amount:null,vat_amount:null,total_amount:null,status:'quoted',quoted_at:new Date().toISOString()}).eq('id',id);
+ if(upd.error){alert('견적 회신 저장 실패: '+upd.error.message+'\n필요한 V180 SQL을 먼저 적용했는지 확인해 주세요.');return;}
+ document.getElementById('v180AdminQuoteReplyModal')?.remove();await loadQuoteRequestsV130();renderQuoteRequestsAdminV130();renderClientQuoteRequestsV130();alert('견적 조건을 거래처에 전달했습니다. 아직 주문은 생성되지 않았습니다.');
+}
+function renderQuoteRequestsAdminV130(){
+ const body=document.getElementById('v130AdminQuoteRows');if(!body)return;
+ const applied=window.wjQuoteAppliedFiltersV133||{clients:[],products:[],status:'all',from:'',to:''},status=applied.status||'all',clientsSel=applied.clients||[],from=applied.from||'',to=applied.to||'';
+ const list=(wjQuoteRequestsV130||[]).filter(r=>{const date=String(r.created_at||'').slice(0,10);return(status==='all'||r.status===status)&&(!clientsSel.length||clientsSel.map(String).includes(String(r.client_id)))&&(!from||date>=from)&&(!to||date<=to);});
+ updateQuoteNavDotV136();const size=Math.max(1,Number(window.wjAdminQuotePageSizeV131||20)),total=Math.max(1,Math.ceil(list.length/size));window.wjAdminQuotePageV131=Math.min(total,Math.max(1,Number(window.wjAdminQuotePageV131||1)));const page=window.wjAdminQuotePageV131,start=(page-1)*size,pageList=list.slice(start,start+size);
+ body.innerHTML=pageList.map(r=>{const c=clients.find(x=>String(x.id)===String(r.client_id)),d=r.details||{},txt=quoteTextV180(r),att=r.attachment_name?`<button class="small-btn" onclick="openQuoteAttachmentV180('${r.id}')">파일 확인</button>`:'첨부 없음';const qty=d.expectedQuantity?`${Number(d.expectedQuantity).toLocaleString()}박스`:'미기재';const statusText=quoteStatusLabelV130(r.status);const action=r.status==='requested'?`<button class="small-btn" onclick="openAdminQuoteReplyV180('${r.id}')">견적 작성</button>`:r.status==='quoted'?`<button class="small-btn" onclick="openAdminQuoteReplyV180('${r.id}')">견적 수정</button>`:r.status==='approved'?'발주 전환 완료':'-';return `<tr><td>${escapeHtmlV8(String(r.created_at||'').slice(0,10))}</td><td>${escapeHtmlV8(c?.name||'거래처 확인 필요')}</td><td><b>${escapeHtmlV8(r.product_name||'')}</b></td><td><div class="v180-quote-detail">${escapeHtmlV8(txt)}</div><div class="v180-quote-meta">${att}</div></td><td>${qty}</td><td>${statusText}</td><td style="white-space:nowrap">${action}</td></tr>`;}).join('')||'<tr><td colspan="7" class="v4-empty">해당하는 견적 요청이 없습니다.</td></tr>';
+ renderAdminListPagerV91('v130AdminQuotePagination',list.length,start,size,page,total,'wjAdminQuotePageSizeV131','wjAdminQuotePageV131','renderQuoteRequestsAdminV130','changeQuoteRequestPageV131');
+}
+async function startQuoteOrderV180(id){
+ const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted')return;
+ const minMatch=String(r.admin_moq||'').replace(/,/g,'').match(/\d+(?:\.\d+)?/);const min=minMatch?Number(minMatch[0]):0;
+ const qtyRaw=prompt(`실제 발주 수량을 박스 단위로 입력해 주세요.${r.admin_moq?'\nMOQ: '+r.admin_moq:''}`,String(Math.max(min,Number(r.details?.expectedQuantity||1))));if(qtyRaw===null)return;
+ const qty=Math.floor(Number(qtyRaw));if(!Number.isFinite(qty)||qty<1){alert('발주 수량을 1 이상 입력해 주세요.');return;}if(min>0&&qty<min){alert(`MOQ(${r.admin_moq})보다 적은 수량은 발주할 수 없습니다.`);return;}
+ const unit=Number(r.admin_unit_price||0),plate=Number(r.admin_plate_fee||0),supply=unit*qty+plate,vat=Math.round(supply*.1),total=supply+vat;
+ if(!confirm(`제품: ${r.product_name}\n수량: ${qty.toLocaleString()}박스\n단가: ${won(unit)}\n동판비: ${won(plate)}\n공급가액: ${won(supply)}\n부가세: ${won(vat)}\n합계: ${won(total)}\n\n이 내용으로 정식 발주하시겠습니까?`))return;
+ try{
+  const orderNo='WJ-Q-'+String(r.id).replace(/-/g,'').slice(0,10).toUpperCase();let existing=await supabaseERP.from('orders').select('*').eq('order_no',orderNo).maybeSingle();let orderRow=existing.data;
+  if(existing.error&&existing.error.code!=='PGRST116')throw existing.error;
+  if(!orderRow){const probe=await supabaseERP.from('orders').select('*').limit(1);if(probe.error)throw probe.error;const sample=probe.data?.[0]||{};
+   const packed=[{productId:'',name:r.product_name,spec:r.product_spec||'',qty,unit,amount:supply,supplyAmount:supply,vatAmount:vat,totalAmount:total,taxType:'exclusive',packagingOptionName:'비규격 제작',memo:quoteTextV180(r)}];const summary=JSON.stringify({__wjOrderItems:packed});
+   const cand={order_no:orderNo,no:orderNo,client_id:r.client_id,order_date:new Date().toISOString().slice(0,10),item_summary:summary,item:summary,total_qty:qty,qty,quantity:qty,total_amount:total,amount:total,supply_amount:supply,vat_amount:vat,tax_type:'exclusive',status:'접수 완료',admin_memo:`비규격 견적 발주 전환 · 요청 ID ${r.id} · 동판비 ${plate}`,box_type:'기본 박스',box_stamp:'',pallet_type:'나무'};
+   const clean={};for(const [k,v] of Object.entries(cand))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
+   if(!Object.keys(clean).length)Object.assign(clean,{order_no:orderNo,client_id:r.client_id,order_date:new Date().toISOString().slice(0,10),item_summary:summary,total_qty:qty,total_amount:total,status:'접수 완료',admin_memo:`비규격 견적 발주 전환 · 요청 ID ${r.id}`});
+   const ins=await supabaseERP.from('orders').insert(clean).select('*').single();if(ins.error)throw ins.error;orderRow=ins.data;
+  }
+  const response=await supabaseERP.rpc('client_respond_quote_request',{p_request_id:id,p_approve:true,p_order_id:orderRow?.id||null,p_order_no:orderNo});if(response.error)throw response.error;
+  await supabaseERP.from('quote_requests').update({order_qty:qty,supply_amount:supply,vat_amount:vat,total_amount:total}).eq('id',id);
+  await loadOrdersFromSupabase();await loadQuoteRequestsV130();renderClientQuoteRequestsV130();renderQuoteRequestsAdminV130();renderAdminOrders();renderHome();alert(`정식 발주가 접수되었습니다.\n발주번호: ${orderNo}`);
+ }catch(e){alert('정식 발주 전환에 실패했습니다.\n'+(e?.message||e));}
+}
+/* 기존 거절 RPC는 주문을 생성하지 않고 견적 요청만 종료합니다. */
+async function rejectQuoteRequestV130(id){const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted')return;if(!confirm('이번 견적은 진행하지 않으시겠습니까? 실제 주문은 생성되지 않습니다.'))return;const response=await supabaseERP.rpc('client_respond_quote_request',{p_request_id:id,p_approve:false});if(response.error){alert('처리 실패: '+response.error.message);return;}await loadQuoteRequestsV130();renderClientQuoteRequestsV130();}
+/* 거래처 주문현황: 발주번호 옆에 긴급발주 표시 */
+const renderClientOrdersV179=renderClientOrders;
+renderClientOrders=function(){renderClientOrdersV179();const body=document.getElementById('clientOrderRows');if(!body)return;const arr=orders.filter(o=>String(o.id)===String(currentUser));body.querySelectorAll('tr').forEach(tr=>{const b=tr.querySelector('.detail-link');if(!b)return;const no=b.textContent.trim();const o=arr.find(x=>String(x.no)===no);if(o?.isUrgent&&!b.parentElement.querySelector('.v180-urgent-label')){const tag=document.createElement('span');tag.className='v180-urgent-label';tag.textContent='긴급발주';tag.style.cssText='display:inline-block;margin-left:7px;padding:2px 6px;border-radius:4px;background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:900;vertical-align:middle';b.parentElement.appendChild(tag);}});};
+/* 출고 상태 처리 규칙은 V179와 동일, 인쇄 레이아웃만 주문별 A4 한 장/상하 2부 */
+async function printShipmentSlipsV176(refs,w){
+ try{
+  const printItems=[];
+  for(const x of refs){const previous=String(x.it.itemStatus||x.it.status||x.o.status||'').trim();if(previous==='출고 대기'){
+   const now=new Date().toISOString();const r=await supabaseERP.from('order_items').update({item_status:'출고 중',shipped_at:now}).eq('id',x.it.rowId).select('*').maybeSingle();
+   if(r.error||!r.data)throw new Error(`출고 상태 저장 실패 (${x.o.no}): ${r.error?.message||'저장 결과 없음'}`);
+   x.it.itemStatus='출고 중';x.it.shippedAt=r.data.shipped_at||now;const historyOk=await recordOrderItemStatusHistoryV172(x,previous,'출고 중','출고전표 최초 발행');if(historyOk===false)console.warn('출고전표 발행 상태 이력 저장 실패',x.o.no);
+  }printItems.push(x);}
+  const groups=new Map();printItems.forEach(x=>{const k=String(x.o.no);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x)});
+  const makeHalf=(no,client,items,copy,issued)=>`<section class="slip-half"><div class="half-head"><h1>출 고 전 표</h1><b>${copy}</b></div><div class="meta">발주번호: ${escapeHtmlV8(no)}　 거래처: ${escapeHtmlV8(client)}　 발행일: ${escapeHtmlV8(issued)}</div><table><thead><tr><th>NO.</th><th>품명</th><th>규격</th><th>수량</th><th>단위</th></tr></thead><tbody>${items.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHtmlV8(x.it.name||'-')}</td><td>${escapeHtmlV8(x.it.spec||'-')}</td><td>${Number(x.it.qty||0).toLocaleString()}</td><td>박스</td></tr>`).join('')}</tbody></table><div class="sign"><div>기사님 서명</div><div>인수자 서명</div></div></section>`;
+  let html='';const issued=new Date().toLocaleString('ko-KR');for(const [no,items] of groups){const client=items[0].o.client||'';html+=`<section class="slip-page">${makeHalf(no,client,items,'기사님 보관용',issued)}<div class="cut-line"><span>절 취 선</span></div>${makeHalf(no,client,items,'사무실 보관용',issued)}</section>`;}
+  w.document.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>출고전표</title><style>@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,'Malgun Gothic',sans-serif;color:#111}.slip-page{height:281mm;page-break-after:always;display:flex;flex-direction:column;overflow:hidden}.slip-page:last-child{page-break-after:auto}.slip-half{height:140mm;min-height:140mm;padding:2mm 1mm;display:flex;flex-direction:column;overflow:hidden}.half-head{display:flex;align-items:center;justify-content:center;position:relative}.half-head h1{text-align:center;letter-spacing:7px;font-size:19px;margin:1mm 0 2mm}.half-head>b{position:absolute;right:0;font-size:10px}.meta{margin:1mm 0 3mm;font-size:9px}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #333;padding:3px 4px;text-align:center;font-size:9px;overflow-wrap:anywhere}th{background:#eee}th:first-child{width:8%}th:nth-child(2){width:29%}th:nth-child(3){width:35%}th:nth-child(4){width:16%}th:nth-child(5){width:12%}.sign{display:flex;gap:8px;margin-top:auto;padding-top:4mm}.sign div{width:50%;height:19mm;border:1px solid #333;display:flex;align-items:flex-start;padding:5px;font-size:9px;font-weight:bold}.cut-line{height:1px;border-top:1px dashed #555;position:relative;flex:0 0 1px;margin:0}.cut-line span{position:absolute;left:50%;top:-7px;transform:translateX(-50%);background:white;padding:0 8px;font-size:8px;color:#555}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>${html}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),250);window.wjSelectedOrderItemsV148?.clear();await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();
+ }catch(e){console.error('출고전표 발행 실패',e);try{w.close()}catch(_){}alert('출고전표 처리에 실패했습니다.\n'+(e?.message||''));}
+}
+</script>
