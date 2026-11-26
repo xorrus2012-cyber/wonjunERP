@@ -1207,7 +1207,7 @@ body{font-size:14px}
           </div>
         </div>
 <div class="bulk-v6"><button class="small-btn" onclick="bulkOrderStatus()">상태 변경</button><button class="small-btn doc-btn" onclick="issueSelectedWorkInstructionsV148()">작업지시서 발행</button><button class="small-btn" onclick="openShipmentSlipForSelectedV171()">출고전표 출력</button><button class="small-btn" style="border-color:#fecaca;color:#b91c1c" onclick="deleteSelectedOrdersV70()">주문 삭제</button><button class="small-btn" onclick="downloadOrderExcelV71(false)">EXCEL</button><span id="orderResultV6" class="result-v6"></span></div>
-        <div class="card table-wrap"><table class="admin-order-aligned-table"><thead><tr><th class="order-head-check"><input id="adminOrderSelectAll" class="order-check-v6" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleAllOrders(this.checked)"></th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th>출고수단</th><th>품명</th><th>규격</th><th>총 박스 수량</th><th>포장단위</th><th>박스 종류</th><th>도장표기</th><th>파렛트</th><th>지관</th><th>금액</th><th>출고예정일</th><th>작업지시서 발행일</th><th>상세</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table class="admin-order-aligned-table"><thead><tr><th class="order-head-check"><input id="adminOrderSelectAll" class="order-check-v6" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleAllOrders(this.checked)"></th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th class="v187-shipping-cell">출고수단</th><th>품명</th><th>규격</th><th>총 박스 수량</th><th>포장단위</th><th>박스 종류</th><th>도장표기</th><th>파렛트</th><th>지관</th><th>금액</th><th>출고예정일</th><th>작업지시서 발행일</th><th>상세</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
 <div id="adminOrderPagination" aria-label="주문 목록 페이지 이동"></div>
       </section>
 
@@ -2171,8 +2171,8 @@ async function loadNoticesFromSupabase(){
     content:firstValue(r,['content','body'],''),
     image:firstValue(r,['image_url','image'],''),
     popupEnabled:firstValue(r,['popup_enabled','is_popup'],false)===true,
-    popupStart:firstValue(r,['popup_start','popup_start_date'],''),
-    popupEnd:firstValue(r,['popup_end','popup_end_date'],'')
+    popupStart:String(firstValue(r,['popup_start','popup_start_date'],'')).slice(0,10),
+    popupEnd:String(firstValue(r,['popup_end','popup_end_date'],'')).slice(0,10)
   }));
   notices.splice(0,notices.length,...mapped);
 }
@@ -2277,21 +2277,30 @@ async function syncPricesToSupabase(){
   }
 }
 
-async function syncNoticesToSupabase(){
-  if(!supabaseERP||!supabaseSyncReady)return;
-  const {data:rows}=await supabaseERP.from('notices').select('*');
-  const sample=rows?.[0]||{};
-  if(!Object.keys(sample).length)return;
-  for(const n of notices){
-    if(!n.id)continue;
-    const payload={title:n.title,content:n.content,date:n.date,notice_date:n.date,image:n.image,popup_enabled:n.popupEnabled,popup_start:n.popupStart,popup_end:n.popupEnd};
-    const clean={};
-    for(const [k,v] of Object.entries(payload))if(Object.prototype.hasOwnProperty.call(sample,k))clean[k]=v;
-    if(Object.keys(clean).length){
-      const {error}=await supabaseERP.from('notices').update(clean).eq('id',n.id);
-      if(error)console.error('notices 저장 실패',error);
-    }
-  }
+async function persistNoticeV187(n,id){
+ if(currentUser!=='admin'||!supabaseERP||!supabaseSyncReady)throw new Error('관리자 서버 연결을 확인해 주세요.');
+ const {data,error}=await supabaseERP.from('notices').select('*').limit(1);
+ if(error)throw error;
+ const sample=data?.[0]||{};
+ const fields=[
+  [['title','name'],n.title], [['content','body'],n.content],
+  [['notice_date','date'],n.date||null], [['image_url','image'],n.image||''],
+  [['popup_enabled','is_popup'],n.popupEnabled],
+  [['popup_start','popup_start_date'],n.popupStart||null],
+  [['popup_end','popup_end_date'],n.popupEnd||null]
+ ];
+ const payload={};
+ for(const [aliases,value] of fields)payload[firstColumn(sample,aliases)||aliases[0]]=value;
+ // 빈 테이블에서는 기존 호환 컬럼명을 응답으로 확인합니다.
+ while(true){
+  const query=supabaseERP.from('notices');
+  const result=await (id?query.update(payload).eq('id',id):query.insert(payload)).select('id').single();
+  if(!result.error)return result.data.id;
+  const unknown=result.error.code==='PGRST204'&&result.error.message.match(/'([^']+)' column/)?.[1];
+  const replacement=fields.find(([aliases])=>aliases[0]===unknown)?.[0][1];
+  if(!replacement||!(unknown in payload)||replacement in payload)throw result.error;
+  payload[replacement]=payload[unknown];delete payload[unknown];
+ }
 }
 
 async function syncOrdersToSupabase(){
@@ -2370,7 +2379,6 @@ async function syncAllLocalChangesToSupabase(){
     // 오래된 localStorage 값으로 DB 단가를 덮어쓰면 안 됩니다.
     await syncClientsToSupabase();
     await syncProductsToSupabase();
-    await syncNoticesToSupabase();
     await syncOrdersToSupabase();
   }catch(e){console.error('Supabase 저장 동기화 실패',e)}
 }
@@ -2763,6 +2771,7 @@ async function logout(){
  finally{
    localStorage.removeItem('wonjun_v7_session');
    currentUser=null;
+   closeNoticePopupV9(false);shownNoticePopupsV187.clear();
    const id=document.getElementById('loginId');if(id)id.value='';
    const pw=document.getElementById('loginPw');if(pw)pw.value='';
    // 메모리에 남은 관리자 화면/상품/주문 데이터가 거래처 로그인에 재사용되지 않도록 새로 시작합니다.
@@ -2792,6 +2801,7 @@ function go(page,btn){
    }else renderAdminProducts();
  }
  if(page==='adminPrices'){renderPriceClients();renderPriceManagement();}
+ if(page==='home')showScheduledNoticePopup();else closeNoticePopupV9(false);
 }
 function price(p){
  if(!p) return 0;
@@ -3348,8 +3358,33 @@ function renderNotices(){
 }
 function openNoticeDetail(i){const n=notices[i];if(!n)return;const cancelBtn=document.getElementById('modalCancel');if(cancelBtn)cancelBtn.textContent='확인';document.getElementById('modalTitle').textContent=n.title;document.getElementById('modalBody').innerHTML=`<div style="font-size:11px;color:#94a3b8;margin-bottom:18px">${n.date}</div>${n.image?`<img src="${n.image}" style="width:100%;max-height:360px;object-fit:contain;border-radius:10px;margin-bottom:16px" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(n.content||'공지사항 내용입니다.')}</div>`;document.getElementById('modalSave').style.display='none';document.getElementById('modalBg').classList.add('show')}
 function ensureNoticePopupV9(){if(document.getElementById('noticePopupV9'))return;const d=document.createElement('div');d.id='noticePopupV9';d.className='notice-popup-v9 hidden';d.innerHTML='<div class="notice-popup-card-v9"><button class="notice-popup-close-v9" onclick="closeNoticePopupV9()">×</button><div id="noticePopupBodyV9"></div></div>';document.body.appendChild(d)}
-function closeNoticePopupV9(){document.getElementById('noticePopupV9')?.classList.add('hidden')}
-function showScheduledNoticePopup(){if(!currentUser||currentUser==='admin')return;ensureNoticePopupV9();const now=new Date();const active=notices.find(n=>n.popupEnabled&&n.popupStart&&n.popupEnd&&new Date(n.popupStart+'T00:00:00')<=now&&now<=new Date(n.popupEnd+'T23:59:59'));if(!active)return;const key='wonjun_v9_popup_'+String(active.id||active.title)+'_'+active.popupStart;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');document.getElementById('noticePopupBodyV9').innerHTML=`<div style="font-size:11px;color:#94a3b8">공지사항</div><h2 style="margin:7px 0 0">${escapeHtmlV8(active.title)}</h2>${active.image?`<img src="${active.image}" alt="">`:''}<div class="notice-content-v8" style="font-size:13px;color:#334155">${escapeHtmlV8(active.content||'')}</div>`;document.getElementById('noticePopupV9').classList.remove('hidden')}
+const shownNoticePopupsV187=new Set();
+function closeNoticePopupV9(showNext=true){
+ const popup=document.getElementById('noticePopupV9');if(!popup)return;
+ popup.classList.add('hidden');delete popup.dataset.key;
+ if(showNext)showScheduledNoticePopup();
+}
+function noticeTodayV187(){
+ const parts=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const get=type=>parts.find(p=>p.type===type).value;
+ return [get('year'),get('month'),get('day')].join('-');
+}
+function showScheduledNoticePopup(){
+ if(!currentUser||currentUser==='admin'||!document.getElementById('home')?.classList.contains('active')||document.getElementById('app')?.classList.contains('hidden'))return;
+ ensureNoticePopupV9();
+ const today=noticeTodayV187(),popup=document.getElementById('noticePopupV9');
+ const eligible=notices.filter(n=>n.popupEnabled&&((!n.popupStart&&!n.popupEnd)||(n.popupStart&&n.popupEnd&&n.popupStart<=today&&today<=n.popupEnd)));
+ const key=n=>JSON.stringify([currentUser,n.id||n.title,n.title,n.content,n.popupStart,n.popupEnd]);
+ if(popup.dataset.key&&eligible.some(n=>key(n)===popup.dataset.key))return;
+ const active=eligible.find(n=>!shownNoticePopupsV187.has(key(n)));
+ if(!active){closeNoticePopupV9(false);return;}
+ const body=document.getElementById('noticePopupBodyV9');
+ body.innerHTML=`<h2 style="margin:0 34px 12px 0">${escapeHtmlV8(active.title)}</h2><div class="notice-content-v8">${escapeHtmlV8(active.content||'')}</div>`;
+ if(active.image){const image=document.createElement('img');image.src=active.image;image.alt='';body.querySelector('h2').after(image);}
+ popup.dataset.key=key(active);
+ shownNoticePopupsV187.add(popup.dataset.key);
+ popup.classList.remove('hidden');
+}
 function renderHome(){const arr=orders.filter(o=>o.id===currentUser).slice(0,4);const mine=orders.filter(o=>o.id===currentUser),ym=new Date().toISOString().slice(0,7);const progress=mine.filter(o=>['생산 중','출고 대기','출고 중'].includes(o.status)).length,month=mine.filter(o=>(o.date||'').slice(0,7)===ym).length,ship=mine.filter(o=>['출고 대기','출고 중'].includes(o.status)).length;const ce=Object.entries(cart),cq=ce.reduce((a,[,q])=>a+Number(q||0),0),ca=ce.reduce((a,[id,q])=>{const p=products.find(x=>String(x.id)===String(id));return a+(p?price(p)*Number(q):0)},0);document.getElementById('homeOrders').innerHTML=arr.map(o=>`<tr><td><b>${o.no}</b></td><td>${o.item}</td><td>${won(o.amount)}</td><td>${badge(o.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">최근 발주가 없습니다.</td></tr>';document.getElementById('homeKpiProgress').textContent=progress+'건';document.getElementById('homeKpiMonth').textContent=month+'건';document.getElementById('homeKpiShip').textContent=ship+'건';document.getElementById('homeKpiCart').textContent=cq.toLocaleString()+'박스';document.getElementById('homeKpiCartAmount').textContent=won(ca)}
 function renderAdminDashboard(){
  const today=new Date().toISOString().slice(0,10),nw=orders.filter(o=>o.status==='주문 완료'),sh=orders.filter(o=>o.date===today&&['출고 대기','출고 중'].includes(o.status));
@@ -3421,7 +3456,7 @@ function renderAdminOrders(){
    rowsHtml.push(`<tr class="${o.isUrgent?'urgent-order-row-v174':''}" style="${o.isUrgent?'background:#fff1f2;':''}">
     <td><input class="order-check-v6" type="checkbox" value="${escapeHtmlV8(key)}" ${previouslyChecked.has(key)?'checked':''} ${legacy?'disabled title="개별 품목 ID가 없어 선택 작업을 할 수 없습니다."':''}></td>
     ${first?`<td rowspan="${count}" style="vertical-align:middle;background:#fafcff"><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" style="vertical-align:middle;background:#fafcff">${escapeHtmlV8(o.client)}</td><td rowspan="${count}" style="vertical-align:middle;background:#fafcff">${formatOrderDateTime(o)}</td>`:''}
-    <td>${orderStatusBadgeV54(status)}</td><td style="min-width:110px;white-space:normal">${v185Shipping(o,it)}</td>
+    <td>${orderStatusBadgeV54(status)}</td><td class="v187-shipping-cell"><div class="v187-shipping-content">${v185Shipping(o,it)}</div></td>
     <td><b>${escapeHtmlV8(it.name||'-')}</b></td><td>${escapeHtmlV8(spec)}</td><td>${qty.toLocaleString()}박스</td>
     <td>${escapeHtmlV8(formatAdminPackagingOptionV167(it.packagingOptionName||it.packaging_option_name||'-'))}</td><td>${escapeHtmlV8(it.boxType||it.box_type||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||it.box_stamp||'미표기')}</b></td><td>${escapeHtmlV8(it.palletType||it.pallet_type||'나무')}</td><td>${escapeHtmlV8(it.coreType||it.core_type||'공용지관')}</td><td>${won(amount)}</td>
     <td class="v151-expected-cell"><button type="button" class="small-btn v152-calendar-trigger" data-ship-key="${escapeHtmlV8(key)}" onclick="openShipDatePickerV153('${escapeHtmlV8(key)}')">▦ ${escapeHtmlV8(String(it.expectedShipDate||'').slice(0,10)||'날짜 선택')}</button></td>
@@ -3498,15 +3533,11 @@ function showWorkInstructionPreflightV165(refs){
  });
 }
 async function issueWorkInstructionV148(keys){
- // V165: 최초 발행만 생산중으로 전환. 재발행은 현재 상태를 유지합니다.
  const keySet=new Set(keys||[]),refs=[];orders.forEach(o=>(o.items||[]).forEach((it,i)=>{const key=getWJOrderItemKeyV148(o,it,i);if(keySet.has(key))refs.push({o,it,index:i,key})}));
  if(!refs.length){alert('작업지시서를 발행할 품목을 선택해 주세요.');return}
  if(refs.some(x=>!x.it.rowId)){alert('선택한 품목 중 개별 저장 ID가 없는 항목이 있습니다. Supabase order_items 데이터를 먼저 확인해야 합니다.');return}
- const cancelled=refs.filter(x=>['취소','주문 취소','취소됨'].includes(String(x.it.itemStatus||x.it.status||x.o.status||'').trim()));
- if(cancelled.length&&!confirm(`주의: 선택한 품목 중 ${cancelled.length}개가 취소된 주문입니다.\n취소된 주문입니다. 그래도 작업지시서를 발행하시겠습니까?`))return;
- const reprints=refs.filter(x=>Number(x.it.workPrintCount||0)>0);
- if(reprints.length&&!confirm(`선택한 ${refs.length}개 품목 중 ${reprints.length}개는 이미 작업지시서가 발행되었습니다. 재출력하시겠습니까?\n재출력해도 품목 상태는 변경되지 않습니다.`))return;
- if(!reprints.length&&!confirm(`선택한 ${refs.length}개 품목의 작업지시서를 최초 발행하시겠습니까?\n발행이 저장되면 해당 품목은 '생산 중'으로 변경됩니다.`))return;
+ if(currentUser!=='admin'||refs.some(x=>v187Status(x.o,x.it)!=='접수 완료')){alert('작업지시서는 접수 완료 품목만 발행할 수 있습니다.');return;}
+ if(!confirm(`선택한 ${refs.length}개 품목의 작업지시서를 최초 발행하시겠습니까?\n발행이 저장되면 해당 품목은 '생산 중'으로 변경됩니다.`))return;
  try{
    const managerInstruction='';
    const esc=escapeHtmlV8;
@@ -3559,8 +3590,8 @@ async function issueWorkInstructionV148(keys){
    document.body.append(modal);const frame=modal.querySelector('#wjWorkPreviewFrameV165');frame.onload=()=>v186EnableWorkEditing(frame);frame.srcdoc=printDocHtml;
    modal.querySelector('#wjWorkPreviewCloseV165').onclick=()=>modal.remove();modal.querySelector('#wjWorkPreviewPrintV165').onclick=async()=>{
     const btn=modal.querySelector('#wjWorkPreviewPrintV165');btn.disabled=true;
-    try{if(!modal.dataset.committed){const result=await supabaseERP.rpc('wj_issue_work_v186',{p_ids:refs.map(x=>String(x.it.rowId))});if(result.error)throw result.error;modal.dataset.committed='1';await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();}frame.contentWindow.focus();frame.contentWindow.print();}
-    catch(e){alert('작업지시서 발행 실패: '+(e.message||e));}finally{btn.disabled=false;}
+    try{if(!modal.dataset.committed){await v187CheckServerStatus(refs,'접수 완료');const result=await supabaseERP.rpc('wj_issue_work_v186',{p_ids:refs.map(x=>String(x.it.rowId))});if(result.error)throw result.error;modal.dataset.committed='1';await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();}frame.contentWindow.focus();frame.contentWindow.print();modal.remove();}
+    catch(e){alert('작업지시서 발행 실패: '+(e.message||e));}finally{if(!modal.dataset.committed)btn.disabled=false;}
    };
    window.wjSelectedOrderItemsV148.clear();renderAdminOrders();
  }catch(e){console.error('작업지시서 발행 처리 실패',e);alert('작업지시서 발행 정보를 저장하지 못했습니다. Supabase SQL 적용 여부와 관리자 권한을 확인해 주세요.\n'+(e?.message||''));}
@@ -4145,12 +4176,59 @@ function renderAdminNotices(){
  const total=Math.max(1,Math.ceil(entries.length/size));
  window.wjAdminNoticePageV93=Math.min(total,Math.max(1,Number(window.wjAdminNoticePageV93||1)));
  const page=window.wjAdminNoticePageV93,start=(page-1)*size,pageItems=entries.slice(start,start+size);
- rows.innerHTML=pageItems.map(({n,i})=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${escapeHtmlV8(n.date||'')}</td><td>${n.popupEnabled&&n.popupStart&&n.popupEnd?`${escapeHtmlV8(n.popupStart)} ~ ${escapeHtmlV8(n.popupEnd)}`:'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
+ rows.innerHTML=pageItems.map(({n,i})=>`<tr><td><b>${escapeHtmlV8(n.title)}</b>${n.image?'<div style="font-size:10px;color:#64748b">이미지 첨부</div>':''}</td><td>${escapeHtmlV8(n.date||'')}</td><td>${n.popupEnabled?(!n.popupStart&&!n.popupEnd?'상시 노출':`${escapeHtmlV8(n.popupStart||'')} ~ ${escapeHtmlV8(n.popupEnd||'')}`):'일반 공지'}</td><td><div class="action-row"><button class="small-btn" onclick="openNoticeModal(${i})">편집</button><button class="small-btn" onclick="deleteNotice(${i})">삭제</button></div></td></tr>`).join('')||'<tr><td colspan="4" class="v4-empty">검색 조건에 맞는 공지사항이 없습니다.</td></tr>';
  renderAdminListPagerV91('adminNoticePaginationV93',entries.length,start,size,page,total,'wjAdminNoticePageSizeV93','wjAdminNoticePageV93','renderAdminNotices','changeAdminNoticePageV93');
 }
 function changeAdminNoticePageV93(d){window.wjAdminNoticePageV93=Math.max(1,Number(window.wjAdminNoticePageV93||1)+Number(d||0));renderAdminNotices();document.getElementById('adminNotices')?.scrollIntoView({behavior:'smooth',block:'start'})}
-function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:new Date().toISOString().slice(0,10),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">이미지는 2MB 이하로 첨부해 주세요.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><div class="field" style="background:#f8fafc;padding:12px;border-radius:10px"><label style="display:flex;align-items:center;gap:8px"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 거래처 메인 대시보드에 팝업 노출</label><div class="form-grid" style="margin-top:10px"><div class="field"><label>팝업 시작일</label><input id="noticePopupStart" type="date" value="${n.popupStart||''}"></div><div class="field"><label>팝업 종료일</label><input id="noticePopupEnd" type="date" value="${n.popupEnd||''}"></div></div><div style="font-size:10px;color:#64748b">시작일 00:00 ~ 종료일 23:59. 새 창이 아니라 사이트 내부 팝업입니다.</div></div>`;const save=document.getElementById('modalSave');save.style.display='';save.textContent='저장';save.onclick=()=>{const file=document.getElementById('noticeImage')?.files?.[0],finish=image=>{const pe=document.getElementById('noticePopupEnabled').checked,ps=document.getElementById('noticePopupStart').value,ee=document.getElementById('noticePopupEnd').value;if(pe&&(!ps||!ee||ps>ee)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return}const item={title:document.getElementById('noticeTitle').value.trim(),date:document.getElementById('noticeDate').value,content:document.getElementById('noticeContent').value,image, popupEnabled:pe,popupStart:ps,popupEnd:ee};if(!item.title){alert('공지사항 제목을 입력해 주세요.');return}if(editing)notices[index]=item;else notices.unshift(item);saveV7Data();closeModal();renderNotices();renderAdminNotices();alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.')};if(file){if(file.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return}const r=new FileReader();r.onload=()=>finish(r.result);r.readAsDataURL(file)}else finish(document.getElementById('noticeRemoveImage')?.checked?'':(n.image||''))};document.getElementById('modalBg').classList.add('show')}
-function deleteNotice(i){if(!confirm('이 공지사항을 삭제하시겠습니까?'))return;notices.splice(i,1);saveV7Data();renderNotices();renderAdminNotices()}
+function openNoticeModal(index=null){const editing=index!==null,n=editing?notices[index]:{title:'',date:noticeTodayV187(),content:'',image:'',popupEnabled:false,popupStart:'',popupEnd:''};document.getElementById('modalTitle').textContent=editing?'공지사항 편집':'공지사항 등록';document.getElementById('modalBody').innerHTML=`<div class="field"><label>제목</label><input id="noticeTitle" value="${escapeHtmlV8(n.title)}"></div><div class="field"><label>작성일</label><input id="noticeDate" type="date" value="${n.date||''}"></div><div class="field"><label>내용</label><textarea id="noticeContent" style="width:100%;min-height:180px;padding:11px;border:1px solid #dbe1e8;border-radius:8px;resize:vertical">${escapeHtmlV8(n.content||'')}</textarea></div><div class="field"><label>공지 이미지 <span style="font-weight:400;color:#94a3b8">(선택)</span></label><input id="noticeImage" type="file" accept="image/*"><div style="font-size:10px;color:#94a3b8;margin-top:5px">이미지는 2MB 이하로 첨부해 주세요.</div>${n.image?`<img src="${n.image}" style="max-width:180px;max-height:100px;object-fit:contain;margin-top:8px;border-radius:8px"><label style="display:block;margin-top:6px;font-size:11px"><input id="noticeRemoveImage" type="checkbox"> 기존 이미지 삭제</label>`:''}</div><fieldset class="v187-notice-settings"><legend>팝업 설정</legend>
+ <label class="v187-notice-check"><input id="noticePopupEnabled" type="checkbox" ${n.popupEnabled?'checked':''}> 거래처 메인 대시보드에 팝업 노출</label>
+ <label class="v187-notice-check v187-notice-always"><input id="noticePopupAlwaysV187" type="checkbox" ${n.popupEnabled&&!n.popupStart&&!n.popupEnd?'checked':''}> 상시 노출</label>
+ <div class="v187-notice-dates"><div class="field"><label for="noticePopupStart">팝업 시작일</label><input id="noticePopupStart" type="date" value="${escapeHtmlV8(n.popupStart||'')}"></div>
+ <div class="field"><label for="noticePopupEnd">팝업 종료일</label><input id="noticePopupEnd" type="date" value="${escapeHtmlV8(n.popupEnd||'')}"></div></div>
+ </fieldset>`;
+ const el=id=>document.getElementById(id);
+ const enabled=el('noticePopupEnabled'),always=el('noticePopupAlwaysV187'),start=el('noticePopupStart'),end=el('noticePopupEnd'),save=el('modalSave');
+ const syncFields=()=>{always.disabled=!enabled.checked;start.disabled=end.disabled=!enabled.checked||always.checked;};
+ enabled.onchange=always.onchange=syncFields;syncFields();
+ save.style.display='';save.textContent='저장';
+ save.onclick=async()=>{
+  const file=el('noticeImage')?.files?.[0],popupEnabled=enabled.checked,scheduled=popupEnabled&&!always.checked;
+  const item={
+   title:el('noticeTitle').value.trim(),date:el('noticeDate').value,content:el('noticeContent').value,
+   image:el('noticeRemoveImage')?.checked?'':n.image||'',
+   popupEnabled,popupStart:scheduled?start.value:'',popupEnd:scheduled?end.value:''
+  };
+  if(!item.title){alert('공지사항 제목을 입력해 주세요.');return;}
+  if(scheduled&&(!item.popupStart||!item.popupEnd||item.popupStart>item.popupEnd)){alert('팝업 시작일과 종료일을 올바르게 선택해 주세요.');return;}
+  if(file?.size>2*1024*1024){alert('이미지는 2MB 이하로 첨부해 주세요.');return;}
+  save.disabled=true;
+  try{
+   if(file)item.image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('이미지를 읽지 못했습니다.'));reader.readAsDataURL(file);});
+   item.id=await persistNoticeV187(item,n.id);
+   const existing=notices.findIndex(row=>String(row.id)===String(item.id));
+   if(existing>=0)notices[existing]=item;else notices.unshift(item);
+   try{localStorage.setItem('wonjun_v7_notices',JSON.stringify(notices));}catch(_){}
+   closeModal();renderNotices();
+   alert(editing?'공지사항이 수정되었습니다.':'공지사항이 등록되었습니다.');
+  }catch(error){alert('공지사항 저장 실패: '+(error.message||error));}
+  finally{save.disabled=false;}
+ };
+ el('modalBg').classList.add('show');
+}
+async function deleteNotice(i){
+ const n=notices[i];if(!n||currentUser!=='admin'||!confirm('이 공지사항을 삭제하시겠습니까?'))return;
+ try{
+  if(n.id){
+   const {error}=await supabaseERP.from('notices').delete().eq('id',n.id).select('id').single();
+   if(error)throw error;
+  }
+  const index=notices.findIndex(row=>row===n||(n.id&&row.id===n.id));
+  if(index>=0)notices.splice(index,1);
+  try{localStorage.setItem('wonjun_v7_notices',JSON.stringify(notices));}catch(_){}
+  renderNotices();
+ }catch(error){alert('공지사항 삭제 실패: '+(error.message||error));}
+}
+
 function openPriceModal(clientId,productId){document.getElementById('modalTitle').textContent='거래처별 단가 관리';let c=clientId==='all'?null:clients.find(x=>x.id===clientId);let p=productId?products.find(x=>x.id===productId):null;
  document.getElementById('modalBody').innerHTML=c?`<div class="field"><label>거래처</label><input value="${c.company}" disabled></div><div class="field"><label>제품</label><select id="priceProduct">${products.map(x=>`<option value="${x.id}">${x.name} / ${x.spec}</option>`).join('')}</select></div><div class="field"><label>적용 단가</label><input id="priceValue" type="number" value="${products[0].prices[c.id]||products[0].base}"></div>`:`<div class="field"><label>제품</label><input value="${p?.name||''}" disabled></div><div class="form-grid">${clients.map(x=>`<div class="field"><label>${x.company} 단가</label><input id="price-${x.id}" type="number" value="${p?.prices[x.id]||p?.base||0}"></div>`).join('')}</div>`;
  document.getElementById('modalSave').onclick=async()=>{
@@ -5035,7 +5113,7 @@ function v185PackLabels(p){return escapeHtmlV8(getPackagingOptionsV129(p.id,true
 function v185Shipping(o,it){
  const method=it.shippingMethod||shipmentMethodFromOrderV178(o)||'-';
  const note=method==='기타'?(it.shipmentNote||o.deliveryRequest||''):method==='택배'?(it.shippingCarrier||o.deliveryCarrier||''):'';
- return `<b>${escapeHtmlV8(method)}</b>${note?`<div style="font-size:11px;color:#64748b;margin-top:4px">${escapeHtmlV8(note)}</div>`:''}`;
+ return `<b>${escapeHtmlV8(method)}</b>${note?`<div class="v187-shipping-note" title="${escapeHtmlV8(note)}">${escapeHtmlV8(note)}</div>`:''}`;
 }
 function v185BoxPrice(r){
  const unit=Number(r.admin_unit_price||0);if(r.details?.priceBasis!=='meter')return unit;
@@ -5359,6 +5437,7 @@ async function saveShipReadyV176(){
    else throw new Error(`${x.order.no}: 지원하지 않는 배송 방식(${method})입니다.`);
    return p;
   });
+  await v187CheckServerStatus(rows.map(x=>({o:x.order,it:x.item})),'생산 중');
   const saved=await supabaseERP.rpc('wj_update_items_v186',{p_updates:rows.map((x,i)=>({id:String(x.item.rowId),...payloads[i],item_status:'출고 대기'}))});
   if(saved.error)throw saved.error;committedV186=true;
   document.getElementById('wjShipReadyModalV176')?.remove();
@@ -5369,11 +5448,30 @@ async function saveShipReadyV176(){
  }catch(e){console.error('출고 대기 전환 실패:',e);alert((committedV186?'출고 대기 상태는 저장되었습니다. 화면을 다시 불러와 주세요.':'출고 대기 전환을 저장하지 못했습니다.')+'\n'+(e?.message||''));}
  finally{const b=document.getElementById('wjShipSave176');if(b){b.disabled=false;b.textContent='배송정보 저장 후 출고 대기';}}
 }
+function v187Status(o,it){
+ return v185ItemStatus(o,it).replace(/^(주문|접수|출고)(완료|대기|중)$/, '$1 $2').replace(/^생산중$/, '생산 중');
+}
+function v187CanSetStatus(ref,status){
+ const current=v187Status(ref.o,ref.it);
+ if(status==='취소')return !['취소','주문 취소','취소됨'].includes(current);
+ return ({'주문 완료':'접수 완료','생산 중':'출고 대기','출고 중':'출고 완료'})[current]===status;
+}
+async function v187CheckServerStatus(refs,expected){
+ if(currentUser!=='admin'||!supabaseERP||refs.some(x=>!x.it.rowId))throw new Error('관리자 연결과 품목 ID를 확인해 주세요.');
+ const ids=refs.map(x=>String(x.it.rowId));
+ const {data,error}=await supabaseERP.from('order_items').select('*').in('id',ids);
+ if(error)throw error;
+ const byId=new Map((data||[]).map(r=>[String(r.id),r]));
+ if(ids.some(id=>{const row=byId.get(id);return !row||v187Status({}, {itemStatus:row.item_status||row.status})!==expected;})){
+  throw new Error(expected+' 상태인 품목만 진행할 수 있습니다. 주문 목록을 다시 불러와 주세요.');
+ }
+}
 async function applyBulkStatusV54(){
  const choice=document.querySelector('input[name="bulkStatusChoiceV54"]:checked');
  if(!choice){alert('변경할 상태를 선택해 주세요.');return;}
  const refs=window.wjSelectedShipmentRefsV176||selectedOrderItemRefsV176();
  if(!refs.length){alert('변경할 품목을 다시 선택해 주세요.');return;}
+ if(currentUser!=='admin'||refs.some(x=>!v187CanSetStatus(x,choice.value))){alert('선택한 품목은 해당 상태로 변경할 수 없습니다.');return;}
  if(choice.value==='출고 대기'){
   if(!confirm(`선택한 ${refs.length}개 품목을 출고 대기로 변경합니다. 배송정보를 입력하시겠습니까?`))return;
   closeBulkStatusModalV54();await openShipReadyModalV176(refs);return;
@@ -5383,6 +5481,7 @@ async function applyBulkStatusV54(){
  const saveButton=document.querySelector('#bulkStatusModalV54 .bulk-status-foot-v54 .btn.primary');if(saveButton){saveButton.disabled=true;saveButton.textContent='저장 중…';}
  let committedV186=false;
  try{
+  if(choice.value!=='취소')await v187CheckServerStatus(refs,v187Status(refs[0].o,refs[0].it));
   await applyBulkItemStatusV148(refs,choice.value);committedV186=true;
   closeBulkStatusModalV54();window.wjSelectedShipmentRefsV176=[];window.wjSelectedOrderItemsV148?.clear();window.wjSelectedOrderNosV58?.clear();
   await loadOrdersFromSupabase();renderAdminOrders();renderAdminDashboard();renderClientOrders();
@@ -5394,27 +5493,23 @@ function bulkOrderStatus(){
  if(!refs.length){alert('상태를 변경할 품목을 선택해 주세요.');return;}
  window.wjSelectedShipmentRefsV176=refs;
  ensureBulkStatusModalV54();
- const statuses=['주문 완료','접수 완료','생산 중','출고 대기','출고 중','출고 완료','취소'];
- const selected=new Set(refs.map(x=>x.it.itemStatus||x.it.status||x.o.status).filter(Boolean));
- const same=selected.size===1?[...selected][0]:'';
- document.getElementById('bulkStatusCountV54').textContent=`선택한 ${refs.length}개 품목의 상태를 변경합니다.`;
- document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map((st,i)=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${st}" ${same===st?'checked':''}><span class="bulk-status-dot-v54 ${['received','production','wait','shipping','done'][i]}"></span><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(st)}</span>${same===st?'<small>현재 상태</small>':''}</label>`).join('');
+ const statuses=['접수 완료','출고 대기','출고 완료','취소'].filter(st=>refs.every(x=>v187CanSetStatus(x,st)));
+ document.getElementById('bulkStatusCountV54').textContent=`선택한 ${refs.length}개 품목 · 다음 단계 또는 취소를 선택해 주세요.`;
+ document.getElementById('bulkStatusOptionsV54').innerHTML=statuses.map(st=>`<label class="bulk-status-option-v54"><input type="radio" name="bulkStatusChoiceV54" value="${st}"><span class="bulk-status-option-label-v54">${orderStatusBadgeV54(st)}</span></label>`).join('')||'<p>변경할 수 있는 상태가 없습니다.</p>';
  document.getElementById('bulkStatusModalV54').classList.add('show');
 }
 
-/* V176: 출고전표는 출고 대기에서 최초 발행, 출고 완료에서는 재발행만 허용 */
 function openShipmentSlipForSelectedV171(){
  const refs=selectedOrderItemRefsV176();
  if(!refs.length){alert('출고전표를 발행할 품목을 선택해 주세요.');return;}
  if(refs.some(x=>!x.it.rowId)){alert('개별 품목 ID가 없는 품목이 선택되어 있습니다.');return;}
- const invalid=refs.filter(x=>!['출고 대기','출고 완료'].includes(String(x.it.itemStatus||x.it.status||x.o.status||'').trim()));
- if(invalid.length){alert('출고전표는 출고 대기 상태에서 최초 발행하거나, 출고 완료 상태에서 재발행할 수 있습니다.\n출고 대기 또는 출고 완료 품목만 선택해 주세요.');return;}
+ if(currentUser!=='admin'||refs.some(x=>v187Status(x.o,x.it)!=='출고 대기')){alert('출고전표는 출고 대기 품목만 출력할 수 있습니다.');return;}
  const missing=refs.filter(x=>{
   const m=x.it.shippingMethod||'';
   return !m || (m==='택배'&&(!x.it.shippingCarrier||!x.it.trackingNumber)) || (m==='용차'&&(!x.it.driverName||!x.it.driverPhone));
  });
  if(missing.length){alert('선택한 품목의 출고 정보가 부족합니다. 주문 상세에서 배송정보를 먼저 저장해 주세요.');return;}
- const firstCount=refs.filter(x=>String(x.it.itemStatus||x.it.status||x.o.status||'').trim()==='출고 대기').length;const reprintCount=refs.filter(x=>String(x.it.itemStatus||x.it.status||x.o.status||'').trim()==='출고 완료').length;const notice=firstCount&&reprintCount?`최초 발행 ${firstCount}개 / 재발행 ${reprintCount}개입니다.\n최초 발행 품목만 출고 중으로 변경되고, 재발행 품목은 출고 완료 상태를 유지합니다.`:reprintCount?`[재발행 안내] 이미 출고 완료된 전표를 다시 출력합니다.\n재발행이며 품목 상태는 출고 완료로 유지됩니다.`:`[최초 발행 안내] 출고 대기 품목의 전표를 최초 발행합니다.\n발행 처리 후 해당 품목만 출고 중으로 변경됩니다.`;if(!confirm(notice+`\n\n선택한 ${refs.length}개 품목을 진행하시겠습니까?`))return;
+ if(!confirm(`선택한 ${refs.length}개 품목의 출고전표를 발행하시겠습니까? 출력 시 출고 중으로 변경됩니다.`))return;
  const w=window.open('','_blank');
  if(!w){alert('팝업이 차단되었습니다. 팝업을 허용한 뒤 다시 시도해 주세요.');return;}
  printShipmentSlipsV176(refs,w);
@@ -6011,12 +6106,12 @@ function v181HasPriorPlateFeeCharge(r){
  );
 }
 async function v181AddToCart(id){
- const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted')return;
+ const r=wjQuoteRequestsV130.find(x=>String(x.id)===String(id));if(!r||r.status!=='quoted'||r.admin_unit_price==null||String(r.client_id)!==String(quoteCurrentClientV130()?.id))return;
  if(!Number.isFinite(v185BoxPrice(r))){alert('M단가의 길이와 박스당 입수량을 관리자에게 확인해 주세요.');return;}
  if(cartItems.some(x=>x.customQuote&&String(x.quoteRequestId)===String(id))){alert('이미 장바구니에 담긴 견적입니다. 장바구니에서 수량을 변경해 주세요.');go('cartPage');return;}
- const min=v181Min(r),qty=Math.floor(Number(document.getElementById('v181BoxQty_'+id)?.value||min));
+ const min=v181Min(r),d=v181D(r),qty=Math.floor(Number(document.getElementById('v181BoxQty_'+id)?.value||Math.max(min,Number(d.q)||1)));
  if(!Number.isFinite(qty)||qty<min){alert(`MOQ ${min.toLocaleString()}박스 이상 입력해 주세요.`);return}
- const d=v181D(r),productId='wjquote-'+r.id,priorPlateCharged=v181HasPriorPlateFeeCharge(r),plateFee=priorPlateCharged?0:Number(r.admin_plate_fee||0),item={key:'wjquote-cart-'+r.id+'-'+Date.now(),productId,customQuote:true,quoteRequestId:String(r.id),customName:r.product_name,customSpec:`${d.w}mm × ${d.l}m · ${d.m}`,customUnitPrice:v185BoxPrice(r),customPriceBasis:r.details?.priceBasis||'box',customRawUnitPrice:Number(r.admin_unit_price||0),customPlateFee:plateFee,qty,moq:min,packagingOptionName:'비규격 제작',boxType:'기본 박스',boxStamp:'',palletType:'나무',coreType:'공용지관'};
+ const productId='wjquote-'+r.id,priorPlateCharged=v181HasPriorPlateFeeCharge(r),plateFee=priorPlateCharged?0:Number(r.admin_plate_fee||0),item={key:'wjquote-cart-'+r.id+'-'+Date.now(),productId,customQuote:true,quoteRequestId:String(r.id),customName:r.product_name,customSpec:`${d.w}mm × ${d.l}m · ${d.m}`,customUnitPrice:v185BoxPrice(r),customPriceBasis:r.details?.priceBasis||'box',customRawUnitPrice:Number(r.admin_unit_price||0),customPlateFee:plateFee,qty,moq:min,packagingOptionName:'비규격 제작',boxType:'기본 박스',boxStamp:'',palletType:'나무',coreType:'공용지관'};
  v181EnsureProduct(item);document.getElementById('v181DetailModal')?.remove();
  if(!openAddCartOptionModal(productId,qty))return;
  const input=document.getElementById('addCartQty');input.min=min;
@@ -6172,8 +6267,26 @@ function v186InitTabs(){
  quotePanel.appendChild(quote);
  const filter=page.querySelector('[aria-label="제품 검색 및 필터"]'),table=document.getElementById('productGrid').closest('.card'),pager=document.getElementById('clientProductPaginationV126');
  productPanel.append(filter,table,pager);page.append(productPanel,quotePanel);
- const filterBox=document.createElement('div');filterBox.className='order-filter-panel';filterBox.innerHTML=`<div class="v186-quote-search"><div><label class="order-filter-label">요청 제품 검색</label><div class="smartbox" id="clientQuoteSmartV186"></div></div><div><label class="order-filter-label">진행 상태</label><select id="clientQuoteStatusV186" onchange="window.wjClientQuotePageV139=1;renderClientQuoteRequestsV130()"><option value="all">전체</option><option value="requested">견적 요청</option><option value="quoted">견적 회신 완료</option><option value="approved">발주 완료</option><option value="rejected">견적 불가</option><option value="cancelled">견적 취소</option></select></div><button class="small-btn" onclick="document.getElementById('clientQuoteSmartV186')._smartSet([]);document.getElementById('clientQuoteStatusV186').value='all';window.wjClientQuotePageV139=1;renderClientQuoteRequestsV130()">초기화</button></div>`;quote.querySelector('.table-wrap').before(filterBox);
- quote.querySelector('thead tr').innerHTML='<th>요청일</th><th>제품명 / 요청 내용</th><th>예상 수량</th><th>진행 상태</th><th>관리</th>';
+ const filterBox=filter.cloneNode(true);
+ filterBox.setAttribute('aria-label','견적 요청 검색 및 필터');
+ filterBox.querySelector('.order-filter-label').textContent='요청 제품명 / 규격';
+ filterBox.querySelector('input').outerHTML='<input class="smartinput" id="clientQuoteSearchV187" type="search" aria-label="요청 제품명 또는 규격" placeholder="요청 제품명 / 규격 검색">';
+ filterBox.querySelector('.smartbox').removeAttribute('id');
+ const status=filterBox.querySelector('select');status.id='clientQuoteStatusV186';
+ status.previousElementSibling.textContent='진행 상태';
+ status.previousElementSibling.htmlFor=status.id;
+ status.innerHTML='<option value="all">전체</option><option value="requested">견적 요청</option><option value="quoted">견적 회신 완료</option><option value="approved">발주 완료</option><option value="rejected">견적 불가</option><option value="cancelled">견적 취소</option>';
+ const search=filterBox.querySelector('input');
+ const apply=()=>{window.wjClientQuoteSearchV187=search.value.trim().toLocaleLowerCase();window.wjClientQuotePageV139=1;renderClientQuoteRequestsV130();};
+ search.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();apply();}};
+ status.removeAttribute('onchange');status.onchange=apply;
+ const [searchBtn,resetBtn]=filterBox.querySelectorAll('button');
+ searchBtn.onclick=apply;
+ resetBtn.onclick=()=>{search.value='';status.value='all';apply();};
+ const quoteTable=quote.querySelector('.table-wrap'),quotePager=quote.querySelector('#v130ClientQuotePaginationV139');
+ quoteTable.classList.add('card');quotePanel.replaceChildren(filterBox,quoteTable,quotePager);
+ quotePanel.classList.remove('v130-quote-panel');
+ quoteTable.querySelector('thead tr').innerHTML='<th>요청일</th><th>제품명 / 요청 내용</th><th>예상 수량</th><th>진행 상태</th><th>단가</th><th>주문</th><th>관리</th>';
  v186ProductTab('products');
 }
 function v185QuoteActions(r,admin){
@@ -6182,14 +6295,22 @@ function v185QuoteActions(r,admin){
  if(!admin&&r.status==='requested')return `<button class="btn light" onclick="v185QuoteAction('${id}','cancel')">견적 취소</button>`;
  return '';
 }
+function changeClientQuotePageV139(delta){
+ window.wjClientQuotePageV139=Math.max(1,Number(window.wjClientQuotePageV139||1)+delta);
+ renderClientQuoteRequestsV130();
+}
 function renderClientQuoteRequestsV130(){
  const body=document.getElementById('v130ClientQuoteRows');if(!body)return;
  const c=quoteCurrentClientV130(),own=(wjQuoteRequestsV130||[]).filter(r=>String(r.client_id)===String(c?.id||''));
- smartBuild('clientQuoteSmartV186',own.map(r=>({value:r.id,label:[r.product_name,r.product_spec,v181D(r).m].filter(Boolean).join(' · ')})),'제품명 / 규격 검색 · 여러 개 선택',()=>{window.wjClientQuotePageV139=1;renderClientQuoteRequestsV130();});
- const selected=smartGet('clientQuoteSmartV186'),status=document.getElementById('clientQuoteStatusV186')?.value||'all',rows=own.filter(r=>(!selected.length||selected.includes(String(r.id)))&&(status==='all'||r.status===status));
- const size=5,total=Math.max(1,Math.ceil(rows.length/size));window.wjClientQuoteCountV139=rows.length;window.wjClientQuotePageV139=Math.min(total,Math.max(1,Number(window.wjClientQuotePageV139||1)));const page=window.wjClientQuotePageV139,start=(page-1)*size;
- body.innerHTML=rows.slice(start,start+size).map(r=>{const d=v181D(r),id=escapeHtmlV8(r.id);return `<tr><td>${escapeHtmlV8(String(r.created_at||'').slice(0,10))}</td><td><button class="product-admin-name-v126" onclick="v181OpenDetail('${id}','client')">${escapeHtmlV8(r.product_name||'')}</button><div class="v180-quote-meta">${escapeHtmlV8([d.w+'mm',d.l+'m',d.m].filter(Boolean).join(' · '))}</div></td><td>${v184QtyLabel(d)}</td><td>${v185QuoteBadge(r)}</td><td><div class="v186-actions"><button class="small-btn" onclick="v181OpenDetail('${id}','client')">상세</button><button class="small-btn danger" ${r.status==='approved'?'disabled title="발주와 연결된 견적은 삭제할 수 없습니다."':''} onclick="v185QuoteAction('${id}','delete')">삭제</button></div></td></tr>`;}).join('')||'<tr><td colspan="5" class="v4-empty">검색 조건에 맞는 견적 요청이 없습니다.</td></tr>';
- const pg=document.getElementById('v130ClientQuotePaginationV139');if(pg)pg.innerHTML=`<div class="pagination-left">총 ${rows.length}건 · 페이지당 5개</div><div class="pagination-right"><button onclick="changeClientQuotePageV139(-1)" ${page<=1?'disabled':''}>이전</button><span>${page} / ${total} 페이지</span><button onclick="changeClientQuotePageV139(1)" ${page>=total?'disabled':''}>다음</button></div>`;
+ const terms=(window.wjClientQuoteSearchV187||'').split(/\s+/).filter(Boolean);
+ const status=document.getElementById('clientQuoteStatusV186')?.value||'all';
+ const rows=own.filter(r=>{
+  const d=v181D(r),searchable=[r.product_name,r.product_spec,d.m,d.w,d.l].join(' ').toLocaleLowerCase();
+  return (status==='all'||r.status===status)&&terms.every(term=>searchable.includes(term));
+ });
+ const size=20,total=Math.max(1,Math.ceil(rows.length/size));window.wjClientQuoteCountV139=rows.length;window.wjClientQuotePageV139=Math.min(total,Math.max(1,Number(window.wjClientQuotePageV139||1)));const page=window.wjClientQuotePageV139,start=(page-1)*size;
+ body.innerHTML=rows.slice(start,start+size).map(r=>{const d=v181D(r),id=escapeHtmlV8(r.id);return `<tr><td>${escapeHtmlV8(String(r.created_at||'').slice(0,10))}</td><td><button class="product-admin-name-v126" onclick="v181OpenDetail('${id}','client')">${escapeHtmlV8(r.product_name||'')}</button><div class="v180-quote-meta">${escapeHtmlV8([d.w+'mm',d.l+'m',d.m].filter(Boolean).join(' · '))}</div></td><td>${v184QtyLabel(d)}</td><td>${v185QuoteBadge(r)}</td><td>${r.admin_unit_price!=null&&['quoted','approved'].includes(r.status)?v185QuotePriceText(r):'—'}</td><td>${r.status==='quoted'&&r.admin_unit_price!=null?`<button type="button" class="small-btn order-filter-search" onclick="v181AddToCart('${id}')">담기</button>`:'—'}</td><td><div class="v186-actions"><button class="small-btn" onclick="v181OpenDetail('${id}','client')">상세</button><button class="small-btn danger" ${r.status==='approved'?'disabled title="발주와 연결된 견적은 삭제할 수 없습니다."':''} onclick="v185QuoteAction('${id}','delete')">삭제</button></div></td></tr>`;}).join('')||'<tr><td colspan="7" class="v4-empty">검색 조건에 맞는 견적 요청이 없습니다.</td></tr>';
+ const pg=document.getElementById('v130ClientQuotePaginationV139');if(pg)pg.innerHTML=`<div class="pagination-left">총 ${rows.length}건 · 페이지당 ${size}개</div><div class="pagination-right"><button onclick="changeClientQuotePageV139(-1)" ${page<=1?'disabled':''}>이전</button><span>${page} / ${total} 페이지</span><button onclick="changeClientQuotePageV139(1)" ${page>=total?'disabled':''}>다음</button></div>`;
 }
 const v186AdminQuotesPrior=renderQuoteRequestsAdminV130;
 renderQuoteRequestsAdminV130=function(){
@@ -6215,7 +6336,7 @@ function v186EnableWorkEditing(frame){
  const style=doc.createElement('style');style.textContent='.wj186-print-text{display:none}.wj186-edit{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:1.3em;margin:0;padding:1px;border:1px dashed transparent;outline:0;background:transparent;color:inherit;font:inherit;text-align:inherit;line-height:inherit;resize:vertical;overflow:hidden;vertical-align:middle}.wj186-edit:hover,.wj186-edit:focus{border-color:#60a5fa;background:#eff6ff}@media print{.wj186-edit{display:none!important}.wj186-print-text{display:inline!important;white-space:pre-wrap}}';doc.head.appendChild(style);
 }
 
-document.addEventListener('DOMContentLoaded',v186InitTabs);
+document.addEventListener('DOMContentLoaded',()=>{v186InitTabs();setInterval(showScheduledNoticePopup,30000);});
 
 </script>
 <style id="v186-ui-style">[hidden]{display:none!important}.v186-tabs{display:flex;gap:8px;margin:0 0 18px;border-bottom:1px solid #dbe3ee;padding-bottom:10px}.v186-tabs button{padding:12px 24px;border:1px solid #dbe3ee;background:#fff;border-radius:9px;font-weight:800;color:#64748b;cursor:pointer}.v186-tabs button.active{color:#fff;background:#2563eb;border-color:#2563eb}.v186-actions{display:flex;gap:7px;justify-content:center;white-space:nowrap}.v186-actions .small-btn{min-width:58px}.danger{color:#b91c1c!important}.v186-quote-search{display:grid;grid-template-columns:minmax(230px,1fr) 190px auto;gap:14px;align-items:end}.v186-quote-search select{width:100%;height:40px;border:1px solid #cbd5e1;border-radius:8px;padding:8px}.client-order-filter-grid{grid-template-columns:minmax(200px,1fr) minmax(230px,1fr) minmax(230px,1fr)!important}.client-order-filter-grid>.order-filter-actions{grid-column:1/-1;justify-content:flex-end}@media(max-width:1000px){.client-order-filter-grid{grid-template-columns:1fr!important}.v186-quote-search{grid-template-columns:1fr}.v186-tabs button{flex:1;padding:12px 10px}}</style>
@@ -6248,14 +6369,32 @@ async function printShipmentSlipsV176(refs,w){
  const btn=doc.getElementById('v186ShipPrint');btn.disabled=true;
  try{
   sync();localStorage.setItem('wonjun_supplier_print_v186',JSON.stringify(info));
-  if(!committed){const updates=refs.filter(x=>v185ItemStatus(x.o,x.it)==='출고 대기').map(x=>({id:String(x.it.rowId),item_status:'출고 중',shipped_at:new Date().toISOString()}));
+  if(!committed){await v187CheckServerStatus(refs,'출고 대기');const updates=refs.map(x=>({id:String(x.it.rowId),item_status:'출고 중',shipped_at:new Date().toISOString()}));
    if(updates.length){const r=await supabaseERP.rpc('wj_update_items_v186',{p_updates:updates});if(r.error)throw r.error;}
-   committed=true;refs.forEach(x=>{if(v185ItemStatus(x.o,x.it)==='출고 대기')x.it.itemStatus='출고 중';});window.wjSelectedOrderItemsV148.clear();await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();
+   committed=true;refs.forEach(x=>{x.it.itemStatus='출고 중';});window.wjSelectedOrderItemsV148.clear();await loadOrdersFromSupabase();renderAdminOrders();renderClientOrders();
   }
-  btn.textContent='다시 인쇄 / PDF 저장';w.focus();w.print();
- }catch(e){alert('출고전표 발행 실패: '+(e.message||e));}finally{btn.disabled=false;}
+  btn.textContent='발행 완료';w.focus();w.print();
+ }catch(e){alert('출고전표 발행 실패: '+(e.message||e));}finally{if(!committed)btn.disabled=false;}
  };
  }catch(e){alert('출고전표 미리보기 실패: '+(e.message||e));}
 }
 
 </script>
+<style id="v187-ui-style">
+#adminOrders .admin-order-aligned-table .v187-shipping-cell {width:144px!important;min-width:144px!important;max-width:144px!important}
+.v187-shipping-content {width:120px;min-height:34px;overflow:hidden;text-overflow:ellipsis}
+.v187-shipping-note {overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#64748b;margin-top:3px}
+#v186QuotesPanel .table-wrap {overflow-x:auto}
+#v186QuotesPanel .table-wrap table {min-width:740px}
+#v186QuotesPanel td:nth-child(5) {white-space:normal;min-width:135px}
+#v186QuotesPanel .small-btn.order-filter-search {background:#2563eb;color:#fff;border-color:#2563eb}
+#v130ClientQuotePaginationV139 {display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.v187-notice-settings {min-width:0;margin:12px 0 0;padding:12px 14px;border:1px solid #dbe1e8;border-radius:10px;background:#f8fafc}
+.v187-notice-settings legend {padding:0 5px;font-weight:700;font-size:13px}
+.v187-notice-check {display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}
+.v187-notice-check input {width:16px;height:16px;margin:0;accent-color:#2563eb}
+.v187-notice-always {margin:8px 0 0 24px;font-size:12px;font-weight:500}
+.v187-notice-dates {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.v187-notice-dates input:disabled {opacity:.55}
+@media(max-width:460px){.v187-notice-dates{grid-template-columns:1fr}}
+</style>
