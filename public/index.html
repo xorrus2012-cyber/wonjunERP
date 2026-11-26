@@ -2874,7 +2874,7 @@ function openAddCartOptionModal(id,qty){
  document.getElementById('modalTitle').textContent='장바구니에 담기';
  const packOptions=getPackagingOptionsV129(p.id,true);const firstPack=packOptions[0]||null;
  const parsedSpec=parseWJProductSpec(p.spec||'');const standardStamp=String(parsedSpec.length||'').trim();
- body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위 · 부가세 별도</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label for="addCartPackagingOptionV129">포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label for="addCartBoxType">박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartPalletType">파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartCoreType">지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartStampMode">도장표기</label><div id="addCartStampControl"><select id="addCartStampMode" onchange="toggleCartStampInputV178(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartQty">총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
+ body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위 · 부가세 별도</span></div><div class="order-option-modal-grid">${packOptions.length?`<div class="order-option-card full"><label for="addCartPackagingOptionV129">포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select></div>`:''}<div class="order-option-card"><label for="addCartBoxType">박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartPalletType">파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartCoreType">지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartStampMode">도장표기</label><div id="addCartStampControl"><select id="addCartStampMode" onchange="toggleCartStampInputV178(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartQty">총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
 
  const save=document.getElementById('modalSave'); save.style.display=''; save.textContent='장바구니에 담기';
  save.onclick=()=>{
@@ -6436,5 +6436,23 @@ body {font-size:var(--erp-body-text)}
 #modalBg:has(#addCartBoxType) .order-option-card :is(label,select,input) {font-size:15px}
 @media(max-width:600px){
   .topbar #pageTitle,.page .page-head h2 {font-size:20px}
+}
+</style>
+
+<style id="v189-cart-options">
+#modalBg:has(#addCartBoxType) .order-option-modal-grid {
+  border:1px solid #dbe3ec;
+  border-radius:9px;
+  padding:18px;
+  background:#f8fafc;
+}
+#modalBg:has(#addCartBoxType) .order-option-card :is(label,select,input) {
+  text-align:center;
+}
+#modalBg:has(#addCartBoxType) .order-option-card select {
+  text-align-last:center;
+}
+@media(max-width:600px){
+  #modalBg:has(#addCartBoxType) .order-option-modal-grid {padding:12px}
 }
 </style>
