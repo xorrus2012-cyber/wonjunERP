@@ -1207,7 +1207,7 @@ body{font-size:14px}
           </div>
         </div>
 <div class="bulk-v6"><button class="small-btn" onclick="bulkOrderStatus()">상태 변경</button><button class="small-btn doc-btn" onclick="issueSelectedWorkInstructionsV148()">작업지시서 발행</button><button class="small-btn" onclick="openShipmentSlipForSelectedV171()">출고전표 출력</button><button class="small-btn" style="border-color:#fecaca;color:#b91c1c" onclick="deleteSelectedOrdersV70()">주문 삭제</button><button class="small-btn" onclick="downloadOrderExcelV71(false)">EXCEL</button><span id="orderResultV6" class="result-v6"></span></div>
-        <div class="card table-wrap"><table class="admin-order-aligned-table"><thead><tr><th class="order-head-check"><input id="adminOrderSelectAll" class="order-check-v6" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleAllOrders(this.checked)"></th><th>발주번호</th><th>거래처</th><th>접수일</th><th>상태</th><th class="v187-shipping-cell">출고수단</th><th>품명</th><th>규격</th><th>총 박스 수량</th><th>포장단위</th><th>박스 종류</th><th>도장표기</th><th>파렛트</th><th>지관</th><th>금액</th><th>출고예정일</th><th>작업지시서 발행일</th><th>상세</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
+        <div class="card table-wrap"><table class="admin-order-aligned-table"><thead><tr><th class="order-head-check"><input id="adminOrderSelectAll" class="order-check-v6" type="checkbox" aria-label="전체 선택" title="전체 선택" onchange="toggleAllOrders(this.checked)"></th><th>발주번호</th><th class="v188-align-text">거래처</th><th>접수일</th><th>상태</th><th class="v187-shipping-cell">출고수단</th><th class="v188-align-text">품명</th><th>규격</th><th class="v188-align-number">총 박스 수량</th><th>포장단위</th><th>박스 종류</th><th>도장표기</th><th>파렛트</th><th>지관</th><th class="v188-align-number">금액</th><th>출고예정일</th><th>작업지시서 발행일</th><th>상세</th></tr></thead><tbody id="adminOrderRows"></tbody></table></div>
 <div id="adminOrderPagination" aria-label="주문 목록 페이지 이동"></div>
       </section>
 
@@ -2874,7 +2874,7 @@ function openAddCartOptionModal(id,qty){
  document.getElementById('modalTitle').textContent='장바구니에 담기';
  const packOptions=getPackagingOptionsV129(p.id,true);const firstPack=packOptions[0]||null;
  const parsedSpec=parseWJProductSpec(p.spec||'');const standardStamp=String(parsedSpec.length||'').trim();
- body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label>포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select><div class="v129-option-label">선택한 포장 단가 기준으로 공급가액과 부가세가 계산됩니다.</div></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label>박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label>지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label>도장표기</label><div id="addCartStampControl"><select id="addCartStampMode" onchange="toggleCartStampInputV178(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label>총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
+ body.innerHTML=`<div class="order-option-modal-product"><b>${escapeHtmlV8(p.name)}</b><span>${escapeHtmlV8(displayProductSpecV143(p))} · <span id="v129SelectedUnitPrice">${won(firstPack?getPackagingUnitPriceV129(p,firstPack.id):price(p))}</span> / 포장단위 · 부가세 별도</span></div>${packOptions.length?`<div class="order-option-card full" style="margin-bottom:10px"><label for="addCartPackagingOptionV129">포장단위</label><select id="addCartPackagingOptionV129"><option value="">선택해 주세요</option>${packOptions.map(o=>`<option value="${escapeHtmlV8(o.id)}">${escapeHtmlV8(o.name)} · ${won(getPackagingUnitPriceV129(p,o.id))}</option>`).join('')}</select></div>`:''}<div class="order-option-modal-grid"><div class="order-option-card"><label for="addCartBoxType">박스 종류</label><select id="addCartBoxType"><option value="">선택해 주세요</option>${lists.box.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartPalletType">파렛트 종류</label><select id="addCartPalletType"><option value="">선택해 주세요</option>${lists.pallet.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}</select></div><div class="order-option-card"><label for="addCartCoreType">지관</label><div id="addCartCoreControl"><select id="addCartCoreType" onchange="toggleCartCoreCustomV165(this.value)"><option value="">선택해 주세요</option>${lists.core.map(x=>`<option value="${escapeHtmlV8(x)}">${escapeHtmlV8(x)}</option>`).join('')}<option value="__custom__">기타 지관 직접 입력</option></select><input id="addCartCoreCustom" maxlength="100" placeholder="지관 종류 직접 입력" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartStampMode">도장표기</label><div id="addCartStampControl"><select id="addCartStampMode" onchange="toggleCartStampInputV178(this.value)"><option value="">선택해 주세요</option><option value="basic">기본${standardStamp?` (${escapeHtmlV8(standardStamp)}m)`: ' (제품 길이 자동 표기)'}</option><option value="none">미표기</option><option value="custom">직접입력</option></select><input id="addCartBoxStamp" maxlength="100" placeholder="박스에 표시할 문구를 입력하세요" style="display:none;margin-top:0"></div></div><div class="order-option-card full"><label for="addCartQty">총 박스 수량</label><input id="addCartQty" type="number" min="1" value="${Math.max(1,Math.floor(Number(qty)||1))}"></div></div>`;
 
  const save=document.getElementById('modalSave'); save.style.display=''; save.textContent='장바구니에 담기';
  save.onclick=()=>{
@@ -3455,10 +3455,10 @@ function renderAdminOrders(){
    const spec=it.spec||'-',qty=Number(it.qty||0),amount=Number(it.supplyAmount??it.amount??0);
    rowsHtml.push(`<tr class="${o.isUrgent?'urgent-order-row-v174':''}" style="${o.isUrgent?'background:#fff1f2;':''}">
     <td><input class="order-check-v6" type="checkbox" value="${escapeHtmlV8(key)}" ${previouslyChecked.has(key)?'checked':''} ${legacy?'disabled title="개별 품목 ID가 없어 선택 작업을 할 수 없습니다."':''}></td>
-    ${first?`<td rowspan="${count}" style="vertical-align:middle;background:#fafcff"><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" style="vertical-align:middle;background:#fafcff">${escapeHtmlV8(o.client)}</td><td rowspan="${count}" style="vertical-align:middle;background:#fafcff">${formatOrderDateTime(o)}</td>`:''}
+    ${first?`<td rowspan="${count}" style="vertical-align:middle;background:#fafcff"><b class="detail-link" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">${escapeHtmlV8(o.no)}</b></td><td rowspan="${count}" class="v188-align-text" style="vertical-align:middle;background:#fafcff">${escapeHtmlV8(o.client)}</td><td rowspan="${count}" style="vertical-align:middle;background:#fafcff">${formatOrderDateTime(o)}</td>`:''}
     <td>${orderStatusBadgeV54(status)}</td><td class="v187-shipping-cell"><div class="v187-shipping-content">${v185Shipping(o,it)}</div></td>
-    <td><b>${escapeHtmlV8(it.name||'-')}</b></td><td>${escapeHtmlV8(spec)}</td><td>${qty.toLocaleString()}박스</td>
-    <td>${escapeHtmlV8(formatAdminPackagingOptionV167(it.packagingOptionName||it.packaging_option_name||'-'))}</td><td>${escapeHtmlV8(it.boxType||it.box_type||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||it.box_stamp||'미표기')}</b></td><td>${escapeHtmlV8(it.palletType||it.pallet_type||'나무')}</td><td>${escapeHtmlV8(it.coreType||it.core_type||'공용지관')}</td><td>${won(amount)}</td>
+    <td class="v188-align-text"><b>${escapeHtmlV8(it.name||'-')}</b></td><td>${escapeHtmlV8(spec)}</td><td class="v188-align-number">${qty.toLocaleString()}박스</td>
+    <td>${escapeHtmlV8(formatAdminPackagingOptionV167(it.packagingOptionName||it.packaging_option_name||'-'))}</td><td>${escapeHtmlV8(it.boxType||it.box_type||'기본 박스')}</td><td><b>${escapeHtmlV8(it.boxStamp||it.box_stamp||'미표기')}</b></td><td>${escapeHtmlV8(it.palletType||it.pallet_type||'나무')}</td><td>${escapeHtmlV8(it.coreType||it.core_type||'공용지관')}</td><td class="v188-align-number">${won(amount)}</td>
     <td class="v151-expected-cell"><button type="button" class="small-btn v152-calendar-trigger" data-ship-key="${escapeHtmlV8(key)}" onclick="openShipDatePickerV153('${escapeHtmlV8(key)}')">▦ ${escapeHtmlV8(String(it.expectedShipDate||'').slice(0,10)||'날짜 선택')}</button></td>
     <td class="v149-issued-date">${formatWorkIssuedDateV149(it.workIssuedAt)}</td>
     ${first?`<td rowspan="${count}" style="vertical-align:middle;text-align:center;background:#fafcff;white-space:nowrap"><button class="small-btn" onclick="showOrderDetail('${escapeHtmlV8(o.no)}')">주문 상세</button></td>`:''}
@@ -6397,4 +6397,44 @@ async function printShipmentSlipsV176(refs,w){
 .v187-notice-dates {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .v187-notice-dates input:disabled {opacity:.55}
 @media(max-width:460px){.v187-notice-dates{grid-template-columns:1fr}}
+</style>
+
+
+<style id="v188-readability">
+:root {
+  --erp-page-title:22px;
+  --erp-section-title:17px;
+  --erp-subtitle:15px;
+  --erp-body-text:15px;
+  --erp-table-text:14px;
+  --erp-label-text:13px;
+}
+body {font-size:var(--erp-body-text)}
+.topbar #pageTitle,.page .page-head h2 {font-size:var(--erp-page-title);line-height:1.3}
+.page .section-title,.page .card h3,.modal .modal-head h3 {font-size:var(--erp-section-title);line-height:1.35}
+.page .card h4,.modal .modal-body h4 {font-size:var(--erp-subtitle);line-height:1.4}
+.page .page-head p,.page .order-filter-label,.page .field label,.modal .field label {font-size:var(--erp-label-text)}
+.page .table-wrap thead th,.modal .table-wrap thead th {font-size:var(--erp-label-text)}
+.page .table-wrap tbody td,.modal .table-wrap tbody td {font-size:var(--erp-table-text)}
+.page .order-filter-actions {align-items:end}
+.page .order-filter-actions .order-filter-search,
+.page .order-filter-actions .order-filter-reset {font-size:13px;min-height:40px}
+#products #v186ProductsPanel .table-wrap :is(th,td):nth-child(6),
+#products #v186QuotesPanel .table-wrap :is(th,td):nth-child(5) {
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+#products #v186QuotesPanel .table-wrap :is(th,td):is(:nth-child(4),:nth-child(6),:nth-child(7)) {text-align:center}
+#adminOrders .table-wrap table.admin-order-aligned-table .v188-align-text {text-align:left!important}
+#adminOrders .table-wrap table.admin-order-aligned-table .v188-align-number {
+  text-align:right!important;
+  font-variant-numeric:tabular-nums;
+}
+#modalBg:has(#addCartBoxType) .modal-head h3 {font-size:18px}
+#modalBg:has(#addCartBoxType) .order-option-modal-product b {font-size:18px}
+#modalBg:has(#addCartBoxType) .order-option-modal-product span {font-size:14px}
+#modalBg:has(#addCartBoxType) .order-option-card :is(label,select,input) {font-size:15px}
+@media(max-width:600px){
+  .topbar #pageTitle,.page .page-head h2 {font-size:20px}
+}
 </style>
